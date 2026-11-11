@@ -1,0 +1,154 @@
+import { CameraView, useCameraPermissions } from 'expo-camera';
+import { useRef, useState } from 'react';
+import { ActivityIndicator, Platform, View } from 'react-native';
+
+import { ProductoForm } from '@/components/producto-form';
+import { Aviso, Boton, Icono, Pantalla, Texto } from '@/components/ui';
+import type { Producto } from '@/lib/calculo';
+import { volver } from '@/lib/navegacion';
+import { buscarCodigo, type DatosOFF } from '@/lib/off';
+import { useAguante } from '@/lib/store';
+import { useC } from '@/lib/tema';
+import { useResultado } from '@/lib/use-resultado';
+
+type Fase = 'escaneando' | 'buscando' | 'formulario';
+
+/** Lo que se ha encontrado, en la forma en que lo espera el formulario. */
+function aProducto(d: DatosOFF): Partial<Producto> {
+  const nombre = [d.nombre, d.marca].filter(Boolean).join(' · ');
+  // Una botella de agua: va en litros y no tiene calorías
+  if (d.litros && !d.kcal100g && /agua|water/i.test(d.nombre)) {
+    return { nombre, categoria: 'agua', litrosPorUnidad: d.litros, imagen: d.imagen, codigo: d.codigo };
+  }
+  return { nombre, gramos: d.gramos, kcal100g: d.kcal100g, imagen: d.imagen, codigo: d.codigo };
+}
+
+export default function Anadir() {
+  const C = useC();
+  const [permiso, pedirPermiso] = useCameraPermissions();
+  const guardar = useAguante((s) => s.guardarProducto);
+  const r = useResultado('normal');
+  const [fase, setFase] = useState<Fase>(Platform.OS === 'web' ? 'formulario' : 'escaneando');
+  const [datos, setDatos] = useState<DatosOFF | null>(null);
+  const [mensaje, setMensaje] = useState<string | null>(null);
+  const [codigo, setCodigo] = useState<string | null>(null);
+  const [sinConexion, setSinConexion] = useState(false);
+  // La cámara dispara el mismo código varias veces seguidas: nos quedamos con el primero
+  const leido = useRef(false);
+
+  const buscar = async (c: string) => {
+    setCodigo(c);
+    setFase('buscando');
+    const res = await buscarCodigo(c);
+    setSinConexion(res.estado === 'error');
+    if (res.estado === 'encontrado') {
+      setDatos(res.datos);
+      setMensaje(
+        res.datos.kcal100g
+          ? 'Encontrado en Open Food Facts. Revisa los datos y pon la caducidad.'
+          : 'Está en Open Food Facts, pero sin las calorías: cópialas de la etiqueta.',
+      );
+    } else if (res.estado === 'no-encontrado') {
+      setDatos(null);
+      setMensaje(`El código ${c} no está en Open Food Facts. Escribe el nombre y elige una sugerencia, o rellénalo a mano.`);
+    } else {
+      setDatos(null);
+      setMensaje(`No se pudo consultar Open Food Facts (${res.detalle}). Revisa la conexión y reintenta, o rellénalo a mano.`);
+    }
+    setFase('formulario');
+  };
+
+  const alEscanear = (c: string) => {
+    if (leido.current) return;
+    leido.current = true;
+    buscar(c);
+  };
+
+  const escanearOtra = () => {
+    leido.current = false;
+    setDatos(null);
+    setMensaje(null);
+    setCodigo(null);
+    setSinConexion(false);
+    setFase('escaneando');
+  };
+
+  return (
+    <Pantalla>
+      {fase === 'escaneando' && (
+        <View style={{ gap: 12 }}>
+          {permiso?.granted ? (
+            <View style={{ height: 280, borderRadius: 22, overflow: 'hidden', backgroundColor: '#14211B' }}>
+              <CameraView
+                style={{ flex: 1 }}
+                barcodeScannerSettings={{ barcodeTypes: ['ean13', 'ean8', 'upc_a', 'upc_e'] }}
+                onBarcodeScanned={({ data }) => alEscanear(data)}
+              />
+              <View pointerEvents="none" style={{ position: 'absolute', left: 24, right: 24, top: 139, height: 2, backgroundColor: '#F97066' }} />
+            </View>
+          ) : (
+            <View style={{ borderRadius: 22, backgroundColor: C.heroe, borderWidth: 1, borderColor: C.heroeBorde, alignItems: 'center', gap: 12, padding: 20 }}>
+              <Icono name="barcode-scan" color={C.heroeTexto} size={40} />
+              <Texto color={C.heroeSuave} centro>
+                Para escanear el código de barras necesitamos la cámara.
+              </Texto>
+              <View style={{ alignSelf: 'stretch' }}>
+                <Boton variante="suave" onPress={pedirPermiso}>
+                  Permitir la cámara
+                </Boton>
+              </View>
+            </View>
+          )}
+          <Texto tam={14} color={C.suave} centro>
+            Apunta al código de barras del producto
+          </Texto>
+          <Boton variante="secundario" icono="pencil-outline" onPress={() => setFase('formulario')}>
+            Escribirlo a mano
+          </Boton>
+        </View>
+      )}
+
+      {fase === 'buscando' && (
+        <View style={{ padding: 32, alignItems: 'center', gap: 12 }}>
+          <ActivityIndicator color={C.tinta} />
+          <Texto color={C.suave}>Buscando el producto…</Texto>
+        </View>
+      )}
+
+      {fase === 'formulario' && (
+        <>
+          {mensaje && <Aviso tono={datos?.kcal100g ? 'verde' : 'ambar'} texto={mensaje} />}
+          {(sinConexion || Platform.OS !== 'web') && (
+            <View style={{ flexDirection: 'row', gap: 8 }}>
+              {sinConexion && codigo && (
+                <View style={{ flex: 1 }}>
+                  <Boton pequeno variante="secundario" icono="refresh" onPress={() => buscar(codigo)}>
+                    Reintentar
+                  </Boton>
+                </View>
+              )}
+              {Platform.OS !== 'web' && (
+                <View style={{ flex: 1 }}>
+                  <Boton pequeno variante="secundario" icono="barcode-scan" onPress={escanearOtra}>
+                    {codigo ? 'Escanear otro' : 'Escanear'}
+                  </Boton>
+                </View>
+              )}
+            </View>
+          )}
+          <ProductoForm
+            key={codigo ?? 'manual'}
+            inicial={datos ? aProducto(datos) : codigo ? { codigo } : undefined}
+            origenInicial={datos ? 'Open Food Facts' : undefined}
+            textoGuardar="Guardar en la reserva"
+            diasPorKcal={r.kcalDia || undefined}
+            onGuardar={(p) => {
+              guardar(p);
+              volver();
+            }}
+          />
+        </>
+      )}
+    </Pantalla>
+  );
+}

@@ -1,0 +1,260 @@
+# Fuentes y reglas de cálculo
+
+Este documento es la referencia de `src/lib/calculo.ts`. Cada número del
+código sale de aquí, y aquí se dice de dónde sale. Donde no hay fuente y el
+valor es una decisión nuestra, se marca como **[propio]**.
+
+Consultado el 11 de noviembre de 2026.
+
+## Principios que fijan las fuentes
+
+1. **El agua para beber no se raciona.** El folleto de FEMA, Cruz Roja y USDA
+   *Food and Water in an Emergency* dice: «If supplies run low, never ration
+   water». Recomienda beber lo que haga falta hoy y buscar más para mañana. Es
+   una edición archivada, no la web actual de Ready.gov.
+   Fuente: <https://webharvest.gov/peth04/20041015031112/http://www.fema.gov/rrr/foodwtr.shtm>
+   → Ningún modo baja el agua por debajo de la cantidad para beber. Lo único
+   que se recorta es el agua de higiene y cocina.
+
+2. **La comida sí se puede racionar, salvo a niños y embarazadas.** El mismo
+   folleto, repetido por los CDC en 2009, dice: «Food, unlike water, may be
+   rationed safely, except for children and pregnant women». Añade que, con
+   menos actividad, una persona sana puede pasar con la mitad de su comida
+   habitual durante bastante tiempo.
+   Fuentes: el enlace anterior y
+   <https://webarchive.library.unt.edu/web/20090116155203/http://emergency.cdc.gov/preparedness/kit/food>
+   → Los menores de 18 años, las embarazadas y las mujeres en lactancia no se
+   racionan nunca. También se puede marcar a mano «no racionar» a una persona
+   (mayores, enfermos): **[propio]**, por prudencia.
+
+3. **Objetivo mínimo de 72 horas.** La Estrategia de la Unión de Preparación de
+   la UE (marzo de 2025) recomienda que los hogares aguanten al menos 72 horas
+   por su cuenta.
+   Fuente: <https://commission.europa.eu/topics/preparedness_uk>
+
+## Energía: calorías por persona y día
+
+### Adultos (18 años o más)
+
+Gasto basal (BMR) con las ecuaciones de Schofield, que FAO/OMS/UNU (2004)
+mantiene en su tabla 5.2. El peso va en kg y el resultado en kcal/día:
+
+| Edad    | Hombres              | Mujeres              |
+|---------|----------------------|----------------------|
+| 18–30   | 15,057·kg + 692,2    | 14,818·kg + 486,6    |
+| 30–60   | 11,472·kg + 873,1    | 8,126·kg + 845,6     |
+| ≥ 60    | 11,711·kg + 587,7    | 9,082·kg + 658,5     |
+
+Fuente: <https://www.fao.org/4/y5686e/y5686e07.htm> (sección 5.2)
+
+Gasto total = BMR × **PAL 1,40**. Según FAO, 1,40 es el límite inferior de un
+estilo de vida sedentario (tabla 5.3: 1,40–1,69) y el PAL más bajo que una
+población puede mantener mucho tiempo. En una emergencia uno se mueve poco,
+así que se usa ese suelo.
+
+### Niños y adolescentes (de 1 a 17 años)
+
+FAO no usa aquí BMR × PAL, sino una regresión del gasto total según el peso,
+más la energía del crecimiento (que suma ≈ 1 %):
+
+- Niños: `TEE = 310,2 + 63,3·kg − 0,263·kg²`
+- Niñas: `TEE = 263,4 + 65,3·kg − 0,454·kg²`
+- Necesidad diaria = TEE × 1,01
+
+Se aplica la variante de **actividad ligera**: un 15 % menos que la moderada
+(tablas 4.5 y 4.6). Comprobación: una niña de 20,6 kg sale a
+1.430 × 0,85 ≈ 1.215 kcal, y la tabla de FAO dice 1.225.
+Fuente: <https://www.fao.org/4/y5686e/y5686e06.htm>
+
+### Bebés (menos de 1 año)
+
+No se calculan con la comida general: necesitan leche materna o de fórmula.
+La app avisa y no cuenta su comida. Sí cuenta su agua, porque la fórmula se
+prepara con agua.
+
+### Embarazo y lactancia (se suma al cálculo de la persona)
+
+| Situación            | kcal/día extra |
+|----------------------|----------------|
+| Embarazo, 1.er trim. | +85            |
+| Embarazo, 2.º trim.  | +285           |
+| Embarazo, 3.er trim. | +475           |
+| Lactancia            | +505           |
+
+Fuentes: <https://www.fao.org/4/y5686e/y5686e0a.htm> (embarazo) y
+<https://www.fao.org/4/y5686e/y5686e0b.htm> (lactancia, primeros 6 meses en
+mujeres bien nutridas).
+
+## Modos de aguante: comida
+
+El factor se aplica solo a adultos que se pueden racionar (ver principio 2).
+
+| Modo    | Factor | De dónde sale |
+|---------|--------|---------------|
+| Normal  | 100 %  | Necesidad calculada |
+| Ligero  | 85 %   | **[propio]** Punto intermedio, sin fuente propia |
+| Severo  | 70 %   | Mínimo de asistencia alimentaria del Food Security Cluster (≈ 70 % de 2.100 kcal ≈ 1.550 kcal) |
+| Extremo | 50 %   | FEMA: un adulto sano y con poca actividad puede pasar con la mitad de su comida habitual |
+
+Fuentes:
+- Food Security Cluster, directrices de emergencia (enero de 2025):
+  <https://fscluster.org/sites/default/files/2025-01/WoS%20Food%20Security%20Sector%20Emergency%20Guidelines%20-%20January%202025-%20Final.pdf>
+- PMA y ACNUR, cifra de planificación de 2.100 kcal:
+  <https://ennonline.net/fex/3/summary>
+
+## Modos de aguante: agua
+
+### Agua para beber (el suelo, nunca se recorta)
+
+Ingesta adecuada de agua total de la EFSA (2010), que incluye la que llega con
+la comida, en L/día:
+
+| Grupo            | L/día |
+|------------------|-------|
+| 6–12 meses       | 1,0 (rango 0,8–1,0; se toma el alto) |
+| 1–2 años         | 1,2 (rango 1,1–1,2; se toma el alto) |
+| 2–3 años         | 1,3   |
+| 4–8 años         | 1,6   |
+| 9–13, niños      | 2,1   |
+| 9–13, niñas      | 1,9   |
+| 14+, hombres     | 2,5   |
+| 14+, mujeres     | 2,0   |
+| Embarazo         | +0,3  |
+| Lactancia        | +0,7 (rango 0,6–0,7; se toma el alto) |
+
+Usar el agua total como agua para beber es conservador: en la práctica, un
+20 % llega con la comida.
+Fuentes: <https://www.eufic.org/en/healthy-living/article/how-much-water-should-you-drink-per-day>
+y la tabla EFSA/IOM en <https://pmc.ncbi.nlm.nih.gov/articles/PMC4080755/table/T3>.
+No pude leer el dictamen original de la EFSA (el servidor devuelve 403), así
+que estas cifras vienen de fuentes secundarias que lo citan.
+
+**Calor:** FEMA dice que los ambientes calurosos pueden duplicar lo que se
+bebe. Con la opción «hace mucho calor», el agua para beber se multiplica ×2.
+Fuente: Ready.gov y el folleto de FEMA citado arriba.
+
+### Por modo
+
+| Modo    | Agua por persona y día | De dónde sale |
+|---------|------------------------|---------------|
+| Normal  | máx(3,8 L, beber)      | Ready.gov: 1 galón (≈ 3,8 L) por persona y día, para beber y saneamiento |
+| Ligero  | beber + 0,5 L          | **[propio]** Higiene mínima |
+| Severo  | beber                  | FEMA: no racionar el agua para beber |
+| Extremo | beber                  | Igual: el agua para beber nunca baja |
+
+Fuente: <https://www.ready.gov/water>
+
+Para comparar: Sphere fija la supervivencia en 2,5–3 L (beber y comida) y las
+necesidades básicas totales en 7,5–15 L. Nuestros valores para beber caen en
+ese rango.
+Fuente: <https://sphereprototype.conted.ox.ac.uk/standards/watersupply/accessAndWaterQuantity.html>
+
+### Agua para cocinar
+
+Cada producto que hay que cocinar (arroz, pasta, legumbre seca) guarda los
+litros que necesita. Ese agua se descuenta de la reserva. Con el escenario
+«sin cocina» esos productos no cuentan como comida y su agua no se descuenta.
+
+## Reparto manual
+
+Además de los cuatro modos, el usuario puede fijar a mano las kcal y los
+litros diarios de cada persona y de cada mascota. **[propio]**: no sale de
+ninguna fuente, es una función de la app.
+
+- Los días se calculan con esas raciones. A quien no tenga ración fijada se le
+  aplica la del modo normal.
+- La app no corrige nada, pero avisa en tres casos, que salen de los
+  principios 1 y 2:
+  - alguien bebe menos de su agua para beber (la tabla de la EFSA, ×2 con calor);
+  - se recorta la comida a un menor, una embarazada, una mujer en lactancia o
+    alguien marcado como «no racionar»;
+  - un adulto baja del 50 % de lo que necesita, que es el límite del que habla
+    FEMA.
+- «Una comida» equivale a un tercio de la necesidad diaria de esa persona.
+  **[propio]**: es solo una forma cómoda de fijar la ración.
+- Un bebé sigue sin contar comida, también en manual.
+
+## Mascotas
+
+No se racionan.
+
+- **Energía, perro:** RER = 70 × kg^0,75 (fórmula de la AAHA), y mantenimiento
+  = 1,6 × RER. **Gato:** 1,2 × RER.
+  El factor 1,6 se cita mucho, pero no encontré una norma veterinaria primaria
+  que lo fije. Hay que tomarlo como una estimación.
+- **Agua:** mL/día ≈ kcal/día de mantenimiento. Para un perro de 18 kg sale
+  ≈ 0,98 L, dentro de la regla de 50–60 mL/kg.
+
+Fuentes: <https://www.dogster.com/dog-calorie-calculator/>,
+<https://mycockerspaniel.com/h2o.htm> y
+<https://simpledecisionmaker.onrender.com/tools/dog-water-intake-calculator/>.
+Son fuentes secundarias: falta contrastarlas con un veterinario.
+
+La comida de mascota solo cuenta para las mascotas, y la de personas solo para
+las personas. El agua es común.
+
+## Calorías de los productos
+
+- **Con código de barras o eligiendo una sugerencia:** el peso neto, las kcal
+  por 100 g y la foto vienen de Open Food Facts
+  (<https://es.openfoodfacts.org>). Es una base de datos abierta que rellenan
+  voluntarios, así que puede tener errores: la app deja editar los datos.
+  La búsqueda por nombre usa <https://search.openfoodfacts.org>.
+- **Valores típicos, sin conexión** (`src/constants/genericos.ts`): kcal por
+  100 g de USDA FoodData Central, conjunto SR Legacy, consultadas el 11 de
+  noviembre de 2026. Entre paréntesis, el identificador en
+  <https://fdc.nal.usda.gov>:
+
+  | Alimento                         | kcal/100 g | FDC    |
+  |----------------------------------|------------|--------|
+  | Garbanzos en conserva, escurridos | 139       | 173800 |
+  | Lentejas cocidas                 | 114        | 175254 |
+  | Lentejas secas                   | 352        | 172420 |
+  | Alubias blancas en conserva      | 114        | 175204 |
+  | Atún claro en aceite, escurrido  | 198        | 173708 |
+  | Atún blanco al natural, escurrido | 128       | 175158 |
+  | Sardinas en aceite, escurridas   | 208        | 175139 |
+  | Arroz blanco largo, crudo        | 365        | 169756 |
+  | Pasta seca                       | 371        | 168927 |
+  | Salsa de tomate en conserva      | 24         | 170054 |
+
+  La lista es corta a propósito: solo están los valores que se pudieron
+  comprobar (la clave pública de la API de USDA limita las consultas). Para
+  añadir más hay que consultarlos allí, no ponerlos de memoria.
+- Las kcal de una unidad son `peso (g) × kcal por 100 g / 100`. En conservas
+  con líquido, lo correcto es usar el peso escurrido.
+
+## Caducidad
+
+- Muchos envases solo traen mes y año. En ese caso se toma el **último día del
+  mes** como fecha de caducidad y se recuerda que la etiqueta no traía día.
+  **[propio]**: es la lectura habitual de «consumir preferentemente antes del
+  fin de…».
+- Un producto caducado no cuenta, aunque una fecha de consumo preferente no
+  significa que el producto ya no se pueda comer. Es una decisión prudente.
+  **[propio]**
+
+## Modo emergencia
+
+- El agua que se apunta como bebida se descuenta de la reserva, empezando por
+  la que caduca antes. «Quitar» devuelve lo apuntado por error.
+- La meta del contador de agua es lo de beber (sin higiene) de toda la casa;
+  en reparto manual, la suma de las raciones fijadas.
+- Lo que se marca como comido se descuenta de la despensa y queda en una lista
+  del día, desde la que se puede deshacer. El plan propone lo que falta para
+  llegar a las kcal del día, empezando por lo que caduca antes.
+
+## Cómo se calculan los días
+
+- Días de comida = kcal útiles de personas / kcal diarias de personas
+- Días de agua = (litros − agua reservada para cocinar) / litros diarios de
+  personas y mascotas
+- **Días que aguantáis** = mínimo de los dos, redondeado hacia abajo
+- No se cuenta lo caducado.
+- Con el escenario «sin luz», no cuenta lo que necesita nevera.
+
+## Avisos que la app tiene que mostrar
+
+- La estimación es orientativa y no sustituye el consejo médico.
+- Si hay un bebé, que necesita leche materna o de fórmula.
+- Que el agua para beber no se raciona: si se acaba, hay que buscar más.

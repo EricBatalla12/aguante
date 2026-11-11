@@ -1,0 +1,225 @@
+// Tests del motor de cálculo. Se ejecutan con `npm test` (node --test).
+// Las cifras de referencia salen de las tablas de FAO citadas en
+// docs/fuentes-y-reglas.md.
+
+import { test } from 'node:test';
+import assert from 'node:assert/strict';
+
+import {
+  bmrAdulto,
+  kcalMenor,
+  kcalBase,
+  kcalPersona,
+  aguaPersona,
+  aguaMascota,
+  calcular,
+  calcularFaltante,
+  estadoCaducidad,
+  formatoNumero,
+  planDelDia,
+  descontarAgua,
+  devolverAgua,
+} from '../src/lib/calculo.ts';
+
+const HOY = new Date(2026, 10, 11); // 11 nov 2026
+
+const cerca = (real, esperado, tolerancia, msg) =>
+  assert.ok(Math.abs(real - esperado) <= tolerancia, `${msg}: ${real} vs ${esperado} ±${tolerancia}`);
+
+const hombre = { id: 'h', nombre: 'H', sexo: 'hombre', edadAnios: 25, pesoKg: 75 };
+const mujer = { id: 'm', nombre: 'M', sexo: 'mujer', edadAnios: 29, pesoKg: 62 };
+const nina = { id: 'n', nombre: 'N', sexo: 'mujer', edadAnios: 6, pesoKg: 21 };
+const perro = { id: 'p', nombre: 'Toby', especie: 'perro', pesoKg: 18 };
+
+test('Schofield adulto coincide con la tabla 5.2 de FAO', () => {
+  cerca(bmrAdulto('hombre', 25, 75), 15.057 * 75 + 692.2, 0.01, 'hombre 18-30');
+  cerca(bmrAdulto('mujer', 45, 60), 8.126 * 60 + 845.6, 0.01, 'mujer 30-60');
+  cerca(bmrAdulto('hombre', 70, 70), 11.711 * 70 + 587.7, 0.01, 'hombre 60+');
+});
+
+test('menores: se acerca a las tablas 4.5 y 4.6 de FAO (actividad ligera, 6-7 años)', () => {
+  // FAO: niño de 21,7 kg → 1.350 kcal; niña de 20,6 kg → 1.225 kcal
+  cerca(kcalMenor('hombre', 21.7), 1350, 30, 'niño 6-7');
+  cerca(kcalMenor('mujer', 20.6), 1225, 30, 'niña 6-7');
+});
+
+test('un adulto se raciona según el modo', () => {
+  const base = kcalBase(hombre);
+  cerca(kcalPersona(hombre, 'severo'), base * 0.7, 0.01, 'severo');
+  cerca(kcalPersona(hombre, 'extremo'), base * 0.5, 0.01, 'extremo');
+});
+
+test('niños, embarazo, lactancia y «no racionar» no se racionan', () => {
+  const embarazada = { ...mujer, embarazoTrimestre: 3 };
+  const lactante = { ...mujer, lactancia: true };
+  const marcado = { ...hombre, noRacionar: true };
+  for (const p of [nina, embarazada, lactante, marcado]) {
+    assert.equal(kcalPersona(p, 'extremo'), kcalBase(p), p.nombre);
+  }
+  cerca(kcalBase(embarazada) - kcalBase(mujer), 475, 0.01, 'extra 3.er trimestre');
+  cerca(kcalBase(lactante) - kcalBase(mujer), 505, 0.01, 'extra lactancia');
+});
+
+test('el agua para beber nunca baja, en ningún modo', () => {
+  assert.equal(aguaPersona(hombre, 'normal'), 3.8);
+  assert.equal(aguaPersona(hombre, 'ligero'), 3.0);
+  assert.equal(aguaPersona(hombre, 'severo'), 2.5);
+  assert.equal(aguaPersona(hombre, 'extremo'), 2.5);
+  assert.equal(aguaPersona(mujer, 'extremo'), 2.0);
+  assert.equal(aguaPersona(hombre, 'extremo', { calor: true }), 5.0);
+  // Con calor fuerte, lo que se bebe supera los 3,8 L del modo normal
+  assert.equal(aguaPersona(hombre, 'normal', { calor: true }), 5.0);
+});
+
+test('un bebé no cuenta comida, pero sí agua', () => {
+  const bebe = { id: 'b', nombre: 'B', sexo: 'mujer', edadAnios: 0.5, pesoKg: 7 };
+  assert.equal(kcalBase(bebe), 0);
+  const r = calcular([bebe], [], [], 'normal', {}, HOY);
+  assert.equal(r.hayBebe, true);
+});
+
+test('perro de 18 kg: unos 0,98 L de agua (regla de 50-60 mL/kg)', () => {
+  cerca(aguaMascota(perro), 0.98, 0.02, 'agua perro');
+});
+
+const despensa = [
+  { id: '1', nombre: 'Albóndigas', categoria: 'comida', cantidad: 2, kcalPorUnidad: 546, caducidad: '2029-03-15' },
+  { id: '2', nombre: 'Arroz', categoria: 'comida', cantidad: 2, kcalPorUnidad: 3500, caducidad: '2027-12-01', necesitaCocinar: true, aguaCocinarPorUnidadL: 2.5 },
+  { id: '3', nombre: 'Yogures', categoria: 'comida', cantidad: 4, kcalPorUnidad: 100, caducidad: '2026-11-20', necesitaFrio: true },
+  { id: '4', nombre: 'Galletas viejas', categoria: 'comida', cantidad: 1, kcalPorUnidad: 3500, caducidad: '2026-10-01' },
+  { id: '5', nombre: 'Garrafas', categoria: 'agua', cantidad: 6, litrosPorUnidad: 5 },
+  { id: '6', nombre: 'Pienso', categoria: 'mascota', cantidad: 1, kcalPorUnidad: 10500 },
+];
+
+test('balance: no cuenta lo caducado y descuenta el agua para cocinar', () => {
+  const r = calcular([hombre], [], despensa, 'normal', {}, HOY);
+  assert.equal(r.kcalTotal, 2 * 546 + 2 * 3500 + 4 * 100);
+  assert.deepEqual(r.caducados, ['Galletas viejas']);
+  assert.equal(r.litrosCocinar, 5);
+  cerca(r.diasAgua, (30 - 5) / 3.8, 0.001, 'días de agua');
+  assert.equal(r.dias, Math.floor(Math.min(r.diasAgua, r.diasComida)));
+});
+
+test('escenarios: sin cocina quita el arroz y su agua; sin luz quita lo que va en nevera', () => {
+  const r = calcular([hombre], [], despensa, 'normal', { sinCocina: true, sinLuz: true }, HOY);
+  assert.equal(r.kcalTotal, 2 * 546);
+  assert.equal(r.litrosCocinar, 0);
+});
+
+test('la comida de mascota solo cuenta para mascotas y el agua es común', () => {
+  const r = calcular([hombre], [perro], despensa, 'normal', {}, HOY);
+  assert.ok(r.mascotas);
+  cerca(r.mascotas.diasComida, 10500 / r.mascotas.kcalDia, 0.001, 'días de pienso');
+  cerca(r.litrosDia, 3.8 + aguaMascota(perro), 0.001, 'agua diaria');
+});
+
+test('un modo más severo nunca da menos días', () => {
+  const casa = [hombre, mujer, nina];
+  const dias = ['normal', 'ligero', 'severo', 'extremo'].map(
+    (m) => calcular(casa, [perro], despensa, m, {}, HOY).dias,
+  );
+  for (let i = 1; i < dias.length; i++) assert.ok(dias[i] >= dias[i - 1], dias.join(','));
+});
+
+test('faltante para el objetivo en modo normal', () => {
+  const f = calcularFaltante([hombre], [], despensa, 7, HOY);
+  cerca(f.faltanLitros, 7 * 3.8 + 5 - 30, 0.001, 'litros');
+  assert.equal(f.cumplido, false);
+  const sobrado = calcularFaltante([hombre], [], despensa, 0, HOY);
+  assert.equal(sobrado.cumplido, true);
+});
+
+test('caducidad: rojo a 30 días o menos y ámbar a 90 o menos', () => {
+  const p = (caducidad) => ({ id: 'x', nombre: 'x', categoria: 'comida', cantidad: 1, caducidad });
+  assert.equal(estadoCaducidad(p('2026-11-10'), HOY), 'caducado');
+  assert.equal(estadoCaducidad(p('2026-12-11'), HOY), 'rojo');
+  assert.equal(estadoCaducidad(p('2027-02-01'), HOY), 'ambar');
+  assert.equal(estadoCaducidad(p('2028-01-01'), HOY), 'ok');
+});
+
+test('plan del día: primero lo que caduca antes y sin pasarse de lo que hay', () => {
+  const plan = planDelDia(despensa, 3000, {}, HOY);
+  // Los yogures caducan antes; las galletas están caducadas y no salen
+  assert.equal(plan[0].nombre, 'Yogures');
+  assert.equal(plan[0].unidades, 4);
+  assert.ok(!plan.some((r) => r.nombre === 'Galletas viejas'));
+  const total = plan.reduce((s, r) => s + r.kcal, 0);
+  assert.ok(total >= 3000, `total ${total}`);
+  // Sin cocina, el arroz no entra
+  const sinCocina = planDelDia(despensa, 3000, { sinCocina: true }, HOY);
+  assert.ok(!sinCocina.some((r) => r.nombre === 'Arroz'));
+});
+
+test('formato español de números', () => {
+  assert.equal(formatoNumero(31000), '31.000');
+  assert.equal(formatoNumero(3.45, 1), '3,5');
+  assert.equal(formatoNumero(999), '999');
+});
+
+// ------------------------------------------------------------ Modo manual
+
+test('manual: usa las raciones fijadas y, si faltan, las del modo normal', () => {
+  const manual = { h: { kcal: 1500, litros: 2 } };
+  assert.equal(kcalPersona(hombre, 'manual', manual), 1500);
+  assert.equal(aguaPersona(hombre, 'manual', {}, manual), 2);
+  // La mujer no tiene ración fijada: come y bebe como en normal
+  cerca(kcalPersona(mujer, 'manual', manual), kcalBase(mujer), 0.001, 'kcal sin fijar');
+  assert.equal(aguaPersona(mujer, 'manual', {}, manual), 3.8);
+});
+
+test('manual: los días salen de las raciones fijadas, también las de las mascotas', () => {
+  const productos = [
+    { id: 'a', nombre: 'Agua', categoria: 'agua', cantidad: 4, litrosPorUnidad: 5 },
+    { id: 'c', nombre: 'Latas', categoria: 'comida', cantidad: 10, kcalPorUnidad: 600 },
+    { id: 'p', nombre: 'Pienso', categoria: 'mascota', cantidad: 1, kcalPorUnidad: 4000 },
+  ];
+  const manual = { h: { kcal: 1500, litros: 2 }, p: { kcal: 500, litros: 0.5 } };
+  const r = calcular([hombre], [perro], productos, 'manual', {}, HOY, manual);
+  assert.equal(r.kcalDia, 1500);
+  assert.equal(r.litrosDia, 2.5);
+  assert.equal(r.diasComida, 4); // 6.000 / 1.500
+  assert.equal(r.diasAgua, 8); // 20 / 2,5
+  assert.equal(r.dias, 4);
+  assert.equal(r.mascotas.diasComida, 8); // 4.000 / 500
+});
+
+test('manual: un bebé sigue sin contar comida', () => {
+  const bebe = { id: 'b', nombre: 'B', sexo: 'mujer', edadAnios: 0.5, pesoKg: 7 };
+  assert.equal(kcalPersona(bebe, 'manual', { b: { kcal: 800 } }), 0);
+});
+
+// ------------------------------------------------------------ Agua bebida
+
+const agua = [
+  { id: 'vieja', nombre: 'Botella', categoria: 'agua', cantidad: 1, litrosPorUnidad: 1.5, caducidad: '2027-01-01' },
+  { id: 'nueva', nombre: 'Garrafa', categoria: 'agua', cantidad: 2, litrosPorUnidad: 5, caducidad: '2028-01-01' },
+  { id: 'lata', nombre: 'Lata', categoria: 'comida', cantidad: 3, kcalPorUnidad: 400 },
+];
+const cantidad = (lista, id) => lista.find((p) => p.id === id).cantidad;
+
+test('descontarAgua: gasta primero la que caduca antes y pasa a la siguiente', () => {
+  const tras = descontarAgua(agua, 2, HOY);
+  assert.equal(cantidad(tras, 'vieja'), 0);
+  assert.equal(cantidad(tras, 'nueva'), 1.9); // (10 − 0,5) / 5
+  assert.equal(cantidad(tras, 'lata'), 3);
+});
+
+test('descontarAgua: si no hay bastante, se queda a cero sin pasar a negativo', () => {
+  const tras = descontarAgua(agua, 50, HOY);
+  assert.equal(cantidad(tras, 'vieja'), 0);
+  assert.equal(cantidad(tras, 'nueva'), 0);
+});
+
+test('devolverAgua: deshace un apunte y el total de litros vuelve a cuadrar', () => {
+  const litros = (lista) =>
+    lista.filter((p) => p.categoria === 'agua').reduce((s, p) => s + p.cantidad * p.litrosPorUnidad, 0);
+  const tras = devolverAgua(descontarAgua(agua, 0.5, HOY), 0.5, HOY);
+  cerca(litros(tras), 11.5, 0.001, 'litros tras beber y deshacer');
+  const tras2 = devolverAgua(descontarAgua(agua, 2, HOY), 0.25, HOY);
+  cerca(litros(tras2), 11.5 - 2 + 0.25, 0.001, 'litros tras beber 2 y devolver 0,25');
+});
+
+test('descontarAgua: no toca el agua caducada', () => {
+  const lista = [{ id: 'cad', nombre: 'Vieja', categoria: 'agua', cantidad: 1, litrosPorUnidad: 5, caducidad: '2026-01-01' }];
+  assert.equal(cantidad(descontarAgua(lista, 1, HOY), 'cad'), 1);
+});

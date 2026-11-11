@@ -1,56 +1,61 @@
-# Welcome to your Expo app 👋
+# Aguante
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+App móvil para llevar la reserva de emergencia de casa (comida y agua) y saber
+cuántos días aguantaríais con ella.
 
-## Get started
+- Calcula las calorías y el agua de cada persona a partir de su edad, sexo y
+  peso, y también las de las mascotas.
+- Cuatro modos de aguante (Normal, Ligero, Severo, Extremo) que racionan la
+  comida de los adultos. El agua para beber no se recorta nunca, y los
+  menores, las embarazadas y las mujeres en lactancia no se racionan.
+- Reparto manual: tú fijas las kcal y los litros de cada persona y mascota, y
+  la app avisa si una ración queda por debajo de lo que dicen las fuentes.
+- Escenarios: sin luz, sin poder cocinar y mucho calor.
+- Al añadir un producto, las calorías y la foto se rellenan solas: con el
+  código de barras, eligiendo una sugerencia de Open Food Facts al escribir el
+  nombre o, sin conexión, con un valor típico de USDA.
+- Caducidad sin teclear separadores y con el día opcional, como viene en las
+  latas (mes y año).
+- Avisos de caducidad, lista de la compra según el objetivo (72 h, 1 semana,
+  2 semanas) y kit de emergencia.
+- Modo emergencia con el plan del día: lo que se apunta como comido o bebido
+  se descuenta de la despensa, y se puede deshacer.
+- Ajustes: tema claro, oscuro o el del móvil, avisos, copia de seguridad y la
+  pantalla de fuentes.
+- Todo se guarda en el móvil y funciona sin internet. Solo el escáner y las
+  sugerencias necesitan red, para buscar el producto.
 
-1. Install dependencies
+Las reglas de cálculo y sus fuentes (FAO/OMS, EFSA, FEMA, Sphere, PMA) están
+en [docs/fuentes-y-reglas.md](docs/fuentes-y-reglas.md).
 
-   ```bash
-   npm install
-   ```
-
-2. Start the app
-
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **src/app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+## Ponerla en marcha
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **example** directory and create a blank **src/app** directory where you can start developing.
+Para verla en el móvil, abre Expo Go y escanea el QR. Si el móvil está en
+otra red, arranca con `npx expo start --tunnel`.
 
-### Other setup steps
+## Comprobaciones
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+```bash
+npm test          # motor de cálculo y fechas (node --test)
+npx tsc --noEmit  # tipos
+npx eslint .      # lint
+```
 
-## Learn more
+## Estructura
 
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- `src/lib/calculo.ts`: el motor de cálculo. Es puro, sin dependencias, y lo
+  cubren los tests de `tests/`.
+- `src/lib/store.ts`: el estado guardado (zustand, persistido en SQLite).
+- `src/lib/fechas.ts`: fechas de caducidad con el día opcional. También puro.
+- `src/lib/tema.tsx` y `src/constants/colores.ts`: tema claro y oscuro, y la
+  fuente (Figtree).
+- `src/components/ui.tsx`: las piezas de interfaz. Todo el texto pasa por
+  `Texto`, que es lo que evita los textos cortados.
+- `src/constants/fuentes.ts`: lo que enseña la pantalla «Fuentes y método».
+  Hay que mantenerlo a la par con `docs/fuentes-y-reglas.md`.
+- `src/app/`: las pantallas (Expo Router).

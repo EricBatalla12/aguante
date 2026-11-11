@@ -1,0 +1,420 @@
+// Motor de cálculo de Aguante.
+//
+// Todas las cifras salen de docs/fuentes-y-reglas.md, donde está la fuente de
+// cada una. Si cambias un número aquí, cámbialo también allí.
+//
+// Este fichero no importa nada y no usa enums: así los tests se ejecutan con
+// `node --test` sin compilar (Node quita los tipos por su cuenta).
+
+export type Sexo = 'hombre' | 'mujer';
+/** Modos que calcula la app sola, con las reglas de las fuentes. */
+export type ModoAuto = 'normal' | 'ligero' | 'severo' | 'extremo';
+/** En «manual» cada ración la fija el usuario. */
+export type Modo = ModoAuto | 'manual';
+
+/** Ración diaria fijada a mano. Lo que falte se toma del modo normal. */
+export type Racion = { kcal?: number; litros?: number };
+/** Raciones manuales por id de persona o de mascota. */
+export type Manual = Record<string, Racion>;
+
+export type Persona = {
+  id: string;
+  nombre: string;
+  sexo: Sexo;
+  edadAnios: number; // admite decimales para bebés (0,5 = 6 meses)
+  pesoKg: number;
+  embarazoTrimestre?: 0 | 1 | 2 | 3; // 0 o ausente: no está embarazada
+  lactancia?: boolean;
+  noRacionar?: boolean; // marcado a mano: mayores, enfermos…
+};
+
+export type Especie = 'perro' | 'gato';
+
+export type Mascota = {
+  id: string;
+  nombre: string;
+  especie: Especie;
+  pesoKg: number;
+};
+
+export type Categoria = 'comida' | 'agua' | 'mascota';
+
+export type Producto = {
+  id: string;
+  nombre: string;
+  categoria: Categoria;
+  cantidad: number; // unidades (latas, garrafas, bolsas…)
+  kcalPorUnidad?: number; // comida y comida de mascota
+  litrosPorUnidad?: number; // agua
+  // Peso neto y energía de la etiqueta: de aquí salen las kcal por unidad
+  gramos?: number;
+  kcal100g?: number;
+  caducidad?: string; // AAAA-MM-DD
+  caducidadSinDia?: boolean; // la etiqueta solo traía mes y año
+  imagen?: string; // foto de Open Food Facts
+  codigo?: string; // código de barras
+  necesitaCocinar?: boolean;
+  aguaCocinarPorUnidadL?: number; // litros para cocinar una unidad
+  necesitaFrio?: boolean;
+};
+
+export type Escenario = {
+  sinLuz?: boolean;
+  sinCocina?: boolean;
+  calor?: boolean;
+};
+
+// ---------------------------------------------------------------- Constantes
+
+// FAO 2004, tabla 5.3: 1,40 es el suelo del estilo de vida sedentario.
+export const PAL_EMERGENCIA = 1.4;
+
+// Factor de comida por modo, solo para adultos que se pueden racionar.
+// Ligero 85 % es un valor intermedio propio; el resto tiene fuente.
+export const FACTOR_COMIDA: Record<ModoAuto, number> = {
+  normal: 1,
+  ligero: 0.85,
+  severo: 0.7, // Food Security Cluster: mínimo ≈ 70 % de 2.100 kcal
+  extremo: 0.5, // FEMA: la mitad de la comida habitual, adultos sanos
+};
+
+// Ready.gov: 1 galón por persona y día para beber y saneamiento.
+export const AGUA_NORMAL_L = 3.8;
+// Ligero: agua para beber más una higiene mínima (valor propio).
+export const AGUA_HIGIENE_LIGERO_L = 0.5;
+
+const EXTRA_EMBARAZO_KCAL = [0, 85, 285, 475];
+const EXTRA_LACTANCIA_KCAL = 505;
+const EXTRA_EMBARAZO_AGUA_L = 0.3;
+const EXTRA_LACTANCIA_AGUA_L = 0.7;
+
+// ------------------------------------------------------------------- Energía
+
+/** Gasto basal (kcal/día) con Schofield, FAO 2004 tabla 5.2. Solo adultos. */
+export function bmrAdulto(sexo: Sexo, edad: number, kg: number): number {
+  if (sexo === 'hombre') {
+    if (edad < 30) return 15.057 * kg + 692.2;
+    if (edad < 60) return 11.472 * kg + 873.1;
+    return 11.711 * kg + 587.7;
+  }
+  if (edad < 30) return 14.818 * kg + 486.6;
+  if (edad < 60) return 8.126 * kg + 845.6;
+  return 9.082 * kg + 658.5;
+}
+
+/**
+ * Necesidad de un menor de 1 a 17 años, FAO 2004 capítulo 4: gasto total por
+ * regresión según el peso, +1 % de crecimiento y actividad ligera (−15 %).
+ */
+export function kcalMenor(sexo: Sexo, kg: number): number {
+  const tee =
+    sexo === 'hombre'
+      ? 310.2 + 63.3 * kg - 0.263 * kg * kg
+      : 263.4 + 65.3 * kg - 0.454 * kg * kg;
+  return tee * 1.01 * 0.85;
+}
+
+/** ¿Se le puede recortar la comida? Ver el principio 2 de las fuentes. */
+export function esProtegida(p: Persona): boolean {
+  return (
+    p.edadAnios < 18 ||
+    (p.embarazoTrimestre ?? 0) > 0 ||
+    !!p.lactancia ||
+    !!p.noRacionar
+  );
+}
+
+/** kcal/día de una persona sin racionar. Un bebé devuelve 0: va aparte. */
+export function kcalBase(p: Persona): number {
+  if (p.edadAnios < 1) return 0;
+  let kcal =
+    p.edadAnios < 18
+      ? kcalMenor(p.sexo, p.pesoKg)
+      : bmrAdulto(p.sexo, p.edadAnios, p.pesoKg) * PAL_EMERGENCIA;
+  kcal += EXTRA_EMBARAZO_KCAL[p.embarazoTrimestre ?? 0] ?? 0;
+  if (p.lactancia) kcal += EXTRA_LACTANCIA_KCAL;
+  return kcal;
+}
+
+/**
+ * kcal/día de una persona en un modo, respetando a los grupos protegidos. En
+ * manual manda lo que haya fijado el usuario, también para ellos: la pantalla
+ * avisa, pero la decisión es suya.
+ */
+export function kcalPersona(p: Persona, modo: Modo, manual: Manual = {}): number {
+  const base = kcalBase(p);
+  if (modo === 'manual') return p.edadAnios < 1 ? 0 : (manual[p.id]?.kcal ?? base);
+  return esProtegida(p) ? base : base * FACTOR_COMIDA[modo];
+}
+
+// ---------------------------------------------------------------------- Agua
+
+/** Agua para beber (L/día), ingesta adecuada de agua total de la EFSA. */
+export function aguaBeber(p: Persona): number {
+  const e = p.edadAnios;
+  let l: number;
+  if (e < 1) l = 1.0;
+  else if (e < 2) l = 1.2;
+  else if (e < 4) l = 1.3;
+  else if (e < 9) l = 1.6;
+  else if (e < 14) l = p.sexo === 'hombre' ? 2.1 : 1.9;
+  else l = p.sexo === 'hombre' ? 2.5 : 2.0;
+  if ((p.embarazoTrimestre ?? 0) > 0) l += EXTRA_EMBARAZO_AGUA_L;
+  if (p.lactancia) l += EXTRA_LACTANCIA_AGUA_L;
+  return l;
+}
+
+/**
+ * Agua de una persona en un modo. Lo que se bebe nunca se recorta (FEMA: «never
+ * ration water»); solo se recorta la higiene. Con calor se duplica lo que se
+ * bebe.
+ */
+export function aguaPersona(p: Persona, modo: Modo, esc: Escenario = {}, manual: Manual = {}): number {
+  const beber = aguaBeber(p) * (esc.calor ? 2 : 1);
+  if (modo === 'manual') return manual[p.id]?.litros ?? Math.max(AGUA_NORMAL_L, beber);
+  if (modo === 'normal') return Math.max(AGUA_NORMAL_L, beber);
+  if (modo === 'ligero') return beber + AGUA_HIGIENE_LIGERO_L;
+  return beber;
+}
+
+// ------------------------------------------------------------------ Mascotas
+
+/** Mantenimiento (kcal/día): RER = 70·kg^0,75 × 1,6 en perros y × 1,2 en gatos. */
+export function kcalMascota(m: Mascota): number {
+  const rer = 70 * Math.pow(m.pesoKg, 0.75);
+  return rer * (m.especie === 'perro' ? 1.6 : 1.2);
+}
+
+/** Agua (L/día): mL ≈ kcal de mantenimiento. */
+export function aguaMascota(m: Mascota): number {
+  return kcalMascota(m) / 1000;
+}
+
+/** Ración de una mascota: la calculada, o la fijada a mano en modo manual. */
+export function racionMascota(m: Mascota, modo: Modo, manual: Manual = {}): { kcal: number; litros: number } {
+  const r = modo === 'manual' ? manual[m.id] : undefined;
+  return { kcal: r?.kcal ?? kcalMascota(m), litros: r?.litros ?? aguaMascota(m) };
+}
+
+// ---------------------------------------------------------------- Caducidad
+
+export type EstadoCaducidad = 'caducado' | 'rojo' | 'ambar' | 'ok' | 'sin-fecha';
+
+/** Días que faltan para la fecha (negativo si ya pasó). */
+export function diasHasta(fechaISO: string, hoy: Date): number {
+  const [a, m, d] = fechaISO.split('-').map(Number);
+  const objetivo = Date.UTC(a, m - 1, d);
+  const base = Date.UTC(hoy.getFullYear(), hoy.getMonth(), hoy.getDate());
+  return Math.round((objetivo - base) / 86_400_000);
+}
+
+/** Rojo: 30 días o menos. Ámbar: 90 días o menos. */
+export function estadoCaducidad(p: Producto, hoy: Date): EstadoCaducidad {
+  if (!p.caducidad) return 'sin-fecha';
+  const dias = diasHasta(p.caducidad, hoy);
+  if (dias < 0) return 'caducado';
+  if (dias <= 30) return 'rojo';
+  if (dias <= 90) return 'ambar';
+  return 'ok';
+}
+
+// ------------------------------------------------------------------- Balance
+
+export type Resultado = {
+  dias: number; // los que aguantáis, redondeado hacia abajo
+  diasComida: number;
+  diasAgua: number;
+  limita: 'agua' | 'comida' | 'nada';
+  kcalDia: number; // personas
+  litrosDia: number; // personas y mascotas
+  kcalTotal: number; // útiles para personas
+  litrosTotal: number; // agua guardada que se puede usar
+  litrosCocinar: number; // reservados para cocinar
+  mascotas: { diasComida: number; kcalDia: number } | null;
+  hayBebe: boolean;
+  caducados: string[]; // nombres de productos caducados
+  sinPersonas: boolean;
+};
+
+function cuenta(p: Producto, esc: Escenario, hoy: Date): boolean {
+  if (p.cantidad <= 0) return false;
+  if (estadoCaducidad(p, hoy) === 'caducado') return false;
+  if (esc.sinLuz && p.necesitaFrio) return false;
+  if (esc.sinCocina && p.necesitaCocinar) return false;
+  return true;
+}
+
+export function calcular(
+  personas: Persona[],
+  mascotas: Mascota[],
+  productos: Producto[],
+  modo: Modo,
+  esc: Escenario = {},
+  hoy: Date = new Date(),
+  manual: Manual = {},
+): Resultado {
+  const kcalDia = personas.reduce((s, p) => s + kcalPersona(p, modo, manual), 0);
+  const litrosDia =
+    personas.reduce((s, p) => s + aguaPersona(p, modo, esc, manual), 0) +
+    mascotas.reduce((s, m) => s + racionMascota(m, modo, manual).litros, 0);
+  const kcalMascotasDia = mascotas.reduce((s, m) => s + racionMascota(m, modo, manual).kcal, 0);
+
+  const utiles = productos.filter((p) => cuenta(p, esc, hoy));
+  const kcalTotal = utiles
+    .filter((p) => p.categoria === 'comida')
+    .reduce((s, p) => s + p.cantidad * (p.kcalPorUnidad ?? 0), 0);
+  const kcalMascotasTotal = utiles
+    .filter((p) => p.categoria === 'mascota')
+    .reduce((s, p) => s + p.cantidad * (p.kcalPorUnidad ?? 0), 0);
+  const litrosTotal = utiles
+    .filter((p) => p.categoria === 'agua')
+    .reduce((s, p) => s + p.cantidad * (p.litrosPorUnidad ?? 0), 0);
+  const litrosCocinar = utiles
+    .filter((p) => p.categoria === 'comida' && p.necesitaCocinar)
+    .reduce((s, p) => s + p.cantidad * (p.aguaCocinarPorUnidadL ?? 0), 0);
+
+  const diasComida = kcalDia > 0 ? kcalTotal / kcalDia : 0;
+  const diasAgua = litrosDia > 0 ? Math.max(0, litrosTotal - litrosCocinar) / litrosDia : 0;
+  const minimo = Math.min(diasComida, diasAgua);
+
+  let limita: Resultado['limita'] = 'nada';
+  if (personas.length > 0) limita = diasAgua <= diasComida ? 'agua' : 'comida';
+
+  return {
+    dias: personas.length > 0 ? Math.floor(minimo) : 0,
+    diasComida,
+    diasAgua,
+    limita,
+    kcalDia,
+    litrosDia,
+    kcalTotal,
+    litrosTotal,
+    litrosCocinar,
+    mascotas:
+      mascotas.length > 0
+        ? { diasComida: kcalMascotasDia > 0 ? kcalMascotasTotal / kcalMascotasDia : 0, kcalDia: kcalMascotasDia }
+        : null,
+    hayBebe: personas.some((p) => p.edadAnios < 1),
+    caducados: productos.filter((p) => estadoCaducidad(p, hoy) === 'caducado').map((p) => p.nombre),
+    sinPersonas: personas.length === 0,
+  };
+}
+
+// --------------------------------------------------------- Lo que falta comprar
+
+export type Faltante = {
+  objetivoDias: number;
+  faltanLitros: number;
+  faltanKcal: number;
+  faltanKcalMascotas: number;
+  cumplido: boolean;
+};
+
+/** Lo que falta para llegar al objetivo en modo normal. */
+export function calcularFaltante(
+  personas: Persona[],
+  mascotas: Mascota[],
+  productos: Producto[],
+  objetivoDias: number,
+  hoy: Date = new Date(),
+): Faltante {
+  const r = calcular(personas, mascotas, productos, 'normal', {}, hoy);
+  const faltanLitros = Math.max(0, objetivoDias * r.litrosDia + r.litrosCocinar - r.litrosTotal);
+  const faltanKcal = Math.max(0, objetivoDias * r.kcalDia - r.kcalTotal);
+  const kcalMascotasTotal = r.mascotas ? r.mascotas.diasComida * r.mascotas.kcalDia : 0;
+  const faltanKcalMascotas = r.mascotas
+    ? Math.max(0, objetivoDias * r.mascotas.kcalDia - kcalMascotasTotal)
+    : 0;
+  return {
+    objetivoDias,
+    faltanLitros,
+    faltanKcal,
+    faltanKcalMascotas,
+    cumplido: faltanLitros === 0 && faltanKcal === 0 && faltanKcalMascotas === 0,
+  };
+}
+
+// ------------------------------------------------------------- Plan del día
+
+export type RacionPlan = { productoId: string; nombre: string; unidades: number; kcal: number };
+
+/**
+ * Qué comer hoy para cubrir `kcalObjetivo`. Primero va lo que caduca antes, y
+ * lo que no tiene fecha va al final. Las unidades se redondean hacia arriba en
+ * cuartos (¼ de bolsa de arroz, por ejemplo), así que el total puede pasarse
+ * un poco del objetivo.
+ */
+export function planDelDia(
+  productos: Producto[],
+  kcalObjetivo: number,
+  esc: Escenario = {},
+  hoy: Date = new Date(),
+): RacionPlan[] {
+  const candidatos = productos
+    .filter((p) => p.categoria === 'comida' && (p.kcalPorUnidad ?? 0) > 0 && cuenta(p, esc, hoy))
+    .sort((a, b) => (a.caducidad ?? '9999-12-31').localeCompare(b.caducidad ?? '9999-12-31'));
+  const plan: RacionPlan[] = [];
+  let falta = kcalObjetivo;
+  for (const p of candidatos) {
+    if (falta <= 0) break;
+    const kcalU = p.kcalPorUnidad ?? 0;
+    const unidades = Math.min(p.cantidad, Math.ceil((falta / kcalU) * 4) / 4);
+    if (unidades <= 0) continue;
+    plan.push({ productoId: p.id, nombre: p.nombre, unidades, kcal: unidades * kcalU });
+    falta -= unidades * kcalU;
+  }
+  return plan;
+}
+
+// ------------------------------------------------------------ Agua bebida
+
+const cuatroDecimales = (n: number) => Math.round(n * 10_000) / 10_000;
+
+/** Agua que se puede beber, en el orden en que se gasta: primero la que caduca antes. */
+function aguaPorOrden(productos: Producto[], hoy: Date): Producto[] {
+  return productos
+    .filter((p) => p.categoria === 'agua' && (p.litrosPorUnidad ?? 0) > 0 && estadoCaducidad(p, hoy) !== 'caducado')
+    .sort((a, b) => (a.caducidad ?? '9999-12-31').localeCompare(b.caducidad ?? '9999-12-31'));
+}
+
+/**
+ * Descuenta `litros` del agua guardada, empezando por la que caduca antes. Si
+ * no hay bastante, se queda a cero: el resto se habrá bebido de otro sitio.
+ */
+export function descontarAgua(productos: Producto[], litros: number, hoy: Date = new Date()): Producto[] {
+  let falta = litros;
+  const cantidades = new Map<string, number>();
+  for (const p of aguaPorOrden(productos, hoy)) {
+    if (falta <= 1e-9) break;
+    const porUnidad = p.litrosPorUnidad ?? 0;
+    const tomo = Math.min(p.cantidad * porUnidad, falta);
+    if (tomo <= 0) continue;
+    cantidades.set(p.id, cuatroDecimales(p.cantidad - tomo / porUnidad));
+    falta -= tomo;
+  }
+  return productos.map((p) => (cantidades.has(p.id) ? { ...p, cantidad: cantidades.get(p.id) ?? p.cantidad } : p));
+}
+
+/**
+ * Devuelve `litros` a la reserva (para corregir un error al apuntar). Van al
+ * envase que se estaba gastando: el primero, por caducidad, al que le queda algo.
+ */
+export function devolverAgua(productos: Producto[], litros: number, hoy: Date = new Date()): Producto[] {
+  const orden = aguaPorOrden(productos, hoy);
+  const destino = orden.find((p) => p.cantidad > 0) ?? orden[0];
+  if (!destino) return productos;
+  const porUnidad = destino.litrosPorUnidad ?? 1;
+  return productos.map((p) =>
+    p.id === destino.id ? { ...p, cantidad: cuatroDecimales(p.cantidad + litros / porUnidad) } : p,
+  );
+}
+
+// ------------------------------------------------------------------ Formato
+
+/** 31000 → "31.000"; 3.45 con 1 decimal → "3,5". */
+export function formatoNumero(n: number, decimales = 0): string {
+  const fijo = n.toFixed(decimales);
+  const [entera, frac] = fijo.split('.');
+  const conPuntos = entera.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
+  return frac ? `${conPuntos},${frac}` : conPuntos;
+}
