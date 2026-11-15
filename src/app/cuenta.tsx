@@ -5,6 +5,7 @@
 import { useEffect, useState } from 'react';
 import { Share, View } from 'react-native';
 
+import { EstadoPlan } from '@/components/pro';
 import { Aviso, Boton, Campo, Icono, Pantalla, Pastilla, Seccion, Tarjeta, Texto } from '@/components/ui';
 import { tieneDatos, type Compartido } from '@/lib/compartido';
 import { confirmar } from '@/lib/confirmar';
@@ -224,6 +225,7 @@ function SinCasa() {
       </Tarjeta>
 
       {(a.error ?? errorCarga) && <Aviso texto={(a.error ?? errorCarga)!} />}
+      <EstadoPlan />
       <BotonCerrarSesion />
       <QueSeComparte />
     </>
@@ -342,6 +344,7 @@ function ConCasa({ casa }: { casa: Casa }) {
       <QueSeComparte />
 
       {a.error && <Aviso texto={a.error} />}
+      <EstadoPlan />
       <Boton
         variante="secundario"
         icono="home-export-outline"

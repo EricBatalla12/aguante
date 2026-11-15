@@ -4,9 +4,11 @@
 
 import { Share, View } from 'react-native';
 
+import { SinPro } from '@/components/pro';
 import { Aviso, Boton, Campo, Icono, Pantalla, Seccion, Tarjeta, Texto, type NombreIcono } from '@/components/ui';
 import { KIT } from '@/constants/kit';
 import { calcularExcedente, formatoNumero, limiteDias } from '@/lib/calculo';
+import { usePro } from '@/lib/sincro';
 import { horasSinLuz, useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
@@ -15,7 +17,20 @@ import { t } from '@/lib/i18n';
 // Para pasar kcal a algo que se entienda: unas 2.000 kcal es el día de un adulto
 const KCAL_DIA_ADULTO = 2000;
 
-export default function Trueque() {
+export default function PantallaTrueque() {
+  const pro = usePro();
+  if (pro) return <Trueque />;
+  return (
+    <Pantalla>
+      <SinPro
+        funcion={t('El trueque con vecinos')}
+        explicacion={t('Calcula lo que os sobra y lo que os falta para llegar al objetivo y lo deja listo para mandarlo a los vecinos por WhatsApp o Telegram.')}
+      />
+    </Pantalla>
+  );
+}
+
+function Trueque() {
   const C = useC();
   const r = useResultado();
   const objetivo = useAguante((s) => s.objetivoDias);

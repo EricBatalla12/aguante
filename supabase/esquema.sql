@@ -296,6 +296,65 @@ grant execute on function public.crear_casa(text), public.unirse_casa(text), pub
   public.subir_cambios(uuid, jsonb), public.borrar_cuenta() to authenticated;
 revoke all on function privado.nuevo_codigo() from public, anon, authenticated;
 
+-- ------------------------------------------------------------------ Planes (Pro)
+
+-- Quién tiene Pro. Lo rellena Eric a mano en el Table Editor del panel: el
+-- correo de la cuenta, el plan y, si caduca, hasta cuándo (vacío = siempre).
+-- Si alguien de una casa tiene Pro, lo tiene toda la casa. La app no puede
+-- leer ni escribir esta tabla: solo pregunta con soy_pro().
+create table if not exists public.planes (
+  correo text primary key,
+  plan text not null default 'pro' check (plan in ('gratis', 'pro')),
+  hasta date,
+  nota text,
+  creado timestamptz not null default now()
+);
+
+alter table public.planes enable row level security;
+revoke all on table public.planes from anon, authenticated;
+
+-- Devuelve {pro, hasta, deCasa}: si quien llama tiene Pro, hasta cuándo (null
+-- si no caduca) y si le viene de otra persona de su casa.
+create or replace function public.soy_pro()
+returns jsonb
+language plpgsql
+stable
+security definer
+set search_path = ''
+as $$
+declare
+  yo uuid := (select auth.uid());
+  mi_correo text := lower(coalesce((select auth.jwt() ->> 'email'), ''));
+  mejor record;
+begin
+  if yo is null then
+    raise exception 'sin_sesion' using errcode = '28000';
+  end if;
+  -- El plan vigente que más dura: el propio o el de alguien de mis casas
+  select lower(p.correo) = mi_correo as propio, p.hasta into mejor
+  from public.planes p
+  where p.plan = 'pro'
+    and (p.hasta is null or p.hasta >= current_date)
+    and (
+      lower(p.correo) = mi_correo
+      or lower(p.correo) in (
+        select lower(u.email) from auth.users u
+        join public.miembros m on m.usuario = u.id
+        where m.casa_id in (select privado.mis_casas())
+      )
+    )
+  order by p.hasta is not null, p.hasta desc, (lower(p.correo) = mi_correo) desc
+  limit 1;
+  if not found then
+    return jsonb_build_object('pro', false, 'hasta', null, 'deCasa', false);
+  end if;
+  return jsonb_build_object('pro', true, 'hasta', mejor.hasta, 'deCasa', not mejor.propio);
+end;
+$$;
+
+revoke all on function public.soy_pro() from public, anon;
+grant execute on function public.soy_pro() to authenticated;
+
 -- ------------------------------------------------------------------ Tiempo real
 
 -- Los móviles de la casa se enteran al momento de lo que cambia otro. Se

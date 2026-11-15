@@ -65,14 +65,16 @@ de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
 - Quitar un producto escaneándolo al gastarlo.
 - Medicinas y pilas con caducidad.
 
-## Planes de pago (Pro) asignados a mano
+## Planes de pago (Pro)
 
-Idea explicada a Eric el 15/11/2026, sin hacer: una tabla `planes` en
-Supabase con el correo, el plan y hasta cuándo, que Eric rellena en el Table
-Editor; una función `soy_pro()` que la app consulta al sincronizar y guarda
-para usarla sin conexión; y las pantallas de energía y trueque bloqueadas sin
-Pro. Antes de cobrar dinero de verdad dentro de la app, mirar las normas de
-pago de Google Play.
+Hecho el reparto a mano (ver [cuentas.md](cuentas.md#planes-dar-pro-a-alguien)):
+de momento solo el trueque es de Pro. Queda:
+
+- Cobrar de verdad dentro de la app: mirar antes las normas de pago de Google
+  Play (creo que exigen su sistema de pagos para funciones digitales; sin
+  comprobar).
+- Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
+  desbloqueada durante el modo emergencia.
 
 ## Hecho el 15/11/2026
 
@@ -80,6 +82,7 @@ pago de Google Play.
   varios con el mismo código, primero el que antes caduca; en la emergencia,
   la comida se apunta como comida en el plan del día.
 - Borrar la cuenta desde la app.
+- Plan Pro asignado a mano desde Supabase; el trueque es de Pro.
 
 - Cuenta opcional con correo y código, casa compartida con código de
   invitación y sincronización sin conexión primero (gana el último cambio de

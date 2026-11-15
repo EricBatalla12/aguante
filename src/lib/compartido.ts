@@ -211,3 +211,11 @@ export function vacio<T extends Compartido>(c: T): T {
 export const tieneDatos = (c: Compartido) =>
   c.personas.length + c.mascotas.length + c.productos.length + c.kitPropio.length +
     c.energia.fuentes.length + c.energia.aparatos.length > 0 || Object.values(c.kit).some(Boolean);
+
+/**
+ * Si un plan da Pro el día `hoy` (AAAA-MM-DD). El servidor ya mira la fecha al
+ * contestar, pero el plan se guarda para usarlo sin conexión y puede caducar
+ * mientras tanto. `hasta` es el último día incluido; null, sin caducidad.
+ */
+export const planActivo = (plan: { pro: boolean; hasta: string | null } | null, hoy: string) =>
+  !!plan?.pro && (!plan.hasta || plan.hasta >= hoy);

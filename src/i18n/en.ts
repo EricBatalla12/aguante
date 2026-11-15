@@ -759,4 +759,20 @@ export const EN: Record<string, string> = {
   'No queda: quitarlo de la despensa': 'None left: remove it from the pantry',
   'Queda {n}': '{n} left',
   'Quedan {n}': '{n} left',
+
+  // ------------------------------------------------------------ Plan Pro
+  'El trueque con vecinos': 'Bartering with neighbours',
+  'Calcula lo que os sobra y lo que os falta para llegar al objetivo y lo deja listo para mandarlo a los vecinos por WhatsApp o Telegram.':
+    'It works out what you have spare and what you are missing to reach the goal, ready to send to your neighbours on WhatsApp or Telegram.',
+  '{funcion} es parte de Aguante Pro': '{funcion} is part of Aguante Pro',
+  'Pro va con la cuenta, y si alguien de tu casa lo tiene, lo tenéis todos. De momento se activa a mano: pídeselo a quien gestiona Aguante.':
+    'Pro goes with the account, and if someone in your home has it, you all do. For now it is switched on by hand: ask whoever runs Aguante.',
+  'Entrar con tu cuenta': 'Sign in with your account',
+  'Ya me lo han dado: comprobar': 'I have been given it: check',
+  'Plan gratuito. El trueque con vecinos es de Pro.': 'Free plan. Bartering with neighbours is Pro.',
+  'Hasta el {fecha}': 'Until {fecha}',
+  'Sin caducidad': 'No expiry',
+  'lo tiene alguien de tu casa': 'someone in your home has it',
+  'Plan Pro': 'Pro plan',
+  'Plan gratuito': 'Free plan',
 };

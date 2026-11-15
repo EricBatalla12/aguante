@@ -1,6 +1,7 @@
 import { Link, router } from 'expo-router';
 import { Pressable, Share, View } from 'react-native';
 
+import { PastillaPro } from '@/components/pro';
 import { SelectorModo } from '@/components/selector-modo';
 import {
   Aviso,
@@ -19,6 +20,7 @@ import {
 import { diasHasta, estadoCaducidad, formatoNumero } from '@/lib/calculo';
 import { calcularEnergia } from '@/lib/energia';
 import { textoDia } from '@/lib/fechas';
+import { usePro } from '@/lib/sincro';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { ETIQUETA_MODO, useResultado } from '@/lib/use-resultado';
@@ -42,6 +44,7 @@ export default function Inicio() {
   const productos = useAguante((s) => s.productos);
   const emergencia = useAguante((s) => s.emergencia);
   const energia = useAguante((s) => s.energia);
+  const pro = usePro();
   const e = calcularEnergia(energia.fuentes, energia.aparatos, energia.zona, energia.epoca);
   const hayEnergia = energia.fuentes.length > 0 || energia.aparatos.length > 0;
   const kcalPerdidas = r.perdidos.reduce((s, p) => s + p.kcal, 0);
@@ -286,6 +289,7 @@ export default function Inicio() {
           icono="swap-horizontal"
           titulo={t('Trueque con vecinos')}
           detalle={t('Lo que os sobra y lo que os falta, listo para compartir')}
+          derecha={pro ? undefined : <PastillaPro />}
           onPress={() => router.push('/trueque')}
         />
       </Tarjeta>

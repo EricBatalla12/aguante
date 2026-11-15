@@ -38,6 +38,38 @@ Código: `src/lib/compartido.ts` (puro, con tests en `tests/compartido.test.mjs`
 `src/lib/sincro.ts` (motor de sincronización), `src/lib/supabase.ts` (cliente)
 y `src/app/cuenta.tsx` (pantalla). Servidor: `supabase/esquema.sql`.
 
+## Planes: dar Pro a alguien
+
+De momento solo el **trueque con vecinos** es de Pro. Sin Pro, la pantalla de
+trueque enseña una tarjeta que lo explica, y en Inicio el enlace lleva la
+etiqueta «Pro». Pro va con la cuenta (sin cuenta no hay Pro), y **si alguien
+de una casa lo tiene, lo tiene toda la casa**.
+
+Para dárselo a alguien, en el panel de Supabase:
+
+1. **Table Editor › `planes` › Insert row.**
+2. **correo:** el correo con el que entra en la app (da igual mayúsculas o
+   minúsculas).
+3. **plan:** `pro` (ya viene puesto). Para quitárselo, cambiarlo a `gratis` o
+   borrar la fila.
+4. **hasta:** el último día que lo tiene, o vacío para que no caduque.
+5. **nota:** lo que quieras (por qué se lo diste, cuánto pagó…). La app no la
+   lee.
+6. Guardar. A la persona le llega la próxima vez que abra la app con
+   conexión, o al pulsar «Ya me lo han dado: comprobar» en la pantalla de
+   trueque.
+
+Cómo funciona por dentro: la app no puede leer la tabla `planes`; solo llama a
+`soy_pro()`, que mira el correo de quien llama y el de la gente de sus casas, y
+devuelve si tiene Pro, hasta cuándo y si le viene de la casa. La app guarda la
+respuesta para saberlo sin conexión, y vuelve a mirar la fecha por si caduca
+mientras tanto. El bloqueo está en la app: alguien que modifique el APK podría
+saltárselo, porque el trueque se calcula en el móvil.
+
+Creadas en el proyecto el 15/11/2026 desde el SQL Editor (tabla `planes` y
+función `soy_pro`). Antes de cobrar dinero de verdad dentro de la app, mirar
+las normas de pago de Google Play.
+
 ## Lo que tiene que hacer Eric en Supabase
 
 ### 1. Crear las tablas

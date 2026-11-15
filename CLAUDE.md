@@ -86,7 +86,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   (`src/components/dialogo.tsx`, `confirmar` con firma de objeto) y
   `autoIncrement` en el perfil `preview`. Probado en web; no en el móvil.
 - 15/11/2026: publicado con EAS Update (grupo `beb14447`, runtime 1.0.0) el
-  diálogo de confirmación y la casa compartida, **sin commit todavía**.
+  diálogo de confirmación y la casa compartida (luego en commit `30814b7`).
+- 15/11/2026: APK nuevo (versionCode 2, canal `preview`) compilado desde
+  `30814b7`; los APK anteriores al de las 15:11 no reciben actualizaciones.
+  Publicado con EAS Update el grupo `a2dcd56c` (borrar cuenta y gastar
+  escaneando, commit `3a676d4`).
 
 ## Cuentas y casa compartida (Supabase), hecho el 15/11/2026 sin commit
 
@@ -113,6 +117,11 @@ Cómo funciona, qué tiene que configurar Eric y qué está probado:
 - Borrar la cuenta: función `borrar_cuenta` (en `esquema.sql` y ya creada en
   el proyecto) y botón en `cuenta.tsx`. Probado en Postgres local y que existe
   en el proyecto; no probado con una cuenta real.
+- Plan Pro: tabla `planes` (la rellena Eric en el Table Editor) y función
+  `soy_pro()`, ya creadas en el proyecto. En la app, `comprobarPlan` y
+  `usePro` en `sincro.ts` (el plan se guarda en `useSincro` para saberlo sin
+  conexión), `planActivo` en `compartido.ts` y `src/components/pro.tsx`. Solo
+  el trueque es de Pro.
 - Gastar escaneando: `src/app/gastar.tsx`, `productosConCodigo` en
   `calculo.ts` (compara sin ceros delante) y `gastar` en el store.
 - Configurado el 15/11/2026: SQL ejecutado, SMTP con el Gmail personal de

@@ -4,7 +4,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 
-import { aplicarFilas, cambiosEntre, juntarPendientes, resolver, tieneDatos, todasLasFilas, vacio } from '../src/lib/compartido.ts';
+import { aplicarFilas, cambiosEntre, juntarPendientes, planActivo, resolver, tieneDatos, todasLasFilas, vacio } from '../src/lib/compartido.ts';
 
 const base = () => ({
   personas: [{ id: 'ana', nombre: 'Ana' }],
@@ -128,4 +128,12 @@ test('vacio y tieneDatos', () => {
   assert.equal(tieneDatos(base()), true);
   assert.equal(v.modo, 'normal');
   assert.equal(v.tema, 'oscuro');
+});
+
+test('planActivo: sin plan, gratis, caducado, último día y sin caducidad', () => {
+  assert.equal(planActivo(null, '2026-11-15'), false);
+  assert.equal(planActivo({ pro: false, hasta: null }, '2026-11-15'), false);
+  assert.equal(planActivo({ pro: true, hasta: '2026-11-14' }, '2026-11-15'), false);
+  assert.equal(planActivo({ pro: true, hasta: '2026-11-15' }, '2026-11-15'), true);
+  assert.equal(planActivo({ pro: true, hasta: null }, '2026-11-15'), true);
 });

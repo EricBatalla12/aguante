@@ -18,6 +18,7 @@ import {
   cambiosEntre,
   clave,
   juntarPendientes,
+  planActivo,
   resolver,
   todasLasFilas,
   vacio,
@@ -25,12 +26,14 @@ import {
   type Fila,
 } from './compartido';
 import { t } from './i18n';
-import { useAguante } from './store';
+import { hoyISO, useAguante } from './store';
 import { supabase } from './supabase';
 
 export type Casa = { id: string; nombre: string; codigo: string };
 export type Miembro = { usuario: string; correo: string | null; unido: string };
 export type EstadoSincro = 'parado' | 'sincronizando' | 'al-dia' | 'sin-conexion' | 'error';
+/** Lo que dice el servidor del plan (supabase/esquema.sql, soy_pro). */
+export type Plan = { pro: boolean; hasta: string | null; deCasa: boolean; comprobado: number };
 
 type Sincro = {
   casa: Casa | null;
@@ -40,6 +43,8 @@ type Sincro = {
   cursor: string | null;
   pendientes: Record<string, Fila>;
   ultima: number | null;
+  /** El último plan que dijo el servidor: se guarda para saberlo sin conexión. */
+  plan: Plan | null;
   // Lo de abajo no se guarda
   usuario: string | null;
   correo: string | null;
@@ -55,6 +60,7 @@ export const useSincro = create<Sincro>()(
       cursor: null,
       pendientes: {},
       ultima: null,
+      plan: null,
       usuario: null,
       correo: null,
       estado: 'parado',
@@ -64,7 +70,14 @@ export const useSincro = create<Sincro>()(
       name: 'aguante-casa',
       version: 1,
       storage: createJSONStorage(() => almacen),
-      partialize: (s) => ({ casa: s.casa, inicial: s.inicial, cursor: s.cursor, pendientes: s.pendientes, ultima: s.ultima }),
+      partialize: (s) => ({
+        casa: s.casa,
+        inicial: s.inicial,
+        cursor: s.cursor,
+        pendientes: s.pendientes,
+        ultima: s.ultima,
+        plan: s.plan,
+      }),
     },
   ),
 );
@@ -242,6 +255,7 @@ export function sincronizar(): Promise<void> {
         await bajar(casa);
         await subir(casa);
         useSincro.setState({ estado: 'al-dia', error: null, ultima: Date.now() });
+        comprobarPlan();
       } catch (e) {
         if (/no_eres_de_la_casa/.test((e as { message?: string })?.message ?? '')) {
           // Alguien ha borrado la casa o te ha sacado: lo de este móvil se queda
@@ -349,15 +363,45 @@ export async function arrancarSincro() {
     // pendiente se guardan: al volver a entrar se sigue donde se dejó. Si
     // entra otra cuenta que no es de la casa, el servidor lo dice y se olvida.
     setTimeout(() => {
-      if (sesion) conectar();
-      else if (evento === 'SIGNED_OUT') desconectar();
+      if (sesion) {
+        conectar();
+        comprobarPlan();
+      } else if (evento === 'SIGNED_OUT') {
+        desconectar();
+        // Sin sesión no hay plan: el Pro va con la cuenta
+        useSincro.setState({ plan: null });
+      }
     }, 0);
   });
 
   AppState.addEventListener('change', (estado) => {
-    if (estado === 'active') programar(300);
+    if (estado !== 'active') return;
+    programar(300);
+    // Sin casa no se sincroniza, pero el plan se comprueba igual
+    if (!useSincro.getState().casa) comprobarPlan();
   });
 }
+
+// ------------------------------------------------------------------ Plan (Pro)
+
+/**
+ * Pregunta al servidor si esta cuenta tiene Pro (propio o de alguien de su
+ * casa). Sin conexión no hace nada: se queda lo último que se supo.
+ */
+export async function comprobarPlan(): Promise<void> {
+  if (!useSincro.getState().usuario) return;
+  try {
+    const r = comprobar<Omit<Plan, 'comprobado'> | null>(await supabase.rpc('soy_pro'));
+    if (r) useSincro.setState({ plan: { pro: !!r.pro, hasta: r.hasta ?? null, deCasa: !!r.deCasa, comprobado: Date.now() } });
+  } catch {
+    // Sin conexión o servidor sin la función: vale lo guardado
+  }
+}
+
+/** Si esta cuenta tiene Pro, para bloquear o enseñar las funciones de pago. */
+export const usePro = () => planActivo(useSincro((s) => s.plan), hoyISO());
+
+export { planActivo };
 
 // ------------------------------------------------------------------ Acciones de la pantalla de cuenta
 
@@ -393,6 +437,7 @@ export const cerrarSesion = () =>
     await sincronizar();
     comprobar(await supabase.auth.signOut());
     olvidarCasa();
+    useSincro.setState({ plan: null });
   });
 
 /**
@@ -406,7 +451,7 @@ export const borrarCuenta = () =>
     // El usuario ya no existe: el servidor puede responder con error al
     // cerrar la sesión, pero supabase-js la quita igual de este móvil
     await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
-    useSincro.setState({ usuario: null, correo: null, estado: 'parado', error: null });
+    useSincro.setState({ usuario: null, correo: null, estado: 'parado', error: null, plan: null });
   });
 
 /** Las casas de las que ya eres (al volver a entrar en la cuenta, o en otro móvil). */
@@ -463,4 +508,5 @@ export const salirDeCasa = () =>
     await sincronizar();
     comprobar(await supabase.rpc('salir_casa', { p_casa: casa.id }));
     olvidarCasa();
+    await comprobarPlan();
   });
