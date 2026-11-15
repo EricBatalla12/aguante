@@ -736,4 +736,27 @@ export const EN: Record<string, string> = {
   'No hay ninguna casa con ese código.': 'There is no home with that code.',
   'El servidor ha fallado ({estado}). Prueba otra vez dentro de un rato.': 'The server failed ({estado}). Try again in a while.',
   'No se ha podido mandar el correo con el código. Prueba más tarde.': 'The email with the code could not be sent. Try again later.',
+
+  // ------------------------------------------------------------ Borrar cuenta y gastar escaneando
+  '¿Borrar tu cuenta?': 'Delete your account?',
+  'Se borran tu cuenta y tu correo del servidor y sales de tus casas. Si eras la última persona de una casa, la casa se borra con todo lo suyo. Lo que hay en este móvil se queda. No se puede deshacer.':
+    'Your account and email are deleted from the server and you leave your homes. If you were the last person in a home, the home is deleted with everything in it. What is on this phone stays. This cannot be undone.',
+  'Borrar mi cuenta': 'Delete my account',
+  'Para borrar la cuenta hace falta conexión.': 'Deleting the account needs a connection.',
+  'Gastar producto': 'Use up a product',
+  'Escanea lo que vas a gastar y se descuenta de la despensa.': 'Scan what you are going to use and it is taken off the pantry.',
+  'O escribe el código de barras': 'Or type the barcode',
+  'No hay nada con el código {c} en la despensa, o ya no quedan unidades.':
+    'There is nothing with the code {c} in the pantry, or there are no units left.',
+  'Añadirlo a la despensa': 'Add it to the pantry',
+  'caduca {fecha}': 'expires {fecha}',
+  'Es el que antes caduca: gasta este primero.': 'This one expires first: use it first.',
+  'Apuntar como comido': 'Log as eaten',
+  Gastar: 'Use up',
+  'Apuntado como comido: {u} × {nombre}. Quedan {q}. Se puede deshacer en el plan del día.':
+    'Logged as eaten: {u} × {nombre}. {q} left. You can undo it in the day plan.',
+  'Gastado: {u} × {nombre}. Quedan {q}.': 'Used up: {u} × {nombre}. {q} left.',
+  'No queda: quitarlo de la despensa': 'None left: remove it from the pantry',
+  'Queda {n}': '{n} left',
+  'Quedan {n}': '{n} left',
 };

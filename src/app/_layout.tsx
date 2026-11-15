@@ -98,6 +98,7 @@ function Navegacion() {
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="anadir" options={{ title: t('Añadir producto'), presentation: 'modal' }} />
+        <Stack.Screen name="gastar" options={{ title: t('Gastar producto'), presentation: 'modal' }} />
         <Stack.Screen name="producto/[id]" options={{ title: t('Producto') }} />
         <Stack.Screen name="persona/[id]" options={{ title: t('Persona') }} />
         <Stack.Screen name="mascota/[id]" options={{ title: t('Mascota') }} />

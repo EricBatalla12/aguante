@@ -6,12 +6,9 @@ Ideas apuntadas para más adelante. Lo ya hecho está al final.
 
 Hecho el 15/11/2026 (ver [cuentas.md](cuentas.md)). Queda:
 
-- Que Eric ejecute `supabase/esquema.sql`, ponga el código en las plantillas
-  de correo y, antes de que entre nadie más, configure un SMTP propio.
-- Probarlo de verdad: entrar con código, dos móviles en la misma casa, sin
-  conexión y volver.
-- Borrar la cuenta desde la app (hoy solo se puede salir de la casa y cerrar
-  sesión; el usuario se queda en Supabase).
+- Si se sube a Google Play: una página web para pedir que se borre la cuenta
+  sin instalar la app (creo que Play lo pide además del botón de la app; sin
+  comprobar).
 - Compartir también la emergencia en curso: hoy es de cada móvil, porque el
   agua y la comida apuntadas hoy se pisarían si dos personas apuntan a la vez.
 - Cambiar el código de la casa o echar a alguien.
@@ -68,7 +65,21 @@ de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
 - Quitar un producto escaneándolo al gastarlo.
 - Medicinas y pilas con caducidad.
 
+## Planes de pago (Pro) asignados a mano
+
+Idea explicada a Eric el 15/11/2026, sin hacer: una tabla `planes` en
+Supabase con el correo, el plan y hasta cuándo, que Eric rellena en el Table
+Editor; una función `soy_pro()` que la app consulta al sincronizar y guarda
+para usarla sin conexión; y las pantallas de energía y trueque bloqueadas sin
+Pro. Antes de cobrar dinero de verdad dentro de la app, mirar las normas de
+pago de Google Play.
+
 ## Hecho el 15/11/2026
+
+- Gastar un producto escaneándolo (botón de la cesta en la despensa). Si hay
+  varios con el mismo código, primero el que antes caduca; en la emergencia,
+  la comida se apunta como comida en el plan del día.
+- Borrar la cuenta desde la app.
 
 - Cuenta opcional con correo y código, casa compartida con código de
   invitación y sincronización sin conexión primero (gana el último cambio de

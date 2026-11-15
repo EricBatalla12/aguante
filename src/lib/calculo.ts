@@ -546,3 +546,25 @@ export function calcularExcedente(r: Resultado, objetivoDias: number): Excedente
     kcalFaltan: Math.max(0, kcalNecesarias - r.kcalTotal),
   };
 }
+
+// ------------------------------------------------------------------ Gastar escaneando
+
+/**
+ * El mismo código de barras puede leerse con ceros delante o sin ellos: un
+ * UPC-A de 12 cifras es el EAN-13 con un 0 delante, y cada lector lo da a su
+ * manera. Se comparan sin los ceros iniciales.
+ */
+const sinCerosDelante = (codigo: string) => codigo.trim().replace(/^0+/, '');
+
+/**
+ * Los productos de la despensa con ese código de barras y algo que gastar,
+ * primero el que antes caduca (es el que hay que gastar antes). Puede haber
+ * varios: el mismo arroz comprado en dos tandas con distinta caducidad.
+ */
+export function productosConCodigo(productos: Producto[], codigo: string): Producto[] {
+  const buscado = sinCerosDelante(codigo);
+  if (!buscado) return [];
+  return productos
+    .filter((p) => p.codigo && sinCerosDelante(p.codigo) === buscado && p.cantidad > 0)
+    .sort((a, b) => (a.caducidad ?? '9999').localeCompare(b.caducidad ?? '9999'));
+}

@@ -263,10 +263,37 @@ begin
 end;
 $$;
 
+-- Borra la cuenta de quien llama: sale de sus casas (las que se quedan sin
+-- nadie se borran con todo lo suyo) y se borra el usuario, con su correo. Lo
+-- que hay en el móvil no se toca.
+create or replace function public.borrar_cuenta()
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  yo uuid := (select auth.uid());
+  casa uuid;
+begin
+  if yo is null then
+    raise exception 'sin_sesion' using errcode = '28000';
+  end if;
+  for casa in select casa_id from public.miembros where usuario = yo loop
+    delete from public.miembros where casa_id = casa and usuario = yo;
+    if not exists (select 1 from public.miembros where casa_id = casa) then
+      delete from public.casas where id = casa;
+    end if;
+  end loop;
+  delete from privado.intentos where usuario = yo;
+  delete from auth.users where id = yo;
+end;
+$$;
+
 revoke all on function public.crear_casa(text), public.unirse_casa(text), public.salir_casa(uuid),
-  public.subir_cambios(uuid, jsonb) from public, anon;
+  public.subir_cambios(uuid, jsonb), public.borrar_cuenta() from public, anon;
 grant execute on function public.crear_casa(text), public.unirse_casa(text), public.salir_casa(uuid),
-  public.subir_cambios(uuid, jsonb) to authenticated;
+  public.subir_cambios(uuid, jsonb), public.borrar_cuenta() to authenticated;
 revoke all on function privado.nuevo_codigo() from public, anon, authenticated;
 
 -- ------------------------------------------------------------------ Tiempo real

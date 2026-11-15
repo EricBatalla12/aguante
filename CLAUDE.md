@@ -110,6 +110,11 @@ Cómo funciona, qué tiene que configurar Eric y qué está probado:
   los dos stores: si no, la carga parecería un cambio de todo.
 - Un campo nuevo que se comparta va también en `Compartido` y `SECCIONES` de
   `compartido.ts`, en `meterEnStore` y en el `check` de `tipo` del SQL.
+- Borrar la cuenta: función `borrar_cuenta` (en `esquema.sql` y ya creada en
+  el proyecto) y botón en `cuenta.tsx`. Probado en Postgres local y que existe
+  en el proyecto; no probado con una cuenta real.
+- Gastar escaneando: `src/app/gastar.tsx`, `productosConCodigo` en
+  `calculo.ts` (compara sin ceros delante) y `gastar` en el store.
 - Configurado el 15/11/2026: SQL ejecutado, SMTP con el Gmail personal de
   Eric (usuario = dirección completa, contraseña de aplicación) y el código en
   las plantillas Magic link y Confirm sign up. El envío del código funciona

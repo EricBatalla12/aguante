@@ -71,6 +71,7 @@ type Estado = Datos & {
   borrarMascota: (id: string) => void;
   guardarProducto: (p: Producto) => void;
   borrarProducto: (id: string) => void;
+  gastar: (id: string, unidades: number) => void;
   setModo: (m: Modo) => void;
   setRacion: (id: string, r: Racion) => void;
   copiarManualDe: (modo: ModoAuto) => void;
@@ -180,6 +181,14 @@ export const useAguante = create<Estado>()(
         set((s) => ({ mascotas: s.mascotas.filter((m) => m.id !== id), manual: sin(s.manual, id) })),
       guardarProducto: (p) => set((s) => ({ productos: upsert(s.productos, p) })),
       borrarProducto: (id) => set((s) => ({ productos: s.productos.filter((p) => p.id !== id) })),
+      // Fuera de la emergencia: quita unidades sin apuntarlas como comidas
+      // (en la emergencia se usa `comer`, que las apunta en el plan del día)
+      gastar: (id, unidades) =>
+        set((s) => ({
+          productos: s.productos.map((p) =>
+            p.id === id ? { ...p, cantidad: Math.max(0, centesimas(p.cantidad - unidades)) } : p,
+          ),
+        })),
       setModo: (modo) => set({ modo }),
       setRacion: (id, r) => set((s) => ({ manual: { ...s.manual, [id]: { ...s.manual[id], ...r } } })),
       // Punto de partida para el reparto manual: las raciones de uno de los

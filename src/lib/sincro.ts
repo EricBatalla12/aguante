@@ -395,6 +395,20 @@ export const cerrarSesion = () =>
     olvidarCasa();
   });
 
+/**
+ * Borra la cuenta en el servidor (sale de sus casas, y las que se quedan sin
+ * nadie se borran) y cierra la sesión. Lo que hay en este móvil se queda.
+ */
+export const borrarCuenta = () =>
+  intentar(async () => {
+    comprobar(await supabase.rpc('borrar_cuenta'));
+    olvidarCasa();
+    // El usuario ya no existe: el servidor puede responder con error al
+    // cerrar la sesión, pero supabase-js la quita igual de este móvil
+    await supabase.auth.signOut({ scope: 'local' }).catch(() => {});
+    useSincro.setState({ usuario: null, correo: null, estado: 'parado', error: null });
+  });
+
 /** Las casas de las que ya eres (al volver a entrar en la cuenta, o en otro móvil). */
 export async function misCasas(): Promise<{ casas: Casa[]; error: string | null }> {
   try {

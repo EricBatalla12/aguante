@@ -23,6 +23,7 @@ import {
   simularConsumo,
   calcularExcedente,
   devolverAgua,
+  productosConCodigo,
 } from '../src/lib/calculo.ts';
 
 const HOY = new Date(2026, 10, 11); // 11 nov 2026
@@ -299,4 +300,18 @@ test('excedente: lo que sobra y falta respecto al objetivo', () => {
   assert.equal(e.kcalFaltan, 6000 - 2000);
   assert.equal(e.kcalSobran, 0);
   assert.equal(e.litrosFaltan, 0);
+});
+
+test('productosConCodigo: ceros delante, sin existencias y orden por caducidad', () => {
+  const productos = [
+    { id: 'a', nombre: 'Arroz tarde', categoria: 'comida', cantidad: 2, codigo: '0012345678905', caducidad: '2028-01-01' },
+    { id: 'b', nombre: 'Arroz pronto', categoria: 'comida', cantidad: 1, codigo: '012345678905', caducidad: '2027-01-01' },
+    { id: 'c', nombre: 'Arroz gastado', categoria: 'comida', cantidad: 0, codigo: '12345678905' },
+    { id: 'd', nombre: 'Sin fecha', categoria: 'comida', cantidad: 3, codigo: '12345678905' },
+    { id: 'e', nombre: 'Otra cosa', categoria: 'comida', cantidad: 3, codigo: '999' },
+    { id: 'f', nombre: 'Sin código', categoria: 'comida', cantidad: 3 },
+  ];
+  assert.deepEqual(productosConCodigo(productos, '12345678905').map((p) => p.id), ['b', 'a', 'd']);
+  assert.deepEqual(productosConCodigo(productos, ' 000 '), []);
+  assert.deepEqual(productosConCodigo(productos, '111'), []);
 });

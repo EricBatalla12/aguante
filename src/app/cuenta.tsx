@@ -11,6 +11,7 @@ import { confirmar } from '@/lib/confirmar';
 import { textoDia } from '@/lib/fechas';
 import { t, tn } from '@/lib/i18n';
 import {
+  borrarCuenta,
   cerrarSesion,
   comprobarCodigo,
   crearCasa,
@@ -363,13 +364,33 @@ function ConCasa({ casa }: { casa: Casa }) {
 }
 
 function BotonCerrarSesion() {
+  const C = useC();
   const a = useAccion();
   return (
     <>
       <Boton variante="suave" icono="logout" deshabilitado={a.ocupado} onPress={() => a.hacer(cerrarSesion)}>
         {t('Cerrar sesión')}
       </Boton>
+      <Boton
+        variante="secundario"
+        icono="account-remove-outline"
+        deshabilitado={a.ocupado}
+        onPress={() =>
+          confirmar({
+            titulo: t('¿Borrar tu cuenta?'),
+            nombre: useSincro.getState().correo ?? undefined,
+            mensaje: t('Se borran tu cuenta y tu correo del servidor y sales de tus casas. Si eras la última persona de una casa, la casa se borra con todo lo suyo. Lo que hay en este móvil se queda. No se puede deshacer.'),
+            accion: t('Borrar mi cuenta'),
+            icono: 'account-remove-outline',
+            alAceptar: () => a.hacer(borrarCuenta),
+          })
+        }>
+        {t('Borrar mi cuenta')}
+      </Boton>
       {a.error && <Aviso texto={a.error} />}
+      <Texto tam={12} color={C.suave} centro>
+        {t('Para borrar la cuenta hace falta conexión.')}
+      </Texto>
     </>
   );
 }

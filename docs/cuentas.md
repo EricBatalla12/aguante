@@ -27,6 +27,12 @@ Cómo funciona y qué hay que configurar en el proyecto de Supabase
   si está vacía, sube lo del móvil.
 - Al **salir** de la casa, lo del móvil se queda como copia propia. Si era la
   última persona, la casa se borra del servidor.
+- **Borrar la cuenta** (*Cuenta y casa*, abajo): la función `borrar_cuenta`
+  sale de todas sus casas (las que se quedan sin nadie se borran con lo suyo),
+  borra el usuario y su correo de Supabase y cierra la sesión. Lo del móvil se
+  queda. Hace falta conexión. Creada en el proyecto el 15/11/2026 desde el SQL
+  Editor; se comprobó antes que el rol `postgres` puede borrar en
+  `auth.users`.
 
 Código: `src/lib/compartido.ts` (puro, con tests en `tests/compartido.test.mjs`),
 `src/lib/sincro.ts` (motor de sincronización), `src/lib/supabase.ts` (cliente)
@@ -42,8 +48,8 @@ nada (por ejemplo, si cambia el esquema).
 
 Crea las tablas `casas`, `miembros` y `elementos`, las reglas RLS (cada cuenta
 solo ve lo de sus casas), las funciones con las que se escribe
-(`crear_casa`, `unirse_casa`, `salir_casa`, `subir_cambios`) y añade
-`elementos` al tiempo real.
+(`crear_casa`, `unirse_casa`, `salir_casa`, `subir_cambios`, `borrar_cuenta`)
+y añade `elementos` al tiempo real.
 
 ### 2. Que el correo lleve el código y no un enlace
 

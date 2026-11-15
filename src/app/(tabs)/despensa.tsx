@@ -49,7 +49,12 @@ export default function Despensa() {
     <Pantalla>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <Titulo>{t('Despensa')}</Titulo>
-        <BotonIcono icono="plus" etiqueta={t('Añadir producto')} lleno onPress={() => router.push('/anadir')} />
+        <View style={{ flexDirection: 'row', gap: 8 }}>
+          {productos.length > 0 && (
+            <BotonIcono icono="basket-minus-outline" etiqueta={t('Gastar producto')} onPress={() => router.push('/gastar')} />
+          )}
+          <BotonIcono icono="plus" etiqueta={t('Añadir producto')} lleno onPress={() => router.push('/anadir')} />
+        </View>
       </View>
 
       <View style={{ flexDirection: 'row', gap: 8 }}>
