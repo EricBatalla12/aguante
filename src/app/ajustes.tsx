@@ -5,6 +5,7 @@ import { useState } from 'react';
 import { Linking, Platform, Share, View } from 'react-native';
 
 import { Aviso, Boton, Campo, FilaEnlace, Interruptor, Pantalla, Seccion, Segmentado, Tarjeta, Texto } from '@/components/ui';
+import { EstadoActualizaciones } from '@/components/actualizacion';
 import { ENLACE_DONAR } from '@/constants/monetizacion';
 import { confirmar } from '@/lib/confirmar';
 import { pedirPermiso } from '@/lib/notificaciones';
@@ -222,6 +223,8 @@ export default function Ajustes() {
           </Tarjeta>
         </>
       ) : null}
+
+      <EstadoActualizaciones />
 
       <Texto tam={12} color={C.suave} centro>
         Aguante {Constants.expoConfig?.version ?? ''} · {t('Estimación orientativa, no sustituye el consejo médico.')}

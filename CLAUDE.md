@@ -43,6 +43,14 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - Publicar una actualización o lanzar una compilación es algo que se ve fuera
   del PC: confirmarlo con Eric antes.
 
+- **Las actualizaciones no se aplicaban** en el APK versionCode 2 (15/11/2026):
+  el APK está bien configurado (comprobado dentro del APK: URL, runtime 1.0.0,
+  canal `preview`, `CHECK_ON_LAUNCH=ALWAYS`) y el servidor entrega la última
+  actualización a ese canal y runtime, pero EAS no registra ningún lanzamiento
+  (`npx eas-cli update:insights <grupo>`). Para verlo desde el móvil:
+  `src/components/actualizacion.tsx` (aviso «Reiniciar ahora» en Inicio y
+  estado con errores y «Buscar actualización» en Ajustes).
+
 ## Convenciones del código
 
 - Todo en español: código, comentarios, textos y commits.

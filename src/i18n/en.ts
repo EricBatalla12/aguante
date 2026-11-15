@@ -781,4 +781,20 @@ export const EN: Record<string, string> = {
   'Aguante es gratis, sin anuncios y sin nada bloqueado. Si te es útil, una donación ayuda a mantenerla y a seguir mejorándola.':
     'Aguante is free, with no ads and nothing locked. If it is useful to you, a donation helps keep it going and improving.',
   'Donar con PayPal': 'Donate with PayPal',
+
+  // ------------------------------------------------------------ Actualizaciones
+  'Hay una versión nueva de Aguante': 'A new version of Aguante is available',
+  'Ya está descargada. Se aplica al reiniciar la app: no se pierde nada de lo apuntado.':
+    'It is already downloaded. It is applied when the app restarts: nothing you have logged is lost.',
+  'Reiniciar ahora': 'Restart now',
+  'Tienes la última versión.': 'You have the latest version.',
+  'Descargada. Reinicia la app para aplicarla.': 'Downloaded. Restart the app to apply it.',
+  'No se ha podido buscar: {error}': 'Could not check: {error}',
+  'Canal: {canal} · Runtime: {runtime}': 'Channel: {canal} · Runtime: {runtime}',
+  'Última comprobación: {cuando}': 'Last check: {cuando}',
+  'Aún no ha comprobado desde que se abrió.': 'It has not checked since it was opened.',
+  'Descargando…': 'Downloading…',
+  'Error al actualizar: {error}': 'Update error: {error}',
+  'Buscando…': 'Searching…',
+  'Buscar actualización': 'Check for update',
 };

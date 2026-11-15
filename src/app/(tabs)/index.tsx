@@ -1,6 +1,7 @@
 import { Link, router } from 'expo-router';
 import { Pressable, Share, View } from 'react-native';
 
+import { AvisoVersionNueva } from '@/components/actualizacion';
 import { PastillaPro } from '@/components/pro';
 import { SelectorModo } from '@/components/selector-modo';
 import {
@@ -71,6 +72,7 @@ export default function Inicio() {
 
   return (
     <Pantalla>
+      <AvisoVersionNueva />
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <View style={{ flex: 1 }}>
           <Texto tam={26} peso="800" style={{ letterSpacing: -0.5 }}>

@@ -55,6 +55,13 @@ de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
 - Asociaciones de vecinos, scouts, protección civil y prepper/camping en foros
   y Reddit.
 
+## Noticias de guerra o posibles desastres
+
+Idea de Eric (15/11/2026), sin estudiar: una sección con noticias
+relacionadas con guerras o posibles desastres. Pendiente de mirar la
+viabilidad (de dónde salen las noticias, si hay fuentes oficiales de avisos,
+coste y que no sea alarmista) y contársela a Eric.
+
 ## Ideas sacadas de otras apps (sin hacer)
 
 - Avisos de caducidad en tu propio calendario (suscripción ICS), como
