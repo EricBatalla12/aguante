@@ -7,6 +7,7 @@ import { Platform, Share, View } from 'react-native';
 import { Aviso, Boton, Campo, FilaEnlace, Interruptor, Pantalla, Seccion, Segmentado, Tarjeta, Texto } from '@/components/ui';
 import { confirmar } from '@/lib/confirmar';
 import { pedirPermiso } from '@/lib/notificaciones';
+import { useSincro } from '@/lib/sincro';
 import { useAguante, type Idioma, type Tema } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { textoDia } from '@/lib/fechas';
@@ -37,6 +38,8 @@ export default function Ajustes() {
   const exportar = useAguante((s) => s.exportar);
   const importar = useAguante((s) => s.importar);
   const borrarTodo = useAguante((s) => s.borrarTodo);
+  const casa = useSincro((s) => s.casa);
+  const correo = useSincro((s) => s.correo);
 
   const [sinPermiso, setSinPermiso] = useState(false);
   const [importando, setImportando] = useState(false);
@@ -66,7 +69,9 @@ export default function Ajustes() {
   const alImportar = () =>
     confirmar({
       titulo: t('¿Sustituir todos los datos?'),
-      mensaje: t('Lo que hay ahora en la app se cambia por lo que trae la copia.'),
+      mensaje: casa
+        ? t('Lo que hay ahora en la app se cambia por lo que trae la copia, también para toda la casa «{casa}».', { casa: casa.nombre })
+        : t('Lo que hay ahora en la app se cambia por lo que trae la copia.'),
       accion: t('Sustituir'),
       icono: 'file-replace-outline',
       alAceptar: () => {
@@ -81,6 +86,23 @@ export default function Ajustes() {
 
   return (
     <Pantalla>
+      <Seccion>{t('Casa compartida')}</Seccion>
+      <Tarjeta style={{ paddingVertical: 6, gap: 0 }}>
+        <FilaEnlace
+          primera
+          icono={casa ? 'home-heart' : 'account-multiple-plus-outline'}
+          titulo={t('Cuenta y casa')}
+          detalle={
+            casa
+              ? t('En «{casa}»', { casa: casa.nombre })
+              : correo
+                ? t('Has entrado como {correo}', { correo })
+                : t('Comparte la despensa con quien vive contigo')
+          }
+          onPress={() => router.push('/cuenta')}
+        />
+      </Tarjeta>
+
       <Seccion>{t('Apariencia')}</Seccion>
       <Tarjeta>
         <Segmentado opciones={TEMAS} valor={tema} onChange={setTema} />
@@ -133,7 +155,9 @@ export default function Ajustes() {
       <Seccion>{t('Tus datos')}</Seccion>
       <Tarjeta style={{ gap: 12 }}>
         <Texto tam={13} color={C.suave}>
-          {t('Todo se guarda solo en este móvil. Una copia te sirve para pasarlo a otro o para no perderlo si desinstalas la app.')}
+          {casa
+            ? t('Se guarda en este móvil y se sincroniza con la casa «{casa}». Una copia te sirve para guardar cómo está todo ahora.', { casa: casa.nombre })
+            : t('Todo se guarda solo en este móvil. Una copia te sirve para pasarlo a otro o para no perderlo si desinstalas la app.')}
         </Texto>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           <View style={{ flex: 1 }}>
@@ -170,7 +194,9 @@ export default function Ajustes() {
           onPress={() =>
             confirmar({
               titulo: t('¿Borrar todos los datos?'),
-              mensaje: t('Se borran las personas, las mascotas, la despensa y el kit. No se puede deshacer.'),
+              mensaje: casa
+                ? t('Se borran las personas, las mascotas, la despensa y el kit, también para toda la casa «{casa}». No se puede deshacer.', { casa: casa.nombre })
+                : t('Se borran las personas, las mascotas, la despensa y el kit. No se puede deshacer.'),
               accion: t('Borrar todo'),
               alAceptar: () => {
                 borrarTodo();

@@ -346,7 +346,7 @@ export function Campo({
   etiqueta: string;
   valor: string;
   onChange: (t: string) => void;
-  teclado?: 'default' | 'numeric' | 'decimal-pad';
+  teclado?: 'default' | 'numeric' | 'decimal-pad' | 'email-address';
   placeholder?: string;
   ayuda?: string;
   /** Unidad que se pinta dentro del campo, a la derecha: g, kg, L… */
@@ -376,6 +376,10 @@ export function Campo({
           value={valor}
           onChangeText={onChange}
           keyboardType={teclado}
+          // Un correo no empieza en mayúscula ni se autocorrige
+          autoCapitalize={teclado === 'email-address' ? 'none' : undefined}
+          autoCorrect={teclado === 'email-address' ? false : undefined}
+          autoComplete={teclado === 'email-address' ? 'email' : undefined}
           placeholder={placeholder}
           placeholderTextColor={C.suave}
           maxFontSizeMultiplier={ESCALA_MAX}

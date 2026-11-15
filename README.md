@@ -32,6 +32,10 @@ cuántos días aguantaríais con ella.
   pantalla de fuentes.
 - Todo se guarda en el móvil y funciona sin internet. Solo el escáner y las
   sugerencias necesitan red, para buscar el producto.
+- Cuenta opcional (correo y código, sin contraseña) para compartir la casa con
+  quien vive contigo: despensa, hogar, kit y energía se sincronizan con
+  Supabase cuando hay red. Cómo funciona y qué configurar:
+  [docs/cuentas.md](docs/cuentas.md).
 
 Las reglas de cálculo y sus fuentes (FAO/OMS, EFSA, FEMA, Sphere, PMA) están
 en [docs/fuentes-y-reglas.md](docs/fuentes-y-reglas.md).
@@ -67,7 +71,7 @@ npm run publicar -- -m "Qué cambia"              # actualización sin APK nuevo
 ## Comprobaciones
 
 ```bash
-npm test          # cálculo, energía, fechas y traducciones (node --test)
+npm test          # cálculo, energía, fechas, casa compartida y traducciones (node --test)
 npx tsc --noEmit  # tipos
 npx eslint .      # lint
 ```
@@ -77,6 +81,8 @@ npx eslint .      # lint
 - `src/lib/calculo.ts`: el motor de cálculo. Es puro, sin dependencias, y lo
   cubren los tests de `tests/`.
 - `src/lib/store.ts`: el estado guardado (zustand, persistido en SQLite).
+- `src/lib/compartido.ts` (puro), `src/lib/sincro.ts` y `src/lib/supabase.ts`:
+  la casa compartida. El servidor está en `supabase/esquema.sql`.
 - `src/lib/fechas.ts`: fechas de caducidad con el día opcional. También puro.
 - `src/lib/energia.ts`: el cálculo de la energía propia. También puro.
 - `src/lib/i18n.ts` y `src/i18n/en.ts`: idiomas. El texto en español es la

@@ -2,26 +2,19 @@
 
 Ideas apuntadas para más adelante. Lo ya hecho está al final.
 
-## Cuentas y casa compartida
+## Cuentas y casa compartida: lo que falta
 
-Poder iniciar sesión y que varias cuentas compartan una misma casa, para que
-quienes viven juntos vean y editen la misma despensa, el mismo hogar y el
-mismo kit desde varios móviles.
+Hecho el 15/11/2026 (ver [cuentas.md](cuentas.md)). Queda:
 
-- Hace falta un servidor; ahora todo vive en el móvil (zustand persistido en
-  SQLite, `src/lib/store.ts`). Recomendación: Supabase (cuentas, base de datos
-  Postgres y cambios en tiempo real, con plan gratuito). La cuenta de Supabase
-  la tiene que crear Eric.
-- La casa sería la unidad que se comparte: una cuenta crea la casa e invita a
-  las demás con un código o un enlace.
-- Tiene que seguir funcionando sin conexión (es una app de emergencias):
-  guardar en local como ahora y sincronizar cuando vuelva la red. Hay que
-  decidir qué pasa si dos personas cambian lo mismo sin conexión.
-- Por decidir: qué se comparte y qué no. Lo lógico es compartir despensa,
-  hogar, kit, energía y modo, y dejar el tema, el idioma y los avisos en cada
-  móvil.
-- La copia de seguridad (exportar / importar en Ajustes) ya sirve para pasar
-  los datos de un móvil a otro mientras tanto.
+- Que Eric ejecute `supabase/esquema.sql`, ponga el código en las plantillas
+  de correo y, antes de que entre nadie más, configure un SMTP propio.
+- Probarlo de verdad: entrar con código, dos móviles en la misma casa, sin
+  conexión y volver.
+- Borrar la cuenta desde la app (hoy solo se puede salir de la casa y cerrar
+  sesión; el usuario se queda en Supabase).
+- Compartir también la emergencia en curso: hoy es de cada móvil, porque el
+  agua y la comida apuntadas hoy se pisarían si dos personas apuntan a la vez.
+- Cambiar el código de la casa o echar a alguien.
 
 ## Trueque entre usuarios
 
@@ -76,6 +69,10 @@ de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
 - Medicinas y pilas con caducidad.
 
 ## Hecho el 15/11/2026
+
+- Cuenta opcional con correo y código, casa compartida con código de
+  invitación y sincronización sin conexión primero (gana el último cambio de
+  cada elemento). Falta configurarlo en Supabase y probarlo en el móvil.
 
 - Solo cuenta la comida que da tiempo a comer antes de que caduque; aviso de
   lo que se va a desperdiciar.

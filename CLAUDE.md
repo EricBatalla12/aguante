@@ -85,35 +85,34 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - El último commit añade el diálogo de confirmación propio
   (`src/components/dialogo.tsx`, `confirmar` con firma de objeto) y
   `autoIncrement` en el perfil `preview`. Probado en web; no en el móvil.
-  **Aún no publicado con EAS Update**: preguntar a Eric antes de
-  `npm run publicar`.
+- 15/11/2026: publicado con EAS Update (grupo `beb14447`, runtime 1.0.0) el
+  diálogo de confirmación y la casa compartida, **sin commit todavía**.
 
-## Siguiente trabajo: cuentas y casa compartida (Supabase)
+## Cuentas y casa compartida (Supabase), hecho el 15/11/2026 sin commit
 
-Eric lo ha pedido y ha creado el proyecto. Datos (la clave publicable está
-hecha para ir en la app; **la secreta no se pide ni se guarda nunca**):
+Cómo funciona, qué tiene que configurar Eric y qué está probado:
+[docs/cuentas.md](docs/cuentas.md). Resumen para trabajar en ello:
 
-- URL: `https://dndvwxfnaqdivcttxwku.supabase.co`
-- Clave publicable: `sb_publishable_2ExGbQV4Bzbv5YvRhjzq7w_EWEv35IL`
-
-Diseño acordado con Eric:
-
-1. Cuenta **opcional**: sin cuenta la app sigue igual, todo en local. Entrar
-   con el correo y un **código de 6 dígitos** (OTP de Supabase), sin
-   contraseñas ni enlaces mágicos.
-2. Una persona crea la **casa** y sale un código de invitación (tipo `K7P-29Q`);
-   las demás lo escriben y entran.
-3. Se comparte despensa, hogar (personas y mascotas), kit (y kit propio),
-   energía, modo y reparto manual. Tema, idioma y avisos son de cada móvil.
-4. **Sin conexión primero**: el store local sigue mandando; se apuntan los
-   cambios y se sincronizan al volver la red, con tiempo real si hay
-   conexión. Conflictos: gana el último cambio, por elemento.
-5. `@supabase/supabase-js` es JS puro: se puede publicar con EAS Update, sin
-   APK nuevo (comprobarlo en la documentación antes).
-
-Pendiente de comprobar antes de empezar: si el plan gratuito de Supabase pausa
-los proyectos tras una semana sin uso (lo recuerdo así, sin comprobar).
-Las tablas y las reglas RLS las crea Eric pegando un SQL que le prepare en el
-SQL Editor de Supabase. Al acabar, actualizar README, `docs/pendiente.md` y la
-pantalla y el doc de fuentes si cambia algo de lo que la app promete (hoy dice
-«todo se guarda en el móvil»).
+- Proyecto: `https://dndvwxfnaqdivcttxwku.supabase.co`, clave publicable en
+  `src/lib/supabase.ts` (está hecha para ir en la app; **la secreta no se pide
+  ni se guarda nunca**).
+- Servidor: `supabase/esquema.sql`, re-ejecutable. Los móviles solo leen las
+  tablas (RLS); escriben con las funciones `crear_casa`, `unirse_casa`,
+  `salir_casa` y `subir_cambios`. Se probó en un Postgres 17 en Docker
+  (`postgres:17-alpine`) con un esquema `auth` simulado (`auth.uid()` lee
+  `request.jwt.claim.sub`); la CLI de Supabase por `npx` la bloqueó el modo
+  automático.
+- App: `src/lib/compartido.ts` (puro: elementos, diferencias, gana el último),
+  `src/lib/sincro.ts` (store `useSincro` persistido en `aguante-casa`, vigila
+  `useAguante.subscribe`, sube y baja, tiempo real) y `src/app/cuenta.tsx`.
+  Lo que llega del servidor se mete con `meterEnStore` para que el vigilante
+  no lo tome por un cambio propio. El vigilante se engancha después de hidratar
+  los dos stores: si no, la carga parecería un cambio de todo.
+- Un campo nuevo que se comparta va también en `Compartido` y `SECCIONES` de
+  `compartido.ts`, en `meterEnStore` y en el `check` de `tipo` del SQL.
+- Configurado el 15/11/2026: SQL ejecutado, SMTP con el Gmail personal de
+  Eric (usuario = dirección completa, contraseña de aplicación) y el código en
+  las plantillas Magic link y Confirm sign up. El envío del código funciona
+  (comprobado en la web). Sin probar: entrar con el código, crear casa y
+  sincronizar entre dos móviles. Si falla un envío, la causa está en
+  *Logs › Auth* del panel (el 500 de la app es el SMTP).

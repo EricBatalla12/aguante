@@ -14,6 +14,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { DialogoConfirmar } from '@/components/dialogo';
 import { fijarLengua, lenguaDelSistema, t } from '@/lib/i18n';
 import { cancelarAvisos, reprogramarAvisos } from '@/lib/notificaciones';
+import { arrancarSincro } from '@/lib/sincro';
 import { useAguante } from '@/lib/store';
 import { ProveedorTema, useC, useLetra, useOscuro } from '@/lib/tema';
 
@@ -38,6 +39,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (listo) SplashScreen.hideAsync();
   }, [listo]);
+
+  // La casa compartida se sincroniza sola si hay cuenta; sin cuenta no hace nada
+  useEffect(() => {
+    if (datos) arrancarSincro().catch(() => {});
+  }, [datos]);
 
   const idioma = useAguante((s) => s.idioma);
   const lengua = idioma === 'sistema' ? lenguaDelSistema() : idioma;
@@ -98,6 +104,7 @@ function Navegacion() {
         <Stack.Screen name="modos" options={{ title: t('Modos de aguante') }} />
         <Stack.Screen name="manual" options={{ title: t('Reparto manual') }} />
         <Stack.Screen name="ajustes" options={{ title: t('Ajustes') }} />
+        <Stack.Screen name="cuenta" options={{ title: t('Cuenta y casa') }} />
         <Stack.Screen name="fuentes" options={{ title: t('Fuentes y método') }} />
         <Stack.Screen name="energia/index" options={{ title: t('Energía propia') }} />
         <Stack.Screen name="energia/fuente/[id]" options={{ title: t('Fuente de energía') }} />
