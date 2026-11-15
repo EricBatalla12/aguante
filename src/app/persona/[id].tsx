@@ -114,9 +114,16 @@ export default function EditarPersona() {
         <Boton
           variante="secundario"
           onPress={() =>
-            confirmar(t('¿Quitar a esta persona?'), existente.nombre, t('Quitar'), () => {
-              borrar(existente.id);
-              volver();
+            confirmar({
+              titulo: t('¿Quitar a esta persona?'),
+              nombre: existente.nombre,
+              mensaje: t('También se borra su ración del reparto manual.'),
+              accion: t('Quitar'),
+              icono: 'account-outline',
+              alAceptar: () => {
+                borrar(existente.id);
+                volver();
+              },
             })
           }>
           {t('Quitar del hogar')}

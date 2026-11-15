@@ -214,6 +214,8 @@ export const EN: Record<string, string> = {
   // ------------------------------------------------------------ Producto
   'Este producto ya no está en la despensa.': 'This product is no longer in the pantry.',
   '¿Quitar de la despensa?': 'Remove from the pantry?',
+  'Se borra de la reserva y deja de contar en los días.': 'It is removed from your supply and no longer counts towards the days.',
+  'También se borra su ración del reparto manual.': 'Their manual ration is deleted too.',
   'Quitar de la despensa': 'Remove from the pantry',
   'valor típico de «{nombre}», USDA': 'typical value for “{nombre}”, USDA',
   'Indica los litros de cada envase.': 'Enter the litres in each container.',

@@ -7,6 +7,7 @@ import { volver } from '@/lib/navegacion';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
+import { ICONO_CATEGORIA } from '@/lib/formato';
 import { t } from '@/lib/i18n';
 
 export default function EditarProducto() {
@@ -40,9 +41,17 @@ export default function EditarProducto() {
         variante="secundario"
         icono="trash-can-outline"
         onPress={() =>
-          confirmar(t('¿Quitar de la despensa?'), producto.nombre, t('Quitar'), () => {
-            borrar(producto.id);
-            volver();
+          confirmar({
+            titulo: t('¿Quitar de la despensa?'),
+            nombre: producto.nombre,
+            mensaje: t('Se borra de la reserva y deja de contar en los días.'),
+            accion: t('Quitar'),
+            icono: ICONO_CATEGORIA[producto.categoria],
+            imagen: producto.imagen,
+            alAceptar: () => {
+              borrar(producto.id);
+              volver();
+            },
           })
         }>
         {t('Quitar de la despensa')}

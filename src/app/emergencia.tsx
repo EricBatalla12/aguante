@@ -325,7 +325,14 @@ function Contenido() {
                 <Boton
                   variante="suave"
                   onPress={() =>
-                    confirmar(t('¿Terminar el modo emergencia?'), t('La despensa se queda como esté ahora.'), t('Terminar'), terminar)
+                    confirmar({
+                      titulo: t('¿Terminar el modo emergencia?'),
+                      mensaje: t('La despensa se queda como esté ahora.'),
+                      accion: t('Terminar'),
+                      icono: 'flag-checkered',
+                      tono: 'normal',
+                      alAceptar: terminar,
+                    })
                   }>
                   {t('Terminar')}
                 </Boton>

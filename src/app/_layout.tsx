@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useSyncExternalStore } from 'react';
 
+import { DialogoConfirmar } from '@/components/dialogo';
 import { fijarLengua, lenguaDelSistema, t } from '@/lib/i18n';
 import { cancelarAvisos, reprogramarAvisos } from '@/lib/notificaciones';
 import { useAguante } from '@/lib/store';
@@ -50,6 +51,7 @@ export default function RootLayout() {
   return (
     <ProveedorTema fuentePropia={fuentes}>
       <Navegacion key={lengua} />
+      <DialogoConfirmar key={`dialogo-${lengua}`} />
     </ProveedorTema>
   );
 }

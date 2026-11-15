@@ -64,13 +64,19 @@ export default function Ajustes() {
   };
 
   const alImportar = () =>
-    confirmar(t('¿Sustituir todos los datos?'), t('Lo que hay ahora en la app se cambia por lo que trae la copia.'), t('Sustituir'), () => {
-      const error = importar(copia.trim());
-      setResultado(error ? { bien: false, texto: error } : { bien: true, texto: t('Copia importada.') });
-      if (!error) {
-        setCopia('');
-        setImportando(false);
-      }
+    confirmar({
+      titulo: t('¿Sustituir todos los datos?'),
+      mensaje: t('Lo que hay ahora en la app se cambia por lo que trae la copia.'),
+      accion: t('Sustituir'),
+      icono: 'file-replace-outline',
+      alAceptar: () => {
+        const error = importar(copia.trim());
+        setResultado(error ? { bien: false, texto: error } : { bien: true, texto: t('Copia importada.') });
+        if (!error) {
+          setCopia('');
+          setImportando(false);
+        }
+      },
     });
 
   return (
@@ -162,9 +168,14 @@ export default function Ajustes() {
           variante="secundario"
           icono="trash-can-outline"
           onPress={() =>
-            confirmar(t('¿Borrar todos los datos?'), t('Se borran las personas, las mascotas, la despensa y el kit. No se puede deshacer.'), t('Borrar todo'), () => {
-              borrarTodo();
-              setResultado({ bien: true, texto: t('Datos borrados.') });
+            confirmar({
+              titulo: t('¿Borrar todos los datos?'),
+              mensaje: t('Se borran las personas, las mascotas, la despensa y el kit. No se puede deshacer.'),
+              accion: t('Borrar todo'),
+              alAceptar: () => {
+                borrarTodo();
+                setResultado({ bien: true, texto: t('Datos borrados.') });
+              },
             })
           }>
           {t('Borrar todos los datos')}

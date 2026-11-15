@@ -65,9 +65,15 @@ export default function EditarMascota() {
         <Boton
           variante="secundario"
           onPress={() =>
-            confirmar(t('¿Quitar esta mascota?'), existente.nombre, t('Quitar'), () => {
-              borrar(existente.id);
-              volver();
+            confirmar({
+              titulo: t('¿Quitar esta mascota?'),
+              nombre: existente.nombre,
+              accion: t('Quitar'),
+              icono: 'paw',
+              alAceptar: () => {
+                borrar(existente.id);
+                volver();
+              },
             })
           }>
           {t('Quitar del hogar')}

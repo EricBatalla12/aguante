@@ -175,9 +175,15 @@ export default function EditarFuente() {
         <Boton
           variante="secundario"
           onPress={() =>
-            confirmar(t('¿Quitar esta fuente?'), existente.nombre, t('Quitar'), () => {
-              borrar(existente.id);
-              volver();
+            confirmar({
+              titulo: t('¿Quitar esta fuente?'),
+              nombre: t(existente.nombre),
+              accion: t('Quitar'),
+              icono: ICONO_FUENTE[existente.tipo],
+              alAceptar: () => {
+                borrar(existente.id);
+                volver();
+              },
             })
           }>
           {t('Quitar')}

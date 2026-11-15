@@ -81,9 +81,15 @@ export default function EditarAparato() {
         <Boton
           variante="secundario"
           onPress={() =>
-            confirmar(t('¿Quitar este aparato?'), existente.nombre, t('Quitar'), () => {
-              borrar(existente.id);
-              volver();
+            confirmar({
+              titulo: t('¿Quitar este aparato?'),
+              nombre: t(existente.nombre),
+              accion: t('Quitar'),
+              icono: 'power-plug-outline',
+              alAceptar: () => {
+                borrar(existente.id);
+                volver();
+              },
             })
           }>
           {t('Quitar')}
