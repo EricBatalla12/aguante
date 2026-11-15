@@ -21,7 +21,10 @@
       "permissions": [
         "android.permission.CAMERA"
       ],
-      "package": "com.eric_161.aguante"
+      "package": "com.eric_161.aguante",
+      "runtimeVersion": {
+        "policy": "appVersion"
+      }
     },
     "web": {
       "output": "single",
@@ -62,6 +65,9 @@
       "eas": {
         "projectId": "7a87df21-c0f0-4b69-93f6-59520287da25"
       }
+    },
+    "updates": {
+      "url": "https://u.expo.dev/7a87df21-c0f0-4b69-93f6-59520287da25"
     }
   }
 }

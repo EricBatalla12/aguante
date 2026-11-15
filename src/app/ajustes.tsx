@@ -1,4 +1,5 @@
 import Constants from 'expo-constants';
+import * as Updates from 'expo-updates';
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Platform, Share, View } from 'react-native';
@@ -8,6 +9,7 @@ import { confirmar } from '@/lib/confirmar';
 import { pedirPermiso } from '@/lib/notificaciones';
 import { useAguante, type Idioma, type Tema } from '@/lib/store';
 import { useC } from '@/lib/tema';
+import { textoDia } from '@/lib/fechas';
 import { t } from '@/lib/i18n';
 
 const TEMAS: { valor: Tema; etiqueta: string }[] = [
@@ -171,6 +173,14 @@ export default function Ajustes() {
 
       <Texto tam={12} color={C.suave} centro>
         Aguante {Constants.expoConfig?.version ?? ''} · {t('Estimación orientativa, no sustituye el consejo médico.')}
+        {'\n'}
+        {/* Qué actualización de EAS Update está corriendo: sirve para comprobar que ha llegado */}
+        {Updates.updateId && !Updates.isEmbeddedLaunch
+          ? t('Actualización {id} del {fecha}', {
+              id: Updates.updateId.slice(0, 8),
+              fecha: Updates.createdAt ? textoDia(Updates.createdAt) : '?',
+            })
+          : t('Versión instalada con el APK')}
       </Texto>
     </Pantalla>
   );

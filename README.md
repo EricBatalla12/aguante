@@ -46,6 +46,24 @@ npx expo start
 Para verla en el móvil, abre Expo Go y escanea el QR. Si el móvil está en
 otra red, arranca con `npx expo start --tunnel`.
 
+## Instalarla en el móvil y actualizarla
+
+La app instalada (APK) se compila en EAS y se actualiza sola con EAS Update:
+
+```bash
+npx eas-cli build -p android --profile preview   # APK nuevo (canal «preview»)
+npm run publicar -- -m "Qué cambia"              # actualización sin APK nuevo
+```
+
+- Una actualización llega al abrir la app y se aplica la siguiente vez que se
+  abre. En Ajustes, debajo del todo, se ve qué actualización está instalada.
+- Solo sirve para cambios de JavaScript, textos e imágenes. Si se añade o
+  actualiza una librería con código nativo (`npx expo install …` de un módulo
+  nativo) o se cambian permisos o plugins en `app.json`, hace falta un APK
+  nuevo **y subir `version` en `app.json`**: la versión es el `runtimeVersion`
+  (política `appVersion`), y así un APK viejo no recibe código que necesita
+  piezas nativas que no tiene.
+
 ## Comprobaciones
 
 ```bash

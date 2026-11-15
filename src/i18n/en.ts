@@ -454,6 +454,8 @@ export const EN: Record<string, string> = {
   'Se borran las personas, las mascotas, la despensa y el kit. No se puede deshacer.': 'People, pets, pantry and kit will be deleted. This cannot be undone.',
   'Borrar todo': 'Delete everything',
   'Datos borrados.': 'Data deleted.',
+  'Actualización {id} del {fecha}': 'Update {id} from {fecha}',
+  'Versión instalada con el APK': 'Version installed with the APK',
   'Borrar todos los datos': 'Delete all data',
   'El texto no es una copia válida: tiene que ser el que da «Exportar», entero.': 'That text is not a valid backup: it must be the full text from “Export”.',
   'Ese texto no es una copia de Aguante.': 'That text is not an Aguante backup.',
