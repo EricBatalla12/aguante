@@ -5,7 +5,7 @@
 import type { ReactNode } from 'react';
 import { View } from 'react-native';
 
-import { Aviso, Boton, Contador, Icono, Interruptor, Pantalla, Seccion, Segmentado, Tarjeta, Texto, Tramo } from '@/components/ui';
+import { Aviso, Boton, Contador, Icono, Interruptor, Pantalla, Seccion, Segmentado, Tarjeta, Texto } from '@/components/ui';
 import {
   aguaBeber,
   aguaMascota,
@@ -21,6 +21,7 @@ import { textoCantidad } from '@/lib/formato';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { ETIQUETA_MODO, MODOS_AUTO, useResultado } from '@/lib/use-resultado';
+import { t } from '@/lib/i18n';
 
 export default function RepartoManual() {
   const C = useC();
@@ -36,7 +37,7 @@ export default function RepartoManual() {
   if (personas.length + mascotas.length === 0) {
     return (
       <Pantalla>
-        <Texto color={C.suave}>Añade primero quién vive en casa, en la pestaña Hogar, para poder repartir.</Texto>
+        <Texto color={C.suave}>{t('Añade primero quién vive en casa, en la pestaña Hogar, para poder repartir.')}</Texto>
       </Pantalla>
     );
   }
@@ -44,40 +45,39 @@ export default function RepartoManual() {
   return (
     <Pantalla>
       <Texto color={C.texto2}>
-        Fija tú cuánto come y bebe cada uno al día. Sirve para adaptar el plan a vuestra casa: quien trabaja más, quien
-        está enfermo, la comida que queda…
+        {t('Fija tú cuánto come y bebe cada uno al día. Sirve para adaptar el plan a vuestra casa: quien trabaja más, quien está enfermo, la comida que queda…')}
       </Texto>
 
       <Tarjeta style={{ gap: 12 }}>
         <Interruptor
-          etiqueta="Usar el reparto manual"
+          etiqueta={t('Usar el reparto manual')}
           valor={activo}
           onChange={(v) => setModo(v ? 'manual' : 'normal')}
-          ayuda="Sustituye a los modos Normal, Ligero, Severo y Extremo."
+          ayuda={t('Sustituye a los modos Normal, Ligero, Severo y Extremo.')}
         />
         <View style={{ flexDirection: 'row', gap: 8 }}>
-          <Dato valor={String(conManual.dias)} etiqueta={`${conManual.dias === 1 ? 'día' : 'días'} con este reparto`} destacado />
-          <Dato valor={String(normal.dias)} etiqueta="en modo normal" />
+          <Dato valor={String(conManual.dias)} etiqueta={conManual.dias === 1 ? t('día con este reparto') : t('días con este reparto')} destacado />
+          <Dato valor={String(normal.dias)} etiqueta={t('en modo normal')} />
         </View>
         <Texto tam={13} color={C.suave}>
-          Al día: {formatoNumero(conManual.kcalDia)} kcal y {formatoNumero(conManual.litrosDia, 1)} L entre todos
-          {conManual.limita !== 'nada' ? `. Os limita ${conManual.limita === 'agua' ? 'el agua' : 'la comida'}.` : '.'}
+          {t('Al día: {kcal} kcal y {l} L entre todos.', { kcal: formatoNumero(conManual.kcalDia), l: formatoNumero(conManual.litrosDia, 1) })}
+          {conManual.limita === 'agua' ? t(' Os limita el agua.') : conManual.limita === 'comida' ? t(' Os limita la comida.') : ''}
         </Texto>
       </Tarjeta>
 
       <View style={{ gap: 8 }}>
-        <Seccion>Partir de un modo</Seccion>
+        <Seccion>{t('Partir de un modo')}</Seccion>
         <View style={{ flexDirection: 'row', gap: 6 }}>
           {MODOS_AUTO.map((m) => (
             <View key={m} style={{ flex: 1 }}>
               <Boton pequeno variante="suave" onPress={() => copiarManualDe(m)}>
-                {ETIQUETA_MODO[m]}
+                {t(ETIQUETA_MODO[m])}
               </Boton>
             </View>
           ))}
         </View>
         <Texto tam={12} color={C.suave}>
-          Copia las raciones de ese modo a todas las personas para que las retoques desde ahí.
+          {t('Copia las raciones de ese modo a todas las personas para que las retoques desde ahí.')}
         </Texto>
       </View>
 
@@ -90,7 +90,7 @@ export default function RepartoManual() {
 
       <Aviso
         tono="verde"
-        texto="Las fuentes dicen que el agua de beber no se raciona y que a menores, embarazadas y mujeres en lactancia no se les recorta la comida. Aquí decides tú, y la app te avisa cuando una ración queda por debajo."
+        texto={t('Las fuentes dicen que el agua de beber no se raciona y que a menores, embarazadas y mujeres en lactancia no se les recorta la comida. Aquí decides tú, y la app te avisa cuando una ración queda por debajo.')}
       />
     </Pantalla>
   );
@@ -132,19 +132,19 @@ function RacionPersona({ p }: { p: Persona }) {
         </Texto>
         <Texto tam={13} color={C.suave}>
           {bebe
-            ? `Bebé: leche materna o de fórmula. Para beber, ${formatoNumero(beber, 1)} L al día.`
-            : `Necesita ${formatoNumero(necesita)} kcal y, para beber, ${formatoNumero(beber, 1)} L al día.`}
+            ? t('Bebé: leche materna o de fórmula. Para beber, {l} L al día.', { l: formatoNumero(beber, 1) })
+            : t('Necesita {kcal} kcal y, para beber, {l} L al día.', { kcal: formatoNumero(necesita), l: formatoNumero(beber, 1) })}
         </Texto>
       </View>
 
       {!bebe && (
         <View style={{ gap: 8 }}>
-          <Fila icono="food-variant" color={C.comida} titulo="Comida" detalle={`${Math.round((kcal / necesita) * 100)} % de lo que necesita`}>
+          <Fila icono="food-variant" color={C.comida} titulo={t('Comida')} detalle={t('{p} % de lo que necesita', { p: Math.round((kcal / necesita) * 100) })}>
             <Contador valor={kcal} onChange={(v) => setRacion(p.id, { kcal: v })} paso={50} estirar texto={`${formatoNumero(kcal)} kcal`} />
           </Fila>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
             <Texto tam={13} color={C.suave} style={{ flexShrink: 0 }}>
-              Comidas al día
+              {t('Comidas al día')}
             </Texto>
             <View style={{ flex: 1 }}>
               <Segmentado
@@ -157,23 +157,25 @@ function RacionPersona({ p }: { p: Persona }) {
         </View>
       )}
 
-      <Fila icono="water-outline" color={C.agua} titulo="Agua" detalle={litros >= beber ? 'Cubre lo que necesita beber' : 'Menos de lo que necesita beber'}>
+      <Fila icono="water-outline" color={C.agua} titulo={t('Agua')} detalle={litros >= beber ? t('Cubre lo que necesita beber') : t('Menos de lo que necesita beber')}>
         <Contador valor={litros} onChange={(v) => setRacion(p.id, { litros: v })} paso={0.25} estirar texto={`${textoCantidad(litros)} L`} />
       </Fila>
 
       {litros < beber - 0.001 && (
-        <Aviso texto={`Bebe menos de los ${formatoNumero(beber, 1)} L que necesita. Las fuentes dicen que el agua de beber no se raciona: si falta, hay que buscar más.`} />
+        <Aviso
+          texto={t('Bebe menos de los {l} L que necesita. Las fuentes dicen que el agua de beber no se raciona: si falta, hay que buscar más.', { l: formatoNumero(beber, 1) })}
+        />
       )}
       {!bebe && esProtegida(p) && kcal < necesita - 10 && (
         <Aviso
           tono="ambar"
-          texto="Es menor, está embarazada o en lactancia, o la marcaste como «no racionar». Las fuentes dicen que no se le recorte la comida."
+          texto={t('Es menor, está embarazada o en lactancia, o la marcaste como «no racionar». Las fuentes dicen que no se le recorte la comida.')}
         />
       )}
       {!bebe && !esProtegida(p) && kcal < necesita * 0.5 - 10 && (
         <Aviso
           tono="ambar"
-          texto="Menos de la mitad de lo que necesita. La mitad es el límite del que habla FEMA para un adulto sano, y solo por un tiempo."
+          texto={t('Menos de la mitad de lo que necesita. La mitad es el límite del que habla FEMA para un adulto sano, y solo por un tiempo.')}
         />
       )}
     </Tarjeta>
@@ -201,18 +203,17 @@ function RacionMascota({ m }: { m: Mascota }) {
           </Texto>
         </View>
         <Texto tam={13} color={C.suave}>
-          Necesita <Tramo peso="600">{formatoNumero(necesita)} kcal</Tramo> de su comida y{' '}
-          <Tramo peso="600">{formatoNumero(beber, 2)} L</Tramo> de agua al día.
+          {t('Necesita {kcal} kcal de su comida y {l} L de agua al día.', { kcal: formatoNumero(necesita), l: formatoNumero(beber, 2) })}
         </Texto>
       </View>
-      <Fila icono="food-variant" color={C.comida} titulo="Comida" detalle={`${Math.round((kcal / necesita) * 100)} % de su ración`}>
+      <Fila icono="food-variant" color={C.comida} titulo={t('Comida')} detalle={t('{p} % de su ración', { p: Math.round((kcal / necesita) * 100) })}>
         <Contador valor={kcal} onChange={(v) => setRacion(m.id, { kcal: v })} paso={25} estirar texto={`${formatoNumero(kcal)} kcal`} />
       </Fila>
-      <Fila icono="water-outline" color={C.agua} titulo="Agua" detalle={litros >= beber - 0.005 ? 'Cubre lo que necesita' : 'Menos de lo que necesita'}>
+      <Fila icono="water-outline" color={C.agua} titulo={t('Agua')} detalle={litros >= beber - 0.005 ? t('Cubre lo que necesita') : t('Menos de lo que necesita')}>
         <Contador valor={litros} onChange={(v) => setRacion(m.id, { litros: v })} paso={pasoAgua} estirar texto={`${textoCantidad(litros)} L`} />
       </Fila>
       {(kcal < necesita * 0.9 || litros < beber - 0.005) && (
-        <Aviso tono="ambar" texto="Queda por debajo de su ración de mantenimiento. Las mascotas no se racionan en los modos calculados." />
+        <Aviso tono="ambar" texto={t('Queda por debajo de su ración de mantenimiento. Las mascotas no se racionan en los modos calculados.')} />
       )}
     </Tarjeta>
   );

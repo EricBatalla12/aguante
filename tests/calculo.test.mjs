@@ -18,6 +18,10 @@ import {
   formatoNumero,
   planDelDia,
   descontarAgua,
+  limiteDias,
+  ordenarParaComer,
+  simularConsumo,
+  calcularExcedente,
   devolverAgua,
 } from '../src/lib/calculo.ts';
 
@@ -100,10 +104,16 @@ test('balance: no cuenta lo caducado y descuenta el agua para cocinar', () => {
   assert.equal(r.dias, Math.floor(Math.min(r.diasAgua, r.diasComida)));
 });
 
-test('escenarios: sin cocina quita el arroz y su agua; sin luz quita lo que va en nevera', () => {
+test('escenarios: sin cocina quita el arroz y su agua; sin luz, la nevera solo dura 4 horas', () => {
   const r = calcular([hombre], [], despensa, 'normal', { sinCocina: true, sinLuz: true }, HOY);
-  assert.equal(r.kcalTotal, 2 * 546);
+  // Los 4 yogures (400 kcal) caben en las primeras 4 horas: 4/24 de ~2.600 kcal
+  assert.equal(r.kcalTotal, 2 * 546 + 400);
   assert.equal(r.litrosCocinar, 0);
+  // Con 20 yogures, la mayoría se estropea antes de poder comerlos
+  const muchos = despensa.map((p) => (p.id === '3' ? { ...p, cantidad: 20 } : p));
+  const r2 = calcular([hombre], [], muchos, 'normal', { sinCocina: true, sinLuz: true }, HOY);
+  cerca(r2.kcalTotal, 2 * 546 + r2.kcalDia * (4 / 24), 0.01, 'kcal útiles');
+  assert.deepEqual(r2.perdidos.map((p) => p.nombre), ['Yogures']);
 });
 
 test('la comida de mascota solo cuenta para mascotas y el agua es común', () => {
@@ -222,4 +232,71 @@ test('devolverAgua: deshace un apunte y el total de litros vuelve a cuadrar', ()
 test('descontarAgua: no toca el agua caducada', () => {
   const lista = [{ id: 'cad', nombre: 'Vieja', categoria: 'agua', cantidad: 1, litrosPorUnidad: 5, caducidad: '2026-01-01' }];
   assert.equal(cantidad(descontarAgua(lista, 1, HOY), 'cad'), 1);
+});
+
+// ------------------------------------------------------------ Conservación
+
+test('solo cuenta lo que da tiempo a comer antes de que caduque', () => {
+  // 10.000 kcal que caducan en 2 días y 2.000 kcal al día: se aprovechan 3 días
+  // (hoy, mañana y pasado, hasta el final del día de caducidad)
+  const lotes = [{ id: 'a', nombre: 'Pan', categoria: 'comida', cantidad: 1, kcalPorUnidad: 10000, caducidad: '2026-11-13' }];
+  const c = simularConsumo(lotes, 2000, {}, HOY);
+  assert.equal(c.dias, 3);
+  assert.equal(c.kcalUtiles, 6000);
+  assert.deepEqual(c.perdidos, [{ id: 'a', nombre: 'Pan', kcal: 4000 }]);
+});
+
+test('lo que caduca antes se come antes y no hace perder lo que dura más', () => {
+  const lotes = [
+    { id: 'lata', nombre: 'Lata', categoria: 'comida', cantidad: 1, kcalPorUnidad: 4000 },
+    { id: 'pan', nombre: 'Pan', categoria: 'comida', cantidad: 1, kcalPorUnidad: 2000, caducidad: '2026-11-11' },
+  ];
+  const c = simularConsumo(lotes, 2000, {}, HOY);
+  assert.equal(c.dias, 3);
+  assert.equal(c.perdidos.length, 0);
+});
+
+test('sin luz: orden nevera, congelador y despensa', () => {
+  const p = [
+    { id: 'lata', nombre: 'Lata', categoria: 'comida', cantidad: 1, kcalPorUnidad: 400 },
+    { id: 'cong', nombre: 'Croquetas', categoria: 'comida', cantidad: 1, kcalPorUnidad: 400, conservacion: 'congelador' },
+    { id: 'nev', nombre: 'Leche', categoria: 'comida', cantidad: 1, kcalPorUnidad: 400, conservacion: 'nevera' },
+  ];
+  const orden = ordenarParaComer(p, { sinLuz: true }, HOY).map((x) => x.id);
+  assert.deepEqual(orden, ['nev', 'cong', 'lata']);
+  // Con luz no hay prisa por la nevera, pero a igualdad va primero
+  assert.deepEqual(ordenarParaComer(p, {}, HOY).map((x) => x.id), ['nev', 'cong', 'lata']);
+});
+
+test('sin luz: el congelador dura 24 h a medias y 48 h lleno; cuentan las horas ya pasadas', () => {
+  const croquetas = { id: 'c', nombre: 'C', categoria: 'comida', cantidad: 1, kcalPorUnidad: 400, conservacion: 'congelador' };
+  assert.equal(limiteDias(croquetas, { sinLuz: true }, HOY), 1);
+  assert.equal(limiteDias(croquetas, { sinLuz: true, congeladorLleno: true }, HOY), 2);
+  assert.equal(limiteDias(croquetas, { sinLuz: true }, HOY, 30), 0);
+  // El antiguo «necesita frío» equivale a nevera
+  const yogur = { id: 'y', nombre: 'Y', categoria: 'comida', cantidad: 1, kcalPorUnidad: 100, necesitaFrio: true };
+  assert.equal(limiteDias(yogur, { sinLuz: true }, HOY, 1), 3 / 24);
+  assert.equal(limiteDias(yogur, {}, HOY), Infinity);
+});
+
+test('plan del día: no propone lo que ya se ha calentado', () => {
+  const p = [
+    { id: 'nev', nombre: 'Leche', categoria: 'comida', cantidad: 1, kcalPorUnidad: 600, conservacion: 'nevera' },
+    { id: 'lata', nombre: 'Lata', categoria: 'comida', cantidad: 5, kcalPorUnidad: 400 },
+  ];
+  assert.equal(planDelDia(p, 1000, { sinLuz: true }, HOY, 0)[0].productoId, 'nev');
+  assert.ok(planDelDia(p, 1000, { sinLuz: true }, HOY, 5).every((x) => x.productoId !== 'nev'));
+});
+
+test('excedente: lo que sobra y falta respecto al objetivo', () => {
+  const productos = [
+    { id: 'a', nombre: 'Agua', categoria: 'agua', cantidad: 10, litrosPorUnidad: 5 },
+    { id: 'c', nombre: 'Latas', categoria: 'comida', cantidad: 2, kcalPorUnidad: 1000 },
+  ];
+  const r = calcular([hombre], [], productos, 'manual', {}, HOY, { h: { kcal: 2000, litros: 4 } });
+  const e = calcularExcedente(r, 3);
+  assert.equal(e.litrosSobran, 50 - 12);
+  assert.equal(e.kcalFaltan, 6000 - 2000);
+  assert.equal(e.kcalSobran, 0);
+  assert.equal(e.litrosFaltan, 0);
 });

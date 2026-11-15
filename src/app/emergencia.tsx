@@ -2,36 +2,39 @@
 // y solo lo que hace falta hoy.
 
 import { StatusBar } from 'expo-status-bar';
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { ControlesEscenario } from '@/components/escenario';
 import { SelectorModo } from '@/components/selector-modo';
 import { Barra, Boton, Icono, Pastilla, Segmentado, Tarjeta, Texto, type NombreIcono } from '@/components/ui';
 import {
   aguaMascota,
   aguaPersona,
+  conservacionDe,
   diasHasta,
+  estadoCaducidad,
+  horasFrio,
   formatoNumero,
   kcalPersona,
   planDelDia,
   racionMascota,
+  type Conservacion,
+  type Escenario,
+  type Producto,
 } from '@/lib/calculo';
 import { confirmar } from '@/lib/confirmar';
 import { textoDia } from '@/lib/fechas';
 import { textoCantidad } from '@/lib/formato';
 import { volver } from '@/lib/navegacion';
-import { fechaISO, hoyISO, useAguante } from '@/lib/store';
+import { fechaISO, horasSinLuz, hoyISO, useAguante } from '@/lib/store';
 import { ProveedorTema, useC } from '@/lib/tema';
 import { ETIQUETA_MODO, useResultado } from '@/lib/use-resultado';
+import { t, tx } from '@/lib/i18n';
 
 // Medidas para apuntar el agua: un vaso, un botellín, un litro y una botella
-const MEDIDAS = [
-  { valor: 0.25, etiqueta: '0,25 L' },
-  { valor: 0.5, etiqueta: '0,5 L' },
-  { valor: 1, etiqueta: '1 L' },
-  { valor: 1.5, etiqueta: '1,5 L' },
-];
+const MEDIDAS = [0.25, 0.5, 1, 1.5];
 
 export default function Emergencia() {
   return (
@@ -57,8 +60,19 @@ function Contenido() {
   const personas = useAguante((s) => s.personas);
   const mascotas = useAguante((s) => s.mascotas);
   const productos = useAguante((s) => s.productos);
-  const r = useResultado();
+  const setEscenario = useAguante((s) => s.setEscenario);
   const [medida, setMedida] = useState(0.5);
+  // Escenario que se elige antes de empezar; arranca con el guardado
+  const [escInicio, setEscInicio] = useState<Escenario>(escenario);
+  const [cambiarEsc, setCambiarEsc] = useState(false);
+  // Reloj de minuto en minuto: las horas sin luz cambian lo que se puede comer
+  const [ahora, setAhora] = useState(() => Date.now());
+  useEffect(() => {
+    const id = setInterval(() => setAhora(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, []);
+  const horas = horasSinLuz(emergencia, escenario, ahora);
+  const r = useResultado(undefined, horas);
 
   const hoy = hoyISO();
   const bebido = emergencia && emergencia.aguaHoy.fecha === hoy ? emergencia.aguaHoy.litros : 0;
@@ -66,8 +80,8 @@ function Contenido() {
   const kcalComidas = comidos.reduce((s, c) => s + c.kcal, 0);
   // El plan cubre lo que falta por comer hoy, no el día entero otra vez
   const plan = useMemo(
-    () => planDelDia(productos, Math.max(0, r.kcalDia - kcalComidas), escenario),
-    [productos, r.kcalDia, kcalComidas, escenario],
+    () => planDelDia(productos, Math.max(0, r.kcalDia - kcalComidas), escenario, new Date(ahora), horas),
+    [productos, r.kcalDia, kcalComidas, escenario, ahora, horas],
   );
   // Meta del contador: lo que se bebe hoy, sin higiene. En manual, lo que has fijado tú.
   const metaAgua =
@@ -88,73 +102,82 @@ function Contenido() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flex: 1 }}>
             <View style={{ width: 10, height: 10, borderRadius: 5, backgroundColor: emergencia ? C.rojo : C.suave }} />
             <Texto tam={14} peso="700" color={emergencia ? C.rojoOscuro : C.suave}>
-              {emergencia ? 'Modo emergencia activo' : 'Modo emergencia'}
+              {emergencia ? t('Modo emergencia activo') : t('Modo emergencia')}
             </Texto>
           </View>
           <Boton pequeno variante="secundario" onPress={volver}>
-            Volver
+            {t('Volver')}
           </Boton>
         </View>
 
         {!emergencia || !inicio ? (
           <View style={{ gap: 14 }}>
             <Texto tam={30} peso="800" style={{ letterSpacing: -0.5 }}>
-              ¿Empieza una emergencia?
+              {t('¿Empieza una emergencia?')}
             </Texto>
             <Texto color={C.suave}>
-              Llevamos la cuenta de los días, te decimos qué comer cada día (primero lo que caduca antes) y cuánta agua
-              beber. Lo que apuntes como comido o bebido se descuenta de la despensa.
+              {t('Llevamos la cuenta de los días, te decimos qué comer cada día (primero lo que caduca antes) y cuánta agua beber. Lo que apuntes como comido o bebido se descuenta de la despensa.')}
             </Texto>
-            <Texto peso="700">Modo de aguante</Texto>
+            <Texto peso="700">{t('¿Qué está pasando?')}</Texto>
+            <Tarjeta>
+              <ControlesEscenario valor={escInicio} onChange={setEscInicio} />
+            </Tarjeta>
+            <Texto peso="700">{t('Modo de aguante')}</Texto>
             <SelectorModo />
-            <Boton variante="peligro" icono="alarm-light-outline" onPress={empezar}>
-              Empezar ahora
+            <Boton variante="peligro" icono="alarm-light-outline" onPress={() => empezar(escInicio)}>
+              {t('Empezar ahora')}
             </Boton>
           </View>
         ) : (
           <>
             <View style={{ gap: 6 }}>
               <Texto tam={14} color={C.suave}>
-                Día {dia} · empezó el {textoDia(inicio)} a las {hora}
+                {t('Día {dia} · empezó el {fecha} a las {hora}', { dia, fecha: textoDia(inicio), hora })}
               </Texto>
               <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10 }}>
                 <Texto tam={18} peso="600" style={{ flexShrink: 0 }}>
-                  Os quedan
+                  {t('Os quedan')}
                 </Texto>
                 <Texto tam={72} peso="800" ajustar maxFontSizeMultiplier={1} style={{ lineHeight: 87, marginVertical: -6, letterSpacing: -2 }}>
                   {r.dias}
                 </Texto>
                 <Texto tam={24} peso="700" style={{ flexShrink: 0 }}>
-                  {r.dias === 1 ? 'día' : 'días'}
+                  {r.dias === 1 ? t('día') : t('días')}
                 </Texto>
               </View>
               <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
-                <Pastilla texto={`Modo ${ETIQUETA_MODO[modo].toLowerCase()}`} fondo={C.rojoTinte} color={C.rojoOscuro} />
-                {escenario.sinLuz && <Pastilla texto="Sin luz" icono="flash-off" fondo={C.segmento} color={C.texto2} />}
-                {escenario.sinCocina && <Pastilla texto="Sin cocina" icono="fire-off" fondo={C.segmento} color={C.texto2} />}
-                {escenario.calor && <Pastilla texto="Calor" icono="weather-sunny" fondo={C.segmento} color={C.texto2} />}
+                <Pastilla texto={t('Modo {m}', { m: t(ETIQUETA_MODO[modo]).toLowerCase() })} fondo={C.rojoTinte} color={C.rojoOscuro} />
+                {escenario.sinLuz && <Pastilla texto={t('Sin luz')} icono="flash-off" fondo={C.segmento} color={C.texto2} />}
+                {escenario.sinCocina && <Pastilla texto={t('Sin cocina')} icono="fire-off" fondo={C.segmento} color={C.texto2} />}
+                {escenario.calor && <Pastilla texto={t('Calor')} icono="weather-sunny" fondo={C.segmento} color={C.texto2} />}
               </View>
             </View>
+
+            <GuiaComida productos={productos} escenario={escenario} horas={horas} />
 
             <Tarjeta style={{ gap: 12 }}>
               <Cabecera
                 icono="water-outline"
                 color={C.agua}
-                titulo="Agua de hoy"
-                cifra={`${textoCantidad(bebido)} de ${formatoNumero(metaAgua, 1)} L`}
+                titulo={t('Agua de hoy')}
+                cifra={t('{a} de {b} L', { a: textoCantidad(bebido), b: formatoNumero(metaAgua, 1) })}
               />
               <Barra fraccion={metaAgua > 0 ? bebido / metaAgua : 0} color={C.agua} />
-              <Segmentado opciones={MEDIDAS} valor={medida} onChange={setMedida} />
+              <Segmentado
+                opciones={MEDIDAS.map((v) => ({ valor: v, etiqueta: `${textoCantidad(v)} L` }))}
+                valor={medida}
+                onChange={setMedida}
+              />
               <View style={{ flexDirection: 'row', gap: 8 }}>
                 <View style={{ flex: 1 }}>
                   <Boton variante="secundario" icono="minus" deshabilitado={bebido <= 0} onPress={() => beber(-medida)}>
-                    Quitar
+                    {t('Quitar')}
                   </Boton>
                 </View>
                 <View style={{ flex: 1.4 }}>
                   <Pressable
                     accessibilityRole="button"
-                    accessibilityLabel={`Apuntar ${medida} litros bebidos`}
+                    accessibilityLabel={t('Apuntar {l} litros bebidos', { l: textoCantidad(medida) })}
                     onPress={() => beber(medida)}
                     style={({ pressed }) => ({
                       minHeight: 54,
@@ -169,14 +192,16 @@ function Contenido() {
                     })}>
                     <Icono name="plus" color={C.blanco} />
                     <Texto tam={16} peso="700" color={C.blanco}>
-                      Beber
+                      {t('Beber')}
                     </Texto>
                   </Pressable>
                 </View>
               </View>
               <Texto tam={12} color={C.suave}>
-                Se descuenta del agua guardada: quedan {textoCantidad(r.litrosTotal)} L. Si te equivocas, «Quitar» la
-                devuelve. Lo que se bebe no se raciona: si falta, buscad más.
+                {t(
+                  'Se descuenta del agua guardada: quedan {l} L. Si te equivocas, «Quitar» la devuelve. Lo que se bebe no se raciona: si falta, buscad más.',
+                  { l: textoCantidad(r.litrosTotal) },
+                )}
               </Texto>
             </Tarjeta>
 
@@ -184,15 +209,15 @@ function Contenido() {
               <Cabecera
                 icono="food-variant"
                 color={C.comida}
-                titulo="Comida de hoy"
-                cifra={`${formatoNumero(kcalComidas)} de ${formatoNumero(r.kcalDia)} kcal`}
+                titulo={t('Comida de hoy')}
+                cifra={t('{a} de {b} kcal', { a: formatoNumero(kcalComidas), b: formatoNumero(r.kcalDia) })}
               />
               <Barra fraccion={r.kcalDia > 0 ? kcalComidas / r.kcalDia : 0} color={C.comida} />
               {plan.length === 0 ? (
                 <Texto tam={14} color={C.suave}>
                   {kcalComidas >= r.kcalDia && r.kcalDia > 0
-                    ? 'Ya habéis comido lo de hoy.'
-                    : 'No queda comida que se pueda usar con este escenario.'}
+                    ? t('Ya habéis comido lo de hoy.')
+                    : t('No queda comida que se pueda usar con este escenario.')}
                 </Texto>
               ) : (
                 <View style={{ gap: 8 }}>
@@ -210,7 +235,7 @@ function Contenido() {
                       </View>
                       <Pressable
                         accessibilityRole="button"
-                        accessibilityLabel={`Marcar ${p.nombre} como comido`}
+                        accessibilityLabel={t('Marcar {nombre} como comido', { nombre: p.nombre })}
                         onPress={() => comer(p.productoId, p.unidades)}
                         style={({ pressed }) => ({
                           minHeight: 44,
@@ -221,7 +246,7 @@ function Contenido() {
                           opacity: pressed ? 0.8 : 1,
                         })}>
                         <Texto tam={14} peso="700" color={C.blanco}>
-                          Comido
+                          {t('Comido')}
                         </Texto>
                       </Pressable>
                     </View>
@@ -231,7 +256,7 @@ function Contenido() {
               {comidos.length > 0 && (
                 <View>
                   <Texto tam={12} peso="700" color={C.suave} style={{ letterSpacing: 0.8 }}>
-                    YA COMIDO HOY
+                    {t('YA COMIDO HOY')}
                   </Texto>
                   {comidos.map((c) => (
                     <View key={c.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 }}>
@@ -241,7 +266,7 @@ function Contenido() {
                       </Texto>
                       <Pressable accessibilityRole="button" onPress={() => deshacerComido(c.id)} hitSlop={8}>
                         <Texto tam={13} peso="700" color={C.enlace} style={{ textDecorationLine: 'underline' }}>
-                          Deshacer
+                          {t('Deshacer')}
                         </Texto>
                       </Pressable>
                     </View>
@@ -249,14 +274,14 @@ function Contenido() {
                 </View>
               )}
               <Texto tam={12} color={C.suave}>
-                Primero va lo que caduca antes. Los menores, embarazadas y mujeres en lactancia comen su ración completa.
+                {t('Primero va lo que antes se estropea: sin luz, nevera, congelador y después despensa. Los menores, embarazadas y mujeres en lactancia comen su ración completa.')}
               </Texto>
             </Tarjeta>
 
             {personas.length + mascotas.length > 1 && (
               <Tarjeta style={{ gap: 2 }}>
                 <Texto peso="700" style={{ paddingBottom: 4 }}>
-                  Ración de cada uno
+                  {t('Ración de cada uno')}
                 </Texto>
                 {personas.map((p) => (
                   <Racion
@@ -271,24 +296,38 @@ function Contenido() {
                   return <Racion key={m.id} nombre={m.nombre} kcal={racion.kcal} litros={racion.litros} mascota />;
                 })}
                 <Texto tam={12} color={C.suave} style={{ paddingTop: 4 }}>
-                  {modo === 'manual' ? 'Según tu reparto manual.' : 'El agua es la de beber; la comida, según el modo.'}
+                  {modo === 'manual' ? t('Según tu reparto manual.') : t('El agua es la de beber; la comida, según el modo.')}
                 </Texto>
               </Tarjeta>
             )}
 
+            <Tarjeta>
+              <Pressable
+                accessibilityRole="button"
+                onPress={() => setCambiarEsc((v) => !v)}
+                style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 32 }}>
+                <Icono name="tune-variant" color={C.suave} size={18} />
+                <Texto peso="700" style={{ flex: 1 }}>
+                  {t('¿Ha cambiado algo?')}
+                </Texto>
+                <Icono name={cambiarEsc ? 'chevron-up' : 'chevron-down'} color={C.suave} />
+              </Pressable>
+              {cambiarEsc && <ControlesEscenario valor={escenario} onChange={setEscenario} />}
+            </Tarjeta>
+
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <View style={{ flex: 1 }}>
                 <Boton variante="peligro" icono="phone" onPress={() => Linking.openURL('tel:112')}>
-                  Llamar al 112
+                  {t('Llamar al 112')}
                 </Boton>
               </View>
               <View style={{ flex: 1 }}>
                 <Boton
                   variante="suave"
                   onPress={() =>
-                    confirmar('¿Terminar el modo emergencia?', 'La despensa se queda como esté ahora.', 'Terminar', terminar)
+                    confirmar(t('¿Terminar el modo emergencia?'), t('La despensa se queda como esté ahora.'), t('Terminar'), terminar)
                   }>
-                  Terminar
+                  {t('Terminar')}
                 </Boton>
               </View>
             </View>
@@ -322,11 +361,107 @@ function Racion({ nombre, kcal, litros, mascota }: { nombre: string; kcal: numbe
         {nombre}
       </Texto>
       <Texto tam={14} peso="700" color={C.comida} style={{ flexShrink: 0 }}>
-        {kcal === null ? 'leche' : `${formatoNumero(kcal)} kcal`}
+        {kcal === null ? t('leche') : `${formatoNumero(kcal)} kcal`}
       </Texto>
       <Texto tam={14} peso="700" color={C.agua} style={{ flexShrink: 0, minWidth: 48, textAlign: 'right' }}>
         {formatoNumero(litros, 1)} L
       </Texto>
     </View>
+  );
+}
+
+const ZONAS: { zona: Conservacion; titulo: string; icono: NombreIcono }[] = [
+  { zona: 'nevera', titulo: tx('Nevera'), icono: 'fridge-outline' },
+  { zona: 'congelador', titulo: tx('Congelador'), icono: 'snowflake' },
+  { zona: 'ambiente', titulo: tx('Despensa y latas'), icono: 'archive-outline' },
+];
+
+/** Horas en texto corto: «3 h», «45 min». */
+function textoHoras(h: number): string {
+  if (h < 1) return `${Math.max(1, Math.round(h * 60))} min`;
+  return `${formatoNumero(h, h < 10 ? 1 : 0)} h`;
+}
+
+/**
+ * Guía de qué comer primero. Sin luz cuenta las horas que le quedan a la nevera
+ * y al congelador; con luz solo recuerda el orden.
+ */
+function GuiaComida({ productos, escenario, horas }: { productos: Producto[]; escenario: Escenario; horas: number }) {
+  const C = useC();
+  const hoy = new Date();
+  const kcalZona = (z: Conservacion) =>
+    productos
+      .filter((p) => p.categoria === 'comida' && p.cantidad > 0 && estadoCaducidad(p, hoy) !== 'caducado' && conservacionDe(p) === z)
+      .reduce((s, p) => s + p.cantidad * (p.kcalPorUnidad ?? 0), 0);
+  const hayFrio = kcalZona('nevera') + kcalZona('congelador') > 0;
+  if (!hayFrio && !escenario.sinLuz) return null;
+  // La etapa actual es la primera zona que aún se puede comer y tiene algo
+  const quedan = (z: Conservacion) => {
+    const h = horasFrio(z, escenario);
+    return h === Infinity ? Infinity : h - horas;
+  };
+  const actual = ZONAS.find((z) => kcalZona(z.zona) > 0 && quedan(z.zona) > 0)?.zona;
+  return (
+    <Tarjeta style={{ gap: 10 }}>
+      <Cabecera icono="format-list-numbered" color={C.comida} titulo={t('Qué comer primero')} cifra="" />
+      {ZONAS.map((z, i) => {
+        const kcal = kcalZona(z.zona);
+        const q = quedan(z.zona);
+        const estropeado = q <= 0 && z.zona !== 'ambiente';
+        let detalle: string;
+        if (kcal <= 0) detalle = t('No tienes nada apuntado aquí.');
+        else if (!escenario.sinLuz) detalle = `${formatoNumero(kcal)} kcal`;
+        else if (estropeado)
+          detalle =
+            z.zona === 'nevera'
+              ? t('Han pasado más de 4 horas sin luz: lo perecedero (carne, pescado, leche, huevos, sobras) ya no es seguro.')
+              : t('Ya se habrá descongelado: si algo sigue muy frío se puede cocinar hoy; si no, fuera.')
+        else if (q === Infinity) detalle = t('{kcal} kcal · aguanta', { kcal: formatoNumero(kcal) });
+        else detalle = t('{kcal} kcal · quedan unas {h} con la puerta cerrada', { kcal: formatoNumero(kcal), h: textoHoras(q) });
+        const activa = actual === z.zona;
+        return (
+          <View
+            key={z.zona}
+            style={{
+              flexDirection: 'row',
+              gap: 12,
+              alignItems: 'center',
+              padding: 10,
+              borderRadius: 14,
+              backgroundColor: activa ? C.comidaTinte : C.segmento,
+              opacity: estropeado || kcal <= 0 ? 0.6 : 1,
+            }}>
+            <View
+              style={{
+                width: 28,
+                height: 28,
+                borderRadius: 14,
+                alignItems: 'center',
+                justifyContent: 'center',
+                backgroundColor: activa ? C.comida : C.tarjeta,
+              }}>
+              <Texto tam={14} peso="800" color={activa ? C.blanco : C.texto2}>
+                {i + 1}
+              </Texto>
+            </View>
+            <View style={{ flex: 1, gap: 2 }}>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <Icono name={z.icono} size={16} color={activa ? C.comidaOscuro : C.suave} />
+                <Texto peso="700" color={activa ? C.comidaOscuro : C.tinta}>
+                  {t(z.titulo)}
+                  {activa ? t(' · ahora') : ''}
+                </Texto>
+              </View>
+              <Texto tam={13} color={activa ? C.comidaOscuro : C.suave}>
+                {detalle}
+              </Texto>
+            </View>
+          </View>
+        );
+      })}
+      <Texto tam={12} color={C.suave}>
+        {t('Abre la nevera y el congelador lo menos posible: cada vez se pierde frío. Fuentes: Ready.gov y FoodSafety.gov.')}
+      </Texto>
+    </Tarjeta>
   );
 }

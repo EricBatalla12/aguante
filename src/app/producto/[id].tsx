@@ -7,6 +7,7 @@ import { volver } from '@/lib/navegacion';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
+import { t } from '@/lib/i18n';
 
 export default function EditarProducto() {
   const C = useC();
@@ -19,7 +20,7 @@ export default function EditarProducto() {
   if (!producto) {
     return (
       <Pantalla>
-        <Texto color={C.suave}>Este producto ya no está en la despensa.</Texto>
+        <Texto color={C.suave}>{t('Este producto ya no está en la despensa.')}</Texto>
       </Pantalla>
     );
   }
@@ -39,12 +40,12 @@ export default function EditarProducto() {
         variante="secundario"
         icono="trash-can-outline"
         onPress={() =>
-          confirmar('¿Quitar de la despensa?', producto.nombre, 'Quitar', () => {
+          confirmar(t('¿Quitar de la despensa?'), producto.nombre, t('Quitar'), () => {
             borrar(producto.id);
             volver();
           })
         }>
-        Quitar de la despensa
+        {t('Quitar de la despensa')}
       </Boton>
     </Pantalla>
   );

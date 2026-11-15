@@ -9,6 +9,7 @@ import { formatoNumero, kcalBase, type Persona, type Sexo } from '@/lib/calculo'
 import { numero } from '@/lib/formato';
 import { nuevoId, useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
+import { t } from '@/lib/i18n';
 
 export default function EditarPersona() {
   const C = useC();
@@ -44,9 +45,9 @@ export default function EditarPersona() {
   return (
     <Pantalla>
       <Tarjeta style={{ gap: 14 }}>
-        <Campo etiqueta="Nombre" valor={nombre} onChange={setNombre} placeholder="Ana" />
+        <Campo etiqueta={t('Nombre')} valor={nombre} onChange={setNombre} placeholder={t('Ana')} />
         <View style={{ gap: 6 }}>
-          <Texto peso="600">Sexo</Texto>
+          <Texto peso="600">{t('Sexo')}</Texto>
           <Segmentado
             opciones={[
               { valor: 'mujer', etiqueta: 'Mujer' },
@@ -56,21 +57,21 @@ export default function EditarPersona() {
             onChange={setSexo}
           />
           <Texto tam={12} color={C.suave}>
-            Las fórmulas de energía son distintas según el sexo biológico.
+            {t('Las fórmulas de energía son distintas según el sexo biológico.')}
           </Texto>
         </View>
         <Campo
-          etiqueta="Edad" sufijo="años"
+          etiqueta={t('Edad')} sufijo={t('años')}
           valor={edad}
           onChange={setEdad}
           teclado="decimal-pad"
           placeholder="30"
-          ayuda="Para un bebé usa decimales: 0,5 son 6 meses."
+          ayuda={t('Para un bebé usa decimales: 0,5 son 6 meses.')}
         />
-        <Campo etiqueta="Peso" sufijo="kg" valor={peso} onChange={setPeso} teclado="decimal-pad" placeholder="70" />
+        <Campo etiqueta={t('Peso')} sufijo="kg" valor={peso} onChange={setPeso} teclado="decimal-pad" placeholder="70" />
         {puedeEmbarazo && (
           <View style={{ gap: 6 }}>
-            <Texto peso="600">Embarazo</Texto>
+            <Texto peso="600">{t('Embarazo')}</Texto>
             <Segmentado
               opciones={[
                 { valor: 0, etiqueta: 'No' },
@@ -83,21 +84,21 @@ export default function EditarPersona() {
             />
           </View>
         )}
-        {puedeEmbarazo && <Interruptor etiqueta="Lactancia" valor={lactancia} onChange={setLactancia} />}
+        {puedeEmbarazo && <Interruptor etiqueta={t('Lactancia')} valor={lactancia} onChange={setLactancia} />}
         <Interruptor
-          etiqueta="No racionar su comida"
+          etiqueta={t('No racionar su comida')}
           valor={noRacionar}
           onChange={setNoRacionar}
-          ayuda="Para personas mayores, enfermas o que lo necesiten. Menores, embarazo y lactancia ya están protegidos."
+          ayuda={t('Para personas mayores, enfermas o que lo necesiten. Menores, embarazo y lactancia ya están protegidos.')}
         />
       </Tarjeta>
 
       {valida && edadN < 1 && (
-        <Aviso texto="Un bebé necesita leche materna o de fórmula: su comida no se calcula con la de la despensa. Su agua sí cuenta." />
+        <Aviso texto={t('Un bebé necesita leche materna o de fórmula: su comida no se calcula con la de la despensa. Su agua sí cuenta.')} />
       )}
       {valida && edadN >= 1 && (
         <Texto tam={13} color={C.suave}>
-          Necesita unas {formatoNumero(kcalBase(persona))} kcal al día sin racionar.
+          {t('Necesita unas {kcal} kcal al día sin racionar.', { kcal: formatoNumero(kcalBase(persona)) })}
         </Texto>
       )}
 
@@ -107,18 +108,18 @@ export default function EditarPersona() {
           guardar(persona);
           volver();
         }}>
-        Guardar
+        {t('Guardar')}
       </Boton>
       {existente && (
         <Boton
           variante="secundario"
           onPress={() =>
-            confirmar('¿Quitar a esta persona?', existente.nombre, 'Quitar', () => {
+            confirmar(t('¿Quitar a esta persona?'), existente.nombre, t('Quitar'), () => {
               borrar(existente.id);
               volver();
             })
           }>
-          Quitar del hogar
+          {t('Quitar del hogar')}
         </Boton>
       )}
     </Pantalla>

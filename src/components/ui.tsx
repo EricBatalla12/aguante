@@ -25,6 +25,8 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import type { PartesFecha } from '@/lib/fechas';
 import { useC, useLetra, type Peso } from '@/lib/tema';
+import { textoCantidad } from '@/lib/formato';
+import { t } from '@/lib/i18n';
 
 export type NombreIcono = ComponentProps<typeof MaterialCommunityIcons>['name'];
 
@@ -251,7 +253,7 @@ export function Segmentado<T extends string | number>({
             }}>
             {/* Una sola línea que encoge la letra si el hueco es estrecho */}
             <Texto tam={14} peso="600" ajustar maxFontSizeMultiplier={1.1} color={activo ? C.sobrePrimario : C.texto2}>
-              {o.etiqueta}
+              {t(o.etiqueta)}
             </Texto>
           </Pressable>
         );
@@ -462,7 +464,7 @@ export function CampoFecha({
           {etiqueta}
         </Texto>
         <Texto tam={12} color={C.suave}>
-          El día es opcional
+          {t('El día es opcional')}
         </Texto>
       </View>
       <View
@@ -480,11 +482,11 @@ export function CampoFecha({
         }}>
         <TextInput
           ref={refDia}
-          accessibilityLabel={`${etiqueta}: día (opcional)`}
+          accessibilityLabel={t('{campo}: día (opcional)', { campo: etiqueta })}
           value={valor.dia}
           onChangeText={alDia}
           keyboardType="number-pad"
-          placeholder="DD"
+          placeholder={t('DD')}
           placeholderTextColor={C.suave}
           maxFontSizeMultiplier={ESCALA_MAX}
           style={casilla(48)}
@@ -500,7 +502,7 @@ export function CampoFecha({
             if (e.nativeEvent.key === 'Backspace' && valor.mes === '') refDia.current?.focus();
           }}
           keyboardType="number-pad"
-          placeholder="MM"
+          placeholder={t('MM')}
           placeholderTextColor={C.suave}
           maxFontSizeMultiplier={ESCALA_MAX}
           style={casilla(48)}
@@ -508,14 +510,14 @@ export function CampoFecha({
         {barra}
         <TextInput
           ref={refAnio}
-          accessibilityLabel={`${etiqueta}: año`}
+          accessibilityLabel={t('{campo}: año', { campo: etiqueta })}
           value={valor.anio}
           onChangeText={alAnio}
           onKeyPress={(e) => {
             if (e.nativeEvent.key === 'Backspace' && valor.anio === '') refMes.current?.focus();
           }}
           keyboardType="number-pad"
-          placeholder="AAAA"
+          placeholder={t('AAAA')}
           placeholderTextColor={C.suave}
           maxLength={4}
           maxFontSizeMultiplier={ESCALA_MAX}
@@ -610,11 +612,11 @@ export function Contador({
   );
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: C.segmento, borderRadius: 14, padding: 4 }}>
-      {boton('minus', 'Quitar', -paso)}
+      {boton('minus', t('Quitar'), -paso)}
       <Texto tam={16} peso="700" centro lineas={1} style={[{ minWidth: 64, paddingHorizontal: 4 }, estirar && { flex: 1 }]}>
-        {texto ?? String(valor).replace('.', ',')}
+        {texto ?? textoCantidad(valor)}
       </Texto>
-      {boton('plus', 'Añadir', paso)}
+      {boton('plus', t('Añadir'), paso)}
     </View>
   );
 }

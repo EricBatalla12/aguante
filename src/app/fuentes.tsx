@@ -3,18 +3,18 @@ import { Linking, Pressable, View } from 'react-native';
 import { Aviso, Icono, IconoCaja, Pantalla, Pastilla, Tarjeta, Texto } from '@/components/ui';
 import { BLOQUES, FECHA_CONSULTA } from '@/constants/fuentes';
 import { useC } from '@/lib/tema';
+import { t } from '@/lib/i18n';
 
 export default function Fuentes() {
   const C = useC();
   return (
     <Pantalla>
       <Texto color={C.texto2}>
-        Cada cifra que usa la app sale de una de estas fuentes. Lo que es una decisión nuestra, sin fuente detrás, va
-        marcado como «criterio propio».
+        {t('Cada cifra que usa la app sale de una de estas fuentes. Lo que es una decisión nuestra, sin fuente detrás, va marcado como «criterio propio».')}
       </Texto>
       <Aviso
         tono="ambar"
-        texto="Es una estimación orientativa para prepararse: no sustituye el consejo médico. Si alguien en casa tiene una enfermedad o una dieta especial, consulta a su médico."
+        texto={t('Es una estimación orientativa para prepararse: no sustituye el consejo médico. Si alguien en casa tiene una enfermedad o una dieta especial, consulta a su médico.')}
       />
 
       {BLOQUES.map((b) => (
@@ -22,7 +22,7 @@ export default function Fuentes() {
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12 }}>
             <IconoCaja name={b.icono} fondo={C.segmento} color={C.tinta} tam={40} />
             <Texto tam={18} peso="800" style={{ flex: 1 }}>
-              {b.titulo}
+              {t(b.titulo)}
             </Texto>
           </View>
           {b.puntos.map((p) => (
@@ -30,9 +30,9 @@ export default function Fuentes() {
               <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: C.suave, marginTop: 8 }} />
               <View style={{ flex: 1, gap: 4, alignItems: 'flex-start' }}>
                 <Texto tam={14} color={C.texto2}>
-                  {p.texto}
+                  {t(p.texto)}
                 </Texto>
-                {p.propio && <Pastilla texto="Criterio propio" fondo={C.ambarTinte} color={C.ambar} />}
+                {p.propio && <Pastilla texto={t('Criterio propio')} fondo={C.ambarTinte} color={C.ambar} />}
               </View>
             </View>
           ))}
@@ -53,7 +53,7 @@ export default function Fuentes() {
                   })}>
                   <Icono name="open-in-new" color={C.enlace} size={16} />
                   <Texto tam={14} peso="600" color={C.enlace} style={{ flex: 1 }}>
-                    {e.nombre}
+                    {t(e.nombre)}
                   </Texto>
                 </Pressable>
               ))}
@@ -63,7 +63,7 @@ export default function Fuentes() {
       ))}
 
       <Texto tam={12} color={C.suave}>
-        Fuentes consultadas el {FECHA_CONSULTA}. Los enlaces se abren en el navegador y necesitan conexión.
+        {t('Fuentes consultadas el {fecha}. Los enlaces se abren en el navegador y necesitan conexión.', { fecha: t(FECHA_CONSULTA) })}
       </Texto>
     </Pantalla>
   );

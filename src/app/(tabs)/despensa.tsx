@@ -4,27 +4,28 @@ import { Pressable, TextInput, View } from 'react-native';
 
 import { Boton, BotonIcono, Icono, Miniatura, Pantalla, Pastilla, Segmentado, Tarjeta, Texto, Titulo } from '@/components/ui';
 import { normalizar } from '@/constants/genericos';
-import { formatoNumero, type Categoria, type Producto } from '@/lib/calculo';
+import { conservacionDe, formatoNumero, type Categoria, type Producto } from '@/lib/calculo';
 import { textoFecha } from '@/lib/fechas';
 import { colorCategoria, coloresCaducidad, ICONO_CATEGORIA, textoCantidad, textoCaducidad } from '@/lib/formato';
 import { useAguante } from '@/lib/store';
 import { useC, useLetra } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
+import { t, tx } from '@/lib/i18n';
 
 type Filtro = 'todo' | Categoria;
 
 const FILTROS: { valor: Filtro; etiqueta: string }[] = [
-  { valor: 'todo', etiqueta: 'Todo' },
-  { valor: 'comida', etiqueta: 'Comida' },
-  { valor: 'agua', etiqueta: 'Agua' },
-  { valor: 'mascota', etiqueta: 'Mascotas' },
+  { valor: 'todo', etiqueta: tx('Todo') },
+  { valor: 'comida', etiqueta: tx('Comida') },
+  { valor: 'agua', etiqueta: tx('Agua') },
+  { valor: 'mascota', etiqueta: tx('Mascotas') },
 ];
 
 function detalle(p: Producto): string {
   const n = textoCantidad(p.cantidad);
   if (p.categoria === 'agua') return `${n} × ${textoCantidad(p.litrosPorUnidad ?? 0)} L`;
   const kcal = p.cantidad * (p.kcalPorUnidad ?? 0);
-  return `${n} ${p.cantidad === 1 ? 'unidad' : 'unidades'} · ${formatoNumero(kcal)} kcal`;
+  return t(p.cantidad === 1 ? '{n} unidad · {kcal} kcal' : '{n} unidades · {kcal} kcal', { n, kcal: formatoNumero(kcal) });
 }
 
 export default function Despensa() {
@@ -47,27 +48,26 @@ export default function Despensa() {
   return (
     <Pantalla>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
-        <Titulo>Despensa</Titulo>
-        <BotonIcono icono="plus" etiqueta="Añadir producto" lleno onPress={() => router.push('/anadir')} />
+        <Titulo>{t('Despensa')}</Titulo>
+        <BotonIcono icono="plus" etiqueta={t('Añadir producto')} lleno onPress={() => router.push('/anadir')} />
       </View>
 
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <Resumen valor={formatoNumero(r.kcalTotal)} etiqueta="kcal" color={C.comida} />
-        <Resumen valor={`${formatoNumero(r.litrosTotal, 1)} L`} etiqueta="de agua" color={C.agua} />
-        <Resumen valor={String(productos.length)} etiqueta="productos" color={C.tinta} />
+        <Resumen valor={formatoNumero(r.kcalTotal)} etiqueta={t('kcal')} color={C.comida} />
+        <Resumen valor={`${formatoNumero(r.litrosTotal, 1)} L`} etiqueta={t('de agua')} color={C.agua} />
+        <Resumen valor={String(productos.length)} etiqueta={t('productos')} color={C.tinta} />
       </View>
 
       {productos.length === 0 ? (
         <Tarjeta>
           <Texto tam={17} peso="700">
-            Aún no hay nada aquí
+            {t('Aún no hay nada aquí')}
           </Texto>
           <Texto tam={14} color={C.suave}>
-            Escanea el código de barras de lo que compres para la reserva. Te rellenamos el nombre, las calorías y la
-            foto.
+            {t('Escanea el código de barras de lo que compres para la reserva. Te rellenamos el nombre, las calorías y la foto.')}
           </Texto>
           <Boton icono="barcode-scan" onPress={() => router.push('/anadir')}>
-            Añadir el primero
+            {t('Añadir el primero')}
           </Boton>
         </Tarjeta>
       ) : (
@@ -87,16 +87,16 @@ export default function Despensa() {
               }}>
               <Icono name="magnify" color={C.suave} />
               <TextInput
-                accessibilityLabel="Buscar en la despensa"
+                accessibilityLabel={t('Buscar en la despensa')}
                 value={busqueda}
                 onChangeText={setBusqueda}
-                placeholder="Buscar"
+                placeholder={t('Buscar')}
                 placeholderTextColor={C.suave}
                 maxFontSizeMultiplier={1.3}
                 style={[{ flex: 1, minWidth: 0, fontSize: 16, color: C.tinta, paddingVertical: 8 }, letra('500')]}
               />
               {busqueda !== '' && (
-                <Pressable accessibilityRole="button" accessibilityLabel="Borrar la búsqueda" onPress={() => setBusqueda('')} hitSlop={10}>
+                <Pressable accessibilityRole="button" accessibilityLabel={t('Borrar la búsqueda')} onPress={() => setBusqueda('')} hitSlop={10}>
                   <Icono name="close-circle" color={C.suave} />
                 </Pressable>
               )}
@@ -107,12 +107,12 @@ export default function Despensa() {
 
           {lista.length === 0 ? (
             <Texto tam={14} color={C.suave} centro style={{ paddingVertical: 16 }}>
-              Nada coincide con ese filtro.
+              {t('Nada coincide con ese filtro.')}
             </Texto>
           ) : (
             <>
               <Texto tam={13} color={C.suave}>
-                Ordenado por caducidad: arriba, lo que hay que gastar antes
+                {t('Ordenado por caducidad: arriba, lo que hay que gastar antes')}
               </Texto>
               <View style={{ gap: 8 }}>
                 {lista.map((p) => (
@@ -131,7 +131,15 @@ function Fila({ p }: { p: Producto }) {
   const C = useC();
   const cat = colorCategoria(p.categoria, C);
   const cad = coloresCaducidad(p, C);
-  const etiqueta = p.cantidad <= 0 ? 'Agotado' : p.necesitaCocinar ? 'Hay que cocinarlo' : p.necesitaFrio ? 'Va en nevera' : null;
+  const etiqueta = p.cantidad <= 0
+      ? t('Agotado')
+      : p.necesitaCocinar
+        ? t('Hay que cocinarlo')
+        : conservacionDe(p) === 'nevera'
+          ? t('Nevera')
+          : conservacionDe(p) === 'congelador'
+            ? t('Congelador')
+            : null;
   return (
     <Pressable
       accessibilityRole="button"

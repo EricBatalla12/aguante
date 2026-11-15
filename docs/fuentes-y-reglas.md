@@ -242,16 +242,80 @@ las personas. El agua es común.
   en reparto manual, la suma de las raciones fijadas.
 - Lo que se marca como comido se descuenta de la despensa y queda en una lista
   del día, desde la que se puede deshacer. El plan propone lo que falta para
-  llegar a las kcal del día, empezando por lo que caduca antes.
+  llegar a las kcal del día, empezando por lo que antes se estropea.
+- El escenario se elige al empezar la emergencia y se puede cambiar durante
+  ella («¿Ha cambiado algo?»).
+
+## Sin luz: nevera y congelador
+
+- Con la puerta cerrada, la nevera mantiene el frío **unas 4 horas**. Pasado
+  ese tiempo, lo perecedero (carne, pescado, leche, huevos, sobras) se tira.
+  Fuente: [Ready.gov, Food](https://www.ready.gov/food) (comprobado el
+  15/11/2026: «about four hours if it is unopened»).
+- Un congelador **lleno** aguanta **unas 48 horas** y uno **a medias, unas 24**.
+  Fuente: [FoodSafety.gov, Three ways to keep food safe when you lose
+  power](https://www.foodsafety.gov/blog/three-ways-keep-food-safe-when-you-lose-power)
+  (vía búsqueda del 15/11/2026; la página de USDA FSIS no se pudo abrir).
+  Por defecto se toma «a medias», que es lo prudente; el escenario tiene el
+  interruptor «El congelador está lleno».
+- De ahí el orden: **nevera → congelador → despensa y latas**. El plan del
+  día lo sigue y, en plena emergencia, descuenta las horas que han pasado
+  desde que se activó «sin luz» (se guarda la hora en ese momento).
+- Para el cálculo se supone que la ración del día se come repartida a lo
+  largo de las 24 horas, así que de la nevera solo cuenta lo que cabe en sus
+  4 horas. **[propio]**: es prudente; en la práctica se puede comer algo más
+  deprisa.
+
+## Energía propia
+
+- **Placas solares**: kWh al día por cada kWp de
+  [PVGIS 5.3](https://re.jrc.ec.europa.eu/pvg_tools/es/) (Comisión Europea,
+  JRC), consultado el 15/11/2026 por su API con placa fija, inclinación y
+  orientación óptimas y 14 % de pérdidas:
+
+  | Ciudad | Peor mes (dic.) | Media anual |
+  |---|---|---|
+  | Bilbao | 2,04 | 3,21 |
+  | A Coruña | 2,00 | 3,52 |
+  | Madrid | 3,33 | 4,44 |
+  | Barcelona | 3,23 | 4,31 |
+  | Sevilla | 3,64 | 4,58 |
+  | Las Palmas | 3,78 | 4,42 |
+
+  La app usa tres zonas con el valor más bajo de cada pareja: norte 2,0 / 3,2;
+  centro 3,2 / 4,3; sur 3,6 / 4,4. Una placa tumbada o con sombra da menos.
+- **Power banks**: se aprovechan dos tercios de la capacidad de la caja (mAh ×
+  3,7 V × 0,65). **[propio]**: las celdas van a 3,7 V y la salida a 5 V, con
+  pérdidas; no he encontrado una fuente única para el porcentaje.
+- **Baterías con inversor**: se pierde un 15 %. **[propio]**
+- **Generador**: litros guardados / consumo por hora de su ficha × potencia.
+- **Aparatos de partida** (móvil 15 W × 1 h, LED 9 W × 4 h, radio 5 W × 3 h,
+  router 10 W, nevera 30 W de media, portátil 45 W, CPAP 40 W × 8 h):
+  orientativos, **[propio]**; la pantalla pide cambiarlos por los de la
+  etiqueta.
+- Días de energía = lo guardado / (consumo diario − producción solar diaria).
+  Si el sol cubre el consumo, no se acaba.
 
 ## Cómo se calculan los días
 
-- Días de comida = kcal útiles de personas / kcal diarias de personas
+- **Días de comida**: se simula comer las kcal diarias de las personas
+  empezando por lo que antes se estropea (fecha de caducidad o, sin luz, las
+  horas de nevera y congelador). Lo que caducaría antes de que dé tiempo a
+  comerlo no cuenta y la app avisa de ello. Así no se cuentan como días
+  calorías que se van a tirar. Comer siempre primero lo que antes se estropea
+  es lo que menos desperdicia.
 - Días de agua = (litros − agua reservada para cocinar) / litros diarios de
   personas y mascotas
 - **Días que aguantáis** = mínimo de los dos, redondeado hacia abajo
-- No se cuenta lo caducado.
-- Con el escenario «sin luz», no cuenta lo que necesita nevera.
+- No se cuenta lo caducado ni, sin cocina, lo que hay que cocinar.
+
+## Trueque
+
+- Lo que sobra o falta se calcula respecto al objetivo de días con el modo en
+  uso. Para ponerlo en palabras, 2.000 kcal cuentan como un día de un adulto.
+  **[propio]**
+- Se ofrece también lo que caducará antes de que dé tiempo a comerlo, pero no
+  lo que ya se ha estropeado por el calor.
 
 ## Avisos que la app tiene que mostrar
 

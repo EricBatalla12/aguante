@@ -10,6 +10,7 @@ import { buscarCodigo, type DatosOFF } from '@/lib/off';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
+import { t } from '@/lib/i18n';
 
 type Fase = 'escaneando' | 'buscando' | 'formulario';
 
@@ -45,15 +46,15 @@ export default function Anadir() {
       setDatos(res.datos);
       setMensaje(
         res.datos.kcal100g
-          ? 'Encontrado en Open Food Facts. Revisa los datos y pon la caducidad.'
-          : 'Está en Open Food Facts, pero sin las calorías: cópialas de la etiqueta.',
+          ? t('Encontrado en Open Food Facts. Revisa los datos y pon la caducidad.')
+          : t('Está en Open Food Facts, pero sin las calorías: cópialas de la etiqueta.'),
       );
     } else if (res.estado === 'no-encontrado') {
       setDatos(null);
-      setMensaje(`El código ${c} no está en Open Food Facts. Escribe el nombre y elige una sugerencia, o rellénalo a mano.`);
+      setMensaje(t('El código {c} no está en Open Food Facts. Escribe el nombre y elige una sugerencia, o rellénalo a mano.', { c }));
     } else {
       setDatos(null);
-      setMensaje(`No se pudo consultar Open Food Facts (${res.detalle}). Revisa la conexión y reintenta, o rellénalo a mano.`);
+      setMensaje(t('No se pudo consultar Open Food Facts ({detalle}). Revisa la conexión y reintenta, o rellénalo a mano.', { detalle: res.detalle }));
     }
     setFase('formulario');
   };
@@ -90,20 +91,20 @@ export default function Anadir() {
             <View style={{ borderRadius: 22, backgroundColor: C.heroe, borderWidth: 1, borderColor: C.heroeBorde, alignItems: 'center', gap: 12, padding: 20 }}>
               <Icono name="barcode-scan" color={C.heroeTexto} size={40} />
               <Texto color={C.heroeSuave} centro>
-                Para escanear el código de barras necesitamos la cámara.
+                {t('Para escanear el código de barras necesitamos la cámara.')}
               </Texto>
               <View style={{ alignSelf: 'stretch' }}>
                 <Boton variante="suave" onPress={pedirPermiso}>
-                  Permitir la cámara
+                  {t('Permitir la cámara')}
                 </Boton>
               </View>
             </View>
           )}
           <Texto tam={14} color={C.suave} centro>
-            Apunta al código de barras del producto
+            {t('Apunta al código de barras del producto')}
           </Texto>
           <Boton variante="secundario" icono="pencil-outline" onPress={() => setFase('formulario')}>
-            Escribirlo a mano
+            {t('Escribirlo a mano')}
           </Boton>
         </View>
       )}
@@ -111,7 +112,7 @@ export default function Anadir() {
       {fase === 'buscando' && (
         <View style={{ padding: 32, alignItems: 'center', gap: 12 }}>
           <ActivityIndicator color={C.tinta} />
-          <Texto color={C.suave}>Buscando el producto…</Texto>
+          <Texto color={C.suave}>{t('Buscando el producto…')}</Texto>
         </View>
       )}
 
@@ -123,14 +124,14 @@ export default function Anadir() {
               {sinConexion && codigo && (
                 <View style={{ flex: 1 }}>
                   <Boton pequeno variante="secundario" icono="refresh" onPress={() => buscar(codigo)}>
-                    Reintentar
+                    {t('Reintentar')}
                   </Boton>
                 </View>
               )}
               {Platform.OS !== 'web' && (
                 <View style={{ flex: 1 }}>
                   <Boton pequeno variante="secundario" icono="barcode-scan" onPress={escanearOtra}>
-                    {codigo ? 'Escanear otro' : 'Escanear'}
+                    {codigo ? t('Escanear otro') : t('Escanear')}
                   </Boton>
                 </View>
               )}
@@ -140,7 +141,7 @@ export default function Anadir() {
             key={codigo ?? 'manual'}
             inicial={datos ? aProducto(datos) : codigo ? { codigo } : undefined}
             origenInicial={datos ? 'Open Food Facts' : undefined}
-            textoGuardar="Guardar en la reserva"
+            textoGuardar={t('Guardar en la reserva')}
             diasPorKcal={r.kcalDia || undefined}
             onGuardar={(p) => {
               guardar(p);

@@ -38,6 +38,8 @@ export type Mascota = {
 };
 
 export type Categoria = 'comida' | 'agua' | 'mascota';
+/** Dónde se guarda. Decide el orden en que se come si se va la luz. */
+export type Conservacion = 'ambiente' | 'nevera' | 'congelador';
 
 export type Producto = {
   id: string;
@@ -55,13 +57,15 @@ export type Producto = {
   codigo?: string; // código de barras
   necesitaCocinar?: boolean;
   aguaCocinarPorUnidadL?: number; // litros para cocinar una unidad
-  necesitaFrio?: boolean;
+  conservacion?: Conservacion;
+  necesitaFrio?: boolean; // antiguo: equivale a conservacion 'nevera'
 };
 
 export type Escenario = {
   sinLuz?: boolean;
   sinCocina?: boolean;
   calor?: boolean;
+  congeladorLleno?: boolean; // un congelador lleno aguanta el doble sin luz
 };
 
 // ---------------------------------------------------------------- Constantes
@@ -82,6 +86,12 @@ export const FACTOR_COMIDA: Record<ModoAuto, number> = {
 export const AGUA_NORMAL_L = 3.8;
 // Ligero: agua para beber más una higiene mínima (valor propio).
 export const AGUA_HIGIENE_LIGERO_L = 0.5;
+
+// Sin luz y con la puerta cerrada. Nevera: unas 4 horas (Ready.gov). Congelador:
+// unas 48 horas si está lleno y 24 si está a medias (FoodSafety.gov, USDA).
+export const HORAS_NEVERA_SIN_LUZ = 4;
+export const HORAS_CONGELADOR_LLENO = 48;
+export const HORAS_CONGELADOR_MEDIAS = 24;
 
 const EXTRA_EMBARAZO_KCAL = [0, 85, 285, 475];
 const EXTRA_LACTANCIA_KCAL = 505;
@@ -218,6 +228,82 @@ export function estadoCaducidad(p: Producto, hoy: Date): EstadoCaducidad {
   return 'ok';
 }
 
+// ------------------------------------------------------------- Conservación
+
+export function conservacionDe(p: Producto): Conservacion {
+  return p.conservacion ?? (p.necesitaFrio ? 'nevera' : 'ambiente');
+}
+
+/** Horas que aguanta frío ese sitio sin luz (Infinity si no hace falta frío o hay luz). */
+export function horasFrio(c: Conservacion, esc: Escenario): number {
+  if (!esc.sinLuz || c === 'ambiente') return Infinity;
+  if (c === 'nevera') return HORAS_NEVERA_SIN_LUZ;
+  return esc.congeladorLleno ? HORAS_CONGELADOR_LLENO : HORAS_CONGELADOR_MEDIAS;
+}
+
+/**
+ * Días, contados desde ahora, que le quedan a un producto antes de que no se
+ * pueda comer: lo que antes llegue, el final del día de caducidad o que se
+ * caliente la nevera o el congelador. `horasSinLuz` son las que ya han pasado
+ * desde el apagón.
+ */
+export function limiteDias(p: Producto, esc: Escenario, hoy: Date, horasSinLuz = 0): number {
+  const porFecha = p.caducidad ? diasHasta(p.caducidad, hoy) + 1 : Infinity;
+  const frio = horasFrio(conservacionDe(p), esc);
+  const porFrio = frio === Infinity ? Infinity : Math.max(0, frio - horasSinLuz) / 24;
+  return Math.min(porFecha, porFrio);
+}
+
+const RANGO_CONSERVACION: Record<Conservacion, number> = { nevera: 0, congelador: 1, ambiente: 2 };
+
+/**
+ * Orden en que conviene comer: primero lo que antes deja de poderse comer y,
+ * a igualdad, nevera → congelador → despensa. Sin luz eso da justo la regla
+ * de las guías: nevera, después congelador y al final las latas.
+ */
+export function ordenarParaComer(productos: Producto[], esc: Escenario, hoy: Date, horasSinLuz = 0): Producto[] {
+  return [...productos].sort((a, b) => {
+    const la = limiteDias(a, esc, hoy, horasSinLuz);
+    const lb = limiteDias(b, esc, hoy, horasSinLuz);
+    if (la !== lb) return la - lb;
+    return RANGO_CONSERVACION[conservacionDe(a)] - RANGO_CONSERVACION[conservacionDe(b)];
+  });
+}
+
+export type Perdido = { id: string; nombre: string; kcal: number };
+export type Consumo = { dias: number; kcalUtiles: number; perdidos: Perdido[] };
+
+/**
+ * Simula comer `kcalDia` cada día, en el orden de `ordenarParaComer`. Lo que
+ * caduca (o se calienta) antes de que dé tiempo a comerlo no cuenta: sumar
+ * todas las calorías daría más días de los reales. Comer siempre primero lo
+ * que antes se estropea es lo que menos desperdicia.
+ */
+export function simularConsumo(
+  productos: Producto[],
+  kcalDia: number,
+  esc: Escenario,
+  hoy: Date,
+  horasSinLuz = 0,
+): Consumo {
+  const total = productos.reduce((s, p) => s + p.cantidad * (p.kcalPorUnidad ?? 0), 0);
+  if (kcalDia <= 0) return { dias: 0, kcalUtiles: total, perdidos: [] };
+  let t = 0; // días ya comidos
+  let utiles = 0;
+  const perdidos: Perdido[] = [];
+  for (const p of ordenarParaComer(productos, esc, hoy, horasSinLuz)) {
+    const kcal = p.cantidad * (p.kcalPorUnidad ?? 0);
+    if (kcal <= 0) continue;
+    const limite = limiteDias(p, esc, hoy, horasSinLuz);
+    const cabe = limite === Infinity ? kcal : Math.max(0, (limite - t) * kcalDia);
+    const como = Math.min(kcal, cabe);
+    t += como / kcalDia;
+    utiles += como;
+    if (kcal - como > 0.5) perdidos.push({ id: p.id, nombre: p.nombre, kcal: kcal - como });
+  }
+  return { dias: t, kcalUtiles: utiles, perdidos };
+}
+
 // ------------------------------------------------------------------- Balance
 
 export type Resultado = {
@@ -227,7 +313,8 @@ export type Resultado = {
   limita: 'agua' | 'comida' | 'nada';
   kcalDia: number; // personas
   litrosDia: number; // personas y mascotas
-  kcalTotal: number; // útiles para personas
+  kcalTotal: number; // útiles para personas: lo que da tiempo a comer
+  perdidos: Perdido[]; // comida que caducará antes de que dé tiempo a comerla
   litrosTotal: number; // agua guardada que se puede usar
   litrosCocinar: number; // reservados para cocinar
   mascotas: { diasComida: number; kcalDia: number } | null;
@@ -239,7 +326,6 @@ export type Resultado = {
 function cuenta(p: Producto, esc: Escenario, hoy: Date): boolean {
   if (p.cantidad <= 0) return false;
   if (estadoCaducidad(p, hoy) === 'caducado') return false;
-  if (esc.sinLuz && p.necesitaFrio) return false;
   if (esc.sinCocina && p.necesitaCocinar) return false;
   return true;
 }
@@ -252,6 +338,7 @@ export function calcular(
   esc: Escenario = {},
   hoy: Date = new Date(),
   manual: Manual = {},
+  horasSinLuz = 0,
 ): Resultado {
   const kcalDia = personas.reduce((s, p) => s + kcalPersona(p, modo, manual), 0);
   const litrosDia =
@@ -260,12 +347,9 @@ export function calcular(
   const kcalMascotasDia = mascotas.reduce((s, m) => s + racionMascota(m, modo, manual).kcal, 0);
 
   const utiles = productos.filter((p) => cuenta(p, esc, hoy));
-  const kcalTotal = utiles
-    .filter((p) => p.categoria === 'comida')
-    .reduce((s, p) => s + p.cantidad * (p.kcalPorUnidad ?? 0), 0);
-  const kcalMascotasTotal = utiles
-    .filter((p) => p.categoria === 'mascota')
-    .reduce((s, p) => s + p.cantidad * (p.kcalPorUnidad ?? 0), 0);
+  const comida = simularConsumo(utiles.filter((p) => p.categoria === 'comida'), kcalDia, esc, hoy, horasSinLuz);
+  const pienso = simularConsumo(utiles.filter((p) => p.categoria === 'mascota'), kcalMascotasDia, esc, hoy, horasSinLuz);
+  const kcalTotal = comida.kcalUtiles;
   const litrosTotal = utiles
     .filter((p) => p.categoria === 'agua')
     .reduce((s, p) => s + p.cantidad * (p.litrosPorUnidad ?? 0), 0);
@@ -273,7 +357,7 @@ export function calcular(
     .filter((p) => p.categoria === 'comida' && p.necesitaCocinar)
     .reduce((s, p) => s + p.cantidad * (p.aguaCocinarPorUnidadL ?? 0), 0);
 
-  const diasComida = kcalDia > 0 ? kcalTotal / kcalDia : 0;
+  const diasComida = comida.dias;
   const diasAgua = litrosDia > 0 ? Math.max(0, litrosTotal - litrosCocinar) / litrosDia : 0;
   const minimo = Math.min(diasComida, diasAgua);
 
@@ -288,11 +372,12 @@ export function calcular(
     kcalDia,
     litrosDia,
     kcalTotal,
+    perdidos: [...comida.perdidos, ...pienso.perdidos],
     litrosTotal,
     litrosCocinar,
     mascotas:
       mascotas.length > 0
-        ? { diasComida: kcalMascotasDia > 0 ? kcalMascotasTotal / kcalMascotasDia : 0, kcalDia: kcalMascotasDia }
+        ? { diasComida: pienso.dias, kcalDia: kcalMascotasDia }
         : null,
     hayBebe: personas.some((p) => p.edadAnios < 1),
     caducados: productos.filter((p) => estadoCaducidad(p, hoy) === 'caducado').map((p) => p.nombre),
@@ -339,8 +424,9 @@ export function calcularFaltante(
 export type RacionPlan = { productoId: string; nombre: string; unidades: number; kcal: number };
 
 /**
- * Qué comer hoy para cubrir `kcalObjetivo`. Primero va lo que caduca antes, y
- * lo que no tiene fecha va al final. Las unidades se redondean hacia arriba en
+ * Qué comer hoy para cubrir `kcalObjetivo`. Primero va lo que antes se
+ * estropea (sin luz: nevera, congelador y después despensa) y lo que no tiene
+ * fecha va al final. Lo que ya se ha calentado no se propone. Las unidades se redondean hacia arriba en
  * cuartos (¼ de bolsa de arroz, por ejemplo), así que el total puede pasarse
  * un poco del objetivo.
  */
@@ -349,10 +435,20 @@ export function planDelDia(
   kcalObjetivo: number,
   esc: Escenario = {},
   hoy: Date = new Date(),
+  horasSinLuz = 0,
 ): RacionPlan[] {
-  const candidatos = productos
-    .filter((p) => p.categoria === 'comida' && (p.kcalPorUnidad ?? 0) > 0 && cuenta(p, esc, hoy))
-    .sort((a, b) => (a.caducidad ?? '9999-12-31').localeCompare(b.caducidad ?? '9999-12-31'));
+  const candidatos = ordenarParaComer(
+    productos.filter(
+      (p) =>
+        p.categoria === 'comida' &&
+        (p.kcalPorUnidad ?? 0) > 0 &&
+        cuenta(p, esc, hoy) &&
+        limiteDias(p, esc, hoy, horasSinLuz) > 0,
+    ),
+    esc,
+    hoy,
+    horasSinLuz,
+  );
   const plan: RacionPlan[] = [];
   let falta = kcalObjetivo;
   for (const p of candidatos) {
@@ -411,10 +507,42 @@ export function devolverAgua(productos: Producto[], litros: number, hoy: Date = 
 
 // ------------------------------------------------------------------ Formato
 
+// Separadores de miles y decimales. En inglés van al revés: 31,000 y 3.5. Lo
+// fija src/lib/i18n.ts.
+let separadores = { miles: '.', decimal: ',' };
+export function fijarFormatoNumero(idioma: 'es' | 'en') {
+  separadores = idioma === 'en' ? { miles: ',', decimal: '.' } : { miles: '.', decimal: ',' };
+}
+export const separadorDecimal = () => separadores.decimal;
+
 /** 31000 → "31.000"; 3.45 con 1 decimal → "3,5". */
 export function formatoNumero(n: number, decimales = 0): string {
   const fijo = n.toFixed(decimales);
   const [entera, frac] = fijo.split('.');
-  const conPuntos = entera.replace(/\B(?=(\d{3})+(?!\d))/g, '.');
-  return frac ? `${conPuntos},${frac}` : conPuntos;
+  const conPuntos = entera.replace(/\B(?=(\d{3})+(?!\d))/g, separadores.miles);
+  return frac ? `${conPuntos}${separadores.decimal}${frac}` : conPuntos;
+}
+
+// ------------------------------------------------------------------ Trueque
+
+export type Excedente = {
+  litrosSobran: number; // agua por encima del objetivo
+  kcalSobran: number; // comida por encima del objetivo
+  litrosFaltan: number;
+  kcalFaltan: number;
+};
+
+/**
+ * Lo que sobra o falta respecto al objetivo de días, para ofrecerlo o pedirlo
+ * a los vecinos. Se cuenta con el resultado del modo que se esté usando.
+ */
+export function calcularExcedente(r: Resultado, objetivoDias: number): Excedente {
+  const litrosNecesarios = objetivoDias * r.litrosDia + r.litrosCocinar;
+  const kcalNecesarias = objetivoDias * r.kcalDia;
+  return {
+    litrosSobran: Math.max(0, r.litrosTotal - litrosNecesarios),
+    kcalSobran: Math.max(0, r.kcalTotal - kcalNecesarias),
+    litrosFaltan: Math.max(0, litrosNecesarios - r.litrosTotal),
+    kcalFaltan: Math.max(0, kcalNecesarias - r.kcalTotal),
+  };
 }

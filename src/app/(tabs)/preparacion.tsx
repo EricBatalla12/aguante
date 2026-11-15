@@ -1,31 +1,20 @@
 import { router } from 'expo-router';
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Barra, Icono, Pantalla, Pastilla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
+import { Barra, Boton, Campo, Icono, Pantalla, Pastilla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
 import { calcularFaltante, estadoCaducidad, formatoNumero } from '@/lib/calculo';
 import { coloresCaducidad, textoCaducidad } from '@/lib/formato';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
+import { KIT } from '@/constants/kit';
+import { t, tx } from '@/lib/i18n';
 
 const OBJETIVOS = [
-  { valor: 3, etiqueta: '72 horas' },
-  { valor: 7, etiqueta: '1 semana' },
-  { valor: 14, etiqueta: '2 semanas' },
-];
-
-// Lo que más se olvida va marcado. El abrelatas, sobre todo: sin él, las latas
-// no sirven de nada.
-const KIT = [
-  { id: 'abrelatas', que: 'Abrelatas manual', clave: true },
-  { id: 'linterna', que: 'Linterna y pilas de repuesto' },
-  { id: 'radio', que: 'Radio a pilas o de dinamo' },
-  { id: 'botiquin', que: 'Botiquín y medicación' },
-  { id: 'pastillas', que: 'Pastillas potabilizadoras', clave: true },
-  { id: 'powerbank', que: 'Batería externa cargada' },
-  { id: 'mantas', que: 'Mantas o sacos de dormir' },
-  { id: 'docs', que: 'Copia de documentos y algo de efectivo' },
+  { valor: 3, etiqueta: tx('72 horas') },
+  { valor: 7, etiqueta: tx('1 semana') },
+  { valor: 14, etiqueta: tx('2 semanas') },
 ];
 
 export default function Preparacion() {
@@ -37,6 +26,11 @@ export default function Preparacion() {
   const setObjetivo = useAguante((s) => s.setObjetivo);
   const kit = useAguante((s) => s.kit);
   const alternarKit = useAguante((s) => s.alternarKit);
+  const kitPropio = useAguante((s) => s.kitPropio);
+  const anadirKit = useAguante((s) => s.anadirKit);
+  const borrarKit = useAguante((s) => s.borrarKit);
+  const [nuevo, setNuevo] = useState('');
+  const elementosKit = [...KIT, ...kitPropio];
   const normal = useResultado('normal');
 
   const falta = useMemo(
@@ -47,59 +41,59 @@ export default function Preparacion() {
   const rotar = productos
     .filter((p) => p.cantidad > 0 && ['rojo', 'ambar', 'caducado'].includes(estadoCaducidad(p, hoy)))
     .sort((a, b) => (a.caducidad ?? '').localeCompare(b.caducidad ?? ''));
-  const hechos = KIT.filter((k) => kit[k.id]).length;
+  const hechos = elementosKit.filter((k) => kit[k.id]).length;
   const diasHoy = Math.min(normal.diasAgua, normal.diasComida);
 
   const lista: { que: string; por: string; icono: 'water-outline' | 'food-variant' | 'paw' }[] = [];
   if (falta.faltanLitros > 0) {
     lista.push({
       icono: 'water-outline',
-      que: `${Math.ceil(falta.faltanLitros / 5)} garrafas de agua de 5 L`,
-      por: `Faltan ${formatoNumero(falta.faltanLitros, 1)} L, contando el agua para cocinar`,
+      que: t('{n} garrafas de agua de 5 L', { n: Math.ceil(falta.faltanLitros / 5) }),
+      por: t('Faltan {l} L, contando el agua para cocinar', { l: formatoNumero(falta.faltanLitros, 1) }),
     });
   }
   if (falta.faltanKcal > 0) {
     lista.push({
       icono: 'food-variant',
-      que: normal.limita === 'agua' ? 'Comida lista para comer' : 'Comida de larga duración',
-      por: `Faltan ≈ ${formatoNumero(Math.ceil(falta.faltanKcal / 100) * 100)} kcal`,
+      que: normal.limita === 'agua' ? t('Comida lista para comer') : t('Comida de larga duración'),
+      por: t('Faltan ≈ {kcal} kcal', { kcal: formatoNumero(Math.ceil(falta.faltanKcal / 100) * 100) }),
     });
   }
   if (falta.faltanKcalMascotas > 0) {
     lista.push({
       icono: 'paw',
-      que: 'Comida para las mascotas',
-      por: `Faltan ≈ ${formatoNumero(Math.ceil(falta.faltanKcalMascotas / 100) * 100)} kcal`,
+      que: t('Comida para las mascotas'),
+      por: t('Faltan ≈ {kcal} kcal', { kcal: formatoNumero(Math.ceil(falta.faltanKcalMascotas / 100) * 100) }),
     });
   }
 
   return (
     <Pantalla>
-      <Titulo>Preparación</Titulo>
+      <Titulo>{t('Preparación')}</Titulo>
 
       <Tarjeta style={{ gap: 12 }}>
         <Texto tam={18} peso="800">
-          Tu objetivo
+          {t('Tu objetivo')}
         </Texto>
         <Segmentado opciones={OBJETIVOS} valor={objetivo} onChange={setObjetivo} />
         {personas.length === 0 ? (
           <Texto tam={14} color={C.suave}>
-            Añade quién vive en casa (pestaña Hogar) para calcular lo que te falta.
+            {t('Añade quién vive en casa (pestaña Hogar) para calcular lo que te falta.')}
           </Texto>
         ) : (
           <>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: 8 }}>
               <Texto tam={14} peso="700" color={falta.cumplido ? C.verde : C.tinta}>
-                {falta.cumplido ? 'Objetivo cumplido' : 'Aún te falta'}
+                {falta.cumplido ? t('Objetivo cumplido') : t('Aún te falta')}
               </Texto>
               <Texto tam={14} color={C.suave}>
-                {formatoNumero(diasHoy, 1)} de {objetivo} días
+                {t('{a} de {b} días', { a: formatoNumero(diasHoy, 1), b: objetivo })}
               </Texto>
             </View>
             <Barra fraccion={diasHoy / objetivo} color={falta.cumplido ? C.verde : C.comida} />
             {lista.length > 0 && (
               <View style={{ paddingTop: 4 }}>
-                <Seccion>Lista de la compra</Seccion>
+                <Seccion>{t('Lista de la compra')}</Seccion>
                 {lista.map((l, i) => (
                   <View
                     key={l.que}
@@ -123,7 +117,7 @@ export default function Preparacion() {
                 ))}
                 {normal.limita === 'agua' && falta.faltanKcal > 0 && (
                   <Texto tam={12} color={C.suave} style={{ paddingTop: 6 }}>
-                    Como os limita el agua, mejor comida que no haya que cocinar: conservas, legumbre cocida, galletas.
+                    {t('Como os limita el agua, mejor comida que no haya que cocinar: conservas, legumbre cocida, galletas.')}
                   </Texto>
                 )}
               </View>
@@ -134,11 +128,11 @@ export default function Preparacion() {
 
       <Tarjeta style={{ gap: 4 }}>
         <Texto tam={18} peso="800" style={{ paddingBottom: 4 }}>
-          Rotar pronto
+          {t('Rotar pronto')}
         </Texto>
         {rotar.length === 0 ? (
           <Texto tam={14} color={C.suave}>
-            Nada caduca en los próximos 3 meses.
+            {t('Nada caduca en los próximos 3 meses.')}
           </Texto>
         ) : (
           rotar.map((p, i) => {
@@ -163,7 +157,7 @@ export default function Preparacion() {
                     {p.nombre}
                   </Texto>
                   <Texto tam={12} color={C.suave}>
-                    Gástalo en el día a día y repón la reserva
+                    {t('Gástalo en el día a día y repón la reserva')}
                   </Texto>
                 </View>
                 <Pastilla texto={textoCaducidad(p)} fondo={c.fondo} color={c.color} />
@@ -176,14 +170,14 @@ export default function Preparacion() {
       <Tarjeta style={{ gap: 4 }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline', gap: 8, paddingBottom: 4 }}>
           <Texto tam={18} peso="800">
-            Kit de emergencia
+            {t('Kit de emergencia')}
           </Texto>
           <Texto tam={13} color={C.suave}>
-            {hechos} de {KIT.length}
+            {t('{a} de {b}', { a: hechos, b: elementosKit.length })}
           </Texto>
         </View>
-        <Barra fraccion={hechos / KIT.length} color={C.verde} alto={6} />
-        {KIT.map((k, i) => {
+        <Barra fraccion={hechos / elementosKit.length} color={C.verde} alto={6} />
+        {elementosKit.map((k, i) => {
           const ok = !!kit[k.id];
           return (
             <Pressable
@@ -214,16 +208,40 @@ export default function Preparacion() {
                 {ok && <Icono name="check-bold" color={C.blanco} size={14} />}
               </View>
               <Texto color={ok ? C.suave : C.tinta} style={{ flex: 1, textDecorationLine: ok ? 'line-through' : 'none' }}>
-                {k.que}
+                {t(k.que)}
               </Texto>
-              {k.clave && !ok && <Pastilla texto="Se olvida mucho" fondo={C.rojoTinte} color={C.rojo} />}
+              {k.clave && !ok && <Pastilla texto={t('Se olvida mucho')} fondo={C.rojoTinte} color={C.rojo} />}
+              {k.id.startsWith('propio-') && (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('Quitar {que} del kit', { que: t(k.que) })}
+                  hitSlop={10}
+                  onPress={() => borrarKit(k.id)}>
+                  <Icono name="close" color={C.suave} size={18} />
+                </Pressable>
+              )}
             </Pressable>
           );
         })}
+        <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingTop: 8 }}>
+          <View style={{ flex: 1 }}>
+            <Campo etiqueta={t('Añadir algo al kit')} valor={nuevo} onChange={setNuevo} placeholder={t('Gafas de repuesto')} />
+          </View>
+          <Boton
+            pequeno
+            icono="plus"
+            deshabilitado={nuevo.trim() === ''}
+            onPress={() => {
+              anadirKit(nuevo.trim());
+              setNuevo('');
+            }}>
+            {t('Añadir')}
+          </Boton>
+        </View>
       </Tarjeta>
 
       <Texto tam={12} color={C.suave}>
-        La UE recomienda que cada hogar aguante al menos 72 horas por su cuenta.
+        {t('La UE recomienda que cada hogar aguante al menos 72 horas por su cuenta.')}
       </Texto>
     </Pantalla>
   );

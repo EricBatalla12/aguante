@@ -9,12 +9,13 @@ import { ActivityIndicator, Pressable, View } from 'react-native';
 
 import { Boton, Campo, CampoFecha, Contador, Icono, Interruptor, Miniatura, Segmentado, Tarjeta, Texto, Tramo } from '@/components/ui';
 import { genericosPara, type Generico } from '@/constants/genericos';
-import { formatoNumero, type Categoria, type Producto } from '@/lib/calculo';
+import { formatoNumero, type Categoria, type Conservacion, type Producto } from '@/lib/calculo';
 import { componerFecha, partesDeFecha, textoFechaLarga } from '@/lib/fechas';
 import { aCampo, colorCategoria, ICONO_CATEGORIA, numero } from '@/lib/formato';
 import { buscarNombre, type DatosOFF } from '@/lib/off';
 import { nuevoId, useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
+import { t } from '@/lib/i18n';
 
 const ENVASES_AGUA = [0.5, 1.5, 5, 8];
 
@@ -46,7 +47,9 @@ export function ProductoForm({
   const [fecha, setFecha] = useState(partesDeFecha(inicial?.caducidad, inicial?.caducidadSinDia));
   const [cocinar, setCocinar] = useState(!!inicial?.necesitaCocinar);
   const [aguaCocinar, setAguaCocinar] = useState(aCampo(inicial?.aguaCocinarPorUnidadL));
-  const [frio, setFrio] = useState(!!inicial?.necesitaFrio);
+  const [conservacion, setConservacion] = useState<Conservacion>(
+    inicial?.conservacion ?? (inicial?.necesitaFrio ? 'nevera' : 'ambiente'),
+  );
   const [imagen, setImagen] = useState(inicial?.imagen);
   const [codigo, setCodigo] = useState(inicial?.codigo);
   const [origen, setOrigen] = useState(origenInicial ?? null);
@@ -105,7 +108,7 @@ export function ProductoForm({
   const elegirGenerico = (g: Generico) => {
     cancelarBusqueda();
     setKcal100(aCampo(g.kcal100g));
-    setOrigen(`valor típico de «${g.nombre.toLowerCase()}», USDA`);
+    setOrigen(t('valor típico de «{nombre}», USDA', { nombre: g.nombre.toLowerCase() }));
     setPorUnidad(false);
     setEditando(true);
   };
@@ -124,13 +127,13 @@ export function ProductoForm({
 
   const errores: string[] = [];
   if (!nombre.trim()) errores.push('Ponle un nombre.');
-  if (categoria === 'agua' && !(litrosU > 0)) errores.push('Indica los litros de cada envase.');
+  if (categoria === 'agua' && !(litrosU > 0)) errores.push(t('Indica los litros de cada envase.'));
   if (categoria !== 'agua' && !(kcalU > 0)) {
-    errores.push(porUnidad ? 'Indica las kcal de cada unidad.' : 'Faltan el peso y las kcal por 100 g de la etiqueta.');
+    errores.push(porUnidad ? t('Indica las kcal de cada unidad.') : t('Faltan el peso y las kcal por 100 g de la etiqueta.'));
   }
-  if (caducidad.estado === 'incompleta') errores.push('Completa el mes y el año de la caducidad, o déjala vacía.');
-  if (caducidad.estado === 'error') errores.push('Revisa la fecha de caducidad.');
-  if (categoria === 'comida' && cocinar && !(numero(aguaCocinar) >= 0)) errores.push('Indica el agua para cocinarlo (0 si no gasta).');
+  if (caducidad.estado === 'incompleta') errores.push(t('Completa el mes y el año de la caducidad, o déjala vacía.'));
+  if (caducidad.estado === 'error') errores.push(t('Revisa la fecha de caducidad.'));
+  if (categoria === 'comida' && cocinar && !(numero(aguaCocinar) >= 0)) errores.push(t('Indica el agua para cocinarlo (0 si no gasta).'));
 
   const guardar = () => {
     const conEnergia = categoria !== 'agua';
@@ -148,7 +151,8 @@ export function ProductoForm({
       caducidadSinDia: conFecha?.sinDia || undefined,
       necesitaCocinar: categoria === 'comida' && cocinar,
       aguaCocinarPorUnidadL: categoria === 'comida' && cocinar ? numero(aguaCocinar) || 0 : undefined,
-      necesitaFrio: categoria === 'comida' && frio,
+      conservacion: categoria !== 'agua' && conservacion !== 'ambiente' ? conservacion : undefined,
+      necesitaFrio: undefined,
       imagen,
       codigo,
     });
@@ -157,10 +161,10 @@ export function ProductoForm({
   const kcalTotal = kcalU > 0 ? kcalU * cantidad : 0;
   const cat = colorCategoria(categoria, C);
 
-  let ayudaFecha = 'Solo cifras: las barras ya están puestas. Si el envase trae mes y año, deja el día vacío.';
+  let ayudaFecha = t('Solo cifras: las barras ya están puestas. Si el envase trae mes y año, deja el día vacío.');
   if (caducidad.estado === 'ok') {
-    ayudaFecha = `Caduca ${textoFechaLarga(caducidad.iso, caducidad.sinDia)}. ${
-      avisos ? 'Te avisaremos 2 meses y 1 semana antes.' : 'Activa los avisos en Ajustes si quieres que te lo recordemos.'
+    ayudaFecha = `${t('Caduca {cuando}.', { cuando: textoFechaLarga(caducidad.iso, caducidad.sinDia) })} ${
+      avisos ? t('Te avisaremos 2 meses y 1 semana antes.') : t('Activa los avisos en Ajustes si quieres que te lo recordemos.')
     }`;
   }
 
@@ -181,10 +185,10 @@ export function ProductoForm({
           <Miniatura uri={imagen} icono={ICONO_CATEGORIA[categoria]} fondo={cat.fondo} color={cat.color} tam={50} />
           <View style={{ flex: 1 }}>
             <Campo
-              etiqueta="Nombre"
+              etiqueta={t('Nombre')}
               valor={nombre}
               onChange={alNombre}
-              placeholder={categoria === 'agua' ? 'Garrafa de agua' : categoria === 'mascota' ? 'Pienso de Toby' : 'Garbanzos cocidos'}
+              placeholder={categoria === 'agua' ? t('Garrafa de agua') : categoria === 'mascota' ? t('Pienso de Toby') : t('Garbanzos cocidos')}
             />
           </View>
         </View>
@@ -193,7 +197,7 @@ export function ProductoForm({
           <View style={{ gap: 6 }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
               <Texto tam={12} peso="700" color={C.suave} style={{ flex: 1 }}>
-                TOCA UNO Y SE RELLENAN LAS CALORÍAS
+                {t('TOCA UNO Y SE RELLENAN LAS CALORÍAS')}
               </Texto>
               {buscando && <ActivityIndicator size="small" color={C.suave} />}
             </View>
@@ -242,10 +246,10 @@ export function ProductoForm({
                 <Icono name="scale-balance" color={C.suave} />
                 <View style={{ flex: 1 }}>
                   <Texto tam={14} peso="600">
-                    Valor típico: {g.nombre.toLowerCase()}
+                    {t('Valor típico: {nombre}', { nombre: g.nombre.toLowerCase() })}
                   </Texto>
                   <Texto tam={12} color={C.suave}>
-                    {formatoNumero(g.kcal100g)} kcal/100 g · USDA · funciona sin conexión
+                    {t('{kcal} kcal/100 g · USDA · funciona sin conexión', { kcal: formatoNumero(g.kcal100g) })}
                   </Texto>
                 </View>
               </Pressable>
@@ -254,13 +258,13 @@ export function ProductoForm({
         )}
 
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
-          <Texto peso="600">Cantidad</Texto>
+          <Texto peso="600">{t('Cantidad')}</Texto>
           <Contador valor={cantidad} onChange={setCantidad} />
         </View>
 
         {categoria === 'agua' ? (
           <View style={{ gap: 8 }}>
-            <Campo etiqueta="Litros por envase" valor={litros} onChange={setLitros} teclado="decimal-pad" placeholder="5" sufijo="L" />
+            <Campo etiqueta={t('Litros por envase')} valor={litros} onChange={setLitros} teclado="decimal-pad" placeholder="5" sufijo="L" />
             <View style={{ flexDirection: 'row', gap: 6 }}>
               {ENVASES_AGUA.map((l) => (
                 <View key={l} style={{ flex: 1 }}>
@@ -275,60 +279,62 @@ export function ProductoForm({
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: cat.fondo, borderRadius: 14, padding: 12 }}>
             <View style={{ flex: 1 }}>
               <Texto peso="700" color={C.comidaOscuro}>
-                ≈ {formatoNumero(kcalU)} kcal por unidad
+                {t('≈ {kcal} kcal por unidad', { kcal: formatoNumero(kcalU) })}
               </Texto>
               <Texto tam={12} color={C.comidaOscuro}>
                 {formatoNumero(gramosN)} g · {formatoNumero(kcal100N)} kcal/100 g{origen ? ` · ${origen}` : ''}
               </Texto>
             </View>
             <Boton pequeno variante="secundario" onPress={() => setEditando(true)}>
-              Editar
+              {t('Editar')}
             </Boton>
           </View>
         ) : porUnidad ? (
           <View style={{ gap: 8 }}>
             <Campo
-              etiqueta="kcal por unidad"
+              etiqueta={t('kcal por unidad')}
               valor={kcalUnidad}
               onChange={setKcalUnidad}
               teclado="decimal-pad"
               sufijo="kcal"
-              ayuda="Las de toda la lata, bolsa o paquete."
+              ayuda={t('Las de toda la lata, bolsa o paquete.')}
             />
-            <Enlace texto="Mejor con el peso y las kcal por 100 g" onPress={() => setPorUnidad(false)} />
+            <Enlace texto={t('Mejor con el peso y las kcal por 100 g')} onPress={() => setPorUnidad(false)} />
           </View>
         ) : (
           <View style={{ gap: 8 }}>
             <View style={{ flexDirection: 'row', gap: 8 }}>
               <View style={{ flex: 1 }}>
-                <Campo etiqueta="Peso por unidad" valor={gramos} onChange={setGramos} teclado="decimal-pad" placeholder="400" sufijo="g" />
+                <Campo etiqueta={t('Peso por unidad')} valor={gramos} onChange={setGramos} teclado="decimal-pad" placeholder="400" sufijo="g" />
               </View>
               <View style={{ flex: 1 }}>
-                <Campo etiqueta="kcal por 100 g" valor={kcal100} onChange={setKcal100} teclado="decimal-pad" placeholder="120" sufijo="kcal" />
+                <Campo etiqueta={t('kcal por 100 g')} valor={kcal100} onChange={setKcal100} teclado="decimal-pad" placeholder="120" sufijo="kcal" />
               </View>
             </View>
             {kcalU > 0 ? (
               <Texto tam={13} color={C.suave}>
                 <Tramo peso="700" color={C.tinta}>
-                  ≈ {formatoNumero(kcalU)} kcal por unidad
+                  {t('≈ {kcal} kcal por unidad', { kcal: formatoNumero(kcalU) })}
                 </Tramo>
-                {origen ? ` · kcal de ${origen}` : ''}
+                {origen ? t(' · kcal de {origen}', { origen }) : ''}
               </Texto>
             ) : (
               <Texto tam={12} color={C.suave}>
                 {kcal100N > 0
-                  ? `Ya están las kcal${origen ? ` (${origen})` : ''}. Solo falta el peso de cada unidad.`
+                  ? origen
+                    ? t('Ya están las kcal ({origen}). Solo falta el peso de cada unidad.', { origen })
+                    : t('Ya están las kcal. Solo falta el peso de cada unidad.')
                   : categoria === 'comida'
-                    ? 'Escribe el nombre y elige una sugerencia para que se rellene solo, o cópialo de la etiqueta.'
-                    : 'Vienen en la etiqueta del pienso o de la lata.'}
+                    ? t('Escribe el nombre y elige una sugerencia para que se rellene solo, o cópialo de la etiqueta.')
+                    : t('Vienen en la etiqueta del pienso o de la lata.')}
               </Texto>
             )}
-            <Enlace texto="No sé el peso: poner las kcal de la unidad" onPress={() => setPorUnidad(true)} />
+            <Enlace texto={t('No sé el peso: poner las kcal de la unidad')} onPress={() => setPorUnidad(true)} />
           </View>
         )}
 
         <CampoFecha
-          etiqueta="Caducidad"
+          etiqueta={t('Caducidad')}
           valor={fecha}
           onChange={setFecha}
           ayuda={ayudaFecha}
@@ -338,23 +344,37 @@ export function ProductoForm({
         {categoria === 'comida' && (
           <>
             <Interruptor
-              etiqueta="Hay que cocinarlo"
+              etiqueta={t('Hay que cocinarlo')}
               valor={cocinar}
               onChange={setCocinar}
-              ayuda="Arroz, pasta, legumbre seca… Sin cocina no cuenta."
+              ayuda={t('Arroz, pasta, legumbre seca… Sin cocina no cuenta.')}
             />
             {cocinar && (
               <Campo
-                etiqueta="Agua para cocinar una unidad"
+                etiqueta={t('Agua para cocinar una unidad')}
                 valor={aguaCocinar}
                 onChange={setAguaCocinar}
                 teclado="decimal-pad"
                 placeholder="2,5"
                 sufijo="L"
-                ayuda="Se descuenta de tu reserva de agua."
+                ayuda={t('Se descuenta de tu reserva de agua.')}
               />
             )}
-            <Interruptor etiqueta="Necesita nevera" valor={frio} onChange={setFrio} ayuda="Sin luz no cuenta." />
+            <View style={{ gap: 6 }}>
+              <Texto peso="600">{t('Dónde se guarda')}</Texto>
+              <Segmentado
+                opciones={[
+                  { valor: 'ambiente' as const, etiqueta: 'Despensa' },
+                  { valor: 'nevera' as const, etiqueta: 'Nevera' },
+                  { valor: 'congelador' as const, etiqueta: 'Congelador' },
+                ]}
+                valor={conservacion}
+                onChange={setConservacion}
+              />
+              <Texto tam={12} color={C.suave}>
+                {t('Sin luz, la nevera aguanta unas 4 horas y el congelador 1 o 2 días: se come antes.')}
+              </Texto>
+            </View>
           </>
         )}
       </Tarjeta>
@@ -362,8 +382,10 @@ export function ProductoForm({
       {categoria === 'comida' && kcalTotal > 0 && diasPorKcal ? (
         <View style={{ backgroundColor: C.comidaTinte, borderRadius: 16, padding: 12 }}>
           <Texto tam={14} color={C.comidaOscuro}>
-            <Tramo peso="700">{formatoNumero(kcalTotal)} kcal</Tramo> · suma {formatoNumero(kcalTotal / diasPorKcal, 1)} días de
-            comida a la casa
+            {t('{kcal} kcal · suma {dias} días de comida a la casa', {
+              kcal: formatoNumero(kcalTotal),
+              dias: formatoNumero(kcalTotal / diasPorKcal, 1),
+            })}
           </Texto>
         </View>
       ) : null}

@@ -9,6 +9,7 @@ import { Icono, Pastilla, Segmentado, Texto } from '@/components/ui';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { OPCIONES_MODO } from '@/lib/use-resultado';
+import { t } from '@/lib/i18n';
 
 export function SelectorModo() {
   const C = useC();
@@ -37,13 +38,13 @@ export function SelectorModo() {
         <Icono name="tune-variant" />
         <View style={{ flex: 1 }}>
           <Texto tam={14} peso="600">
-            Reparto manual
+            {t('Reparto manual')}
           </Texto>
           <Texto tam={12} color={C.suave}>
-            {manual ? 'Las raciones las has fijado tú' : 'Decide tú cuánto come y bebe cada uno'}
+            {manual ? t('Las raciones las has fijado tú') : t('Decide tú cuánto come y bebe cada uno')}
           </Texto>
         </View>
-        {manual && <Pastilla texto="Activo" fondo={C.primario} color={C.sobrePrimario} />}
+        {manual && <Pastilla texto={t('Activo')} fondo={C.primario} color={C.sobrePrimario} />}
         <Icono name="chevron-right" color={C.suave} />
       </Pressable>
     </View>

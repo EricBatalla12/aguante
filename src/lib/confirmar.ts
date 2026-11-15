@@ -1,4 +1,5 @@
 import { Alert, Platform } from 'react-native';
+import { t } from './i18n';
 
 /**
  * Pide confirmación antes de algo que no tiene vuelta atrás. En la web
@@ -10,7 +11,7 @@ export function confirmar(titulo: string, mensaje: string, accion: string, alAce
     return;
   }
   Alert.alert(titulo, mensaje, [
-    { text: 'Cancelar', style: 'cancel' },
+    { text: t('Cancelar'), style: 'cancel' },
     { text: accion, style: 'destructive', onPress: alAceptar },
   ]);
 }

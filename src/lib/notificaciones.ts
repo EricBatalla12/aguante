@@ -8,6 +8,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { diasHasta, type Producto } from './calculo';
+import { t } from '@/lib/i18n';
 
 // Cuántos días antes de caducar se avisa. Dos meses dan margen para comerse
 // el producto en el día a día y reponerlo: la rotación de toda la vida.
@@ -58,8 +59,11 @@ export async function reprogramarAvisos(productos: Producto[]): Promise<void> {
       if (!date) continue;
       await Notifications.scheduleNotificationAsync({
         content: {
-          title: `${p.nombre} caduca en ${n === AVISO_DIAS ? '2 meses' : '1 semana'}`,
-          body: 'Gástalo en el día a día y repón la reserva.',
+          title:
+        n === AVISO_DIAS
+          ? t('{nombre} caduca en 2 meses', { nombre: p.nombre })
+          : t('{nombre} caduca en 1 semana', { nombre: p.nombre }),
+          body: t('Gástalo en el día a día y repón la reserva.'),
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
       });

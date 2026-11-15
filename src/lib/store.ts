@@ -21,17 +21,29 @@ import {
   type Producto,
   type Racion,
 } from './calculo';
+import type { ElementoKit } from '../constants/kit';
+import type { Aparato, Epoca, FuenteEnergia, Zona } from './energia';
+import { t } from '@/lib/i18n';
 
 /** Algo que se ha marcado como comido hoy, para poder deshacerlo. */
 export type Comido = { id: string; productoId: string; nombre: string; unidades: number; kcal: number };
 
 export type Emergencia = {
   inicio: string; // ISO
+  sinLuzDesde?: string; // ISO: cuándo se fue la luz, para las horas de nevera y congelador
   aguaHoy: { fecha: string; litros: number };
   comidoHoy: { fecha: string; items: Comido[] };
 };
 
 export type Tema = 'sistema' | 'claro' | 'oscuro';
+export type Idioma = 'sistema' | 'es' | 'en';
+
+export type Energia = {
+  fuentes: FuenteEnergia[];
+  aparatos: Aparato[];
+  zona: Zona;
+  epoca: Epoca;
+};
 
 /** Lo que se guarda y lo que viaja en una copia de seguridad. */
 type Datos = {
@@ -43,9 +55,13 @@ type Datos = {
   escenario: Escenario;
   objetivoDias: number;
   kit: Record<string, boolean>;
+  kitPropio: ElementoKit[]; // lo que añade cada casa al kit de serie
   emergencia: Emergencia | null;
   tema: Tema;
+  idioma: Idioma;
   avisos: boolean;
+  energia: Energia;
+  trueque: string; // nota libre: lo que se ofrece o se busca
 };
 
 type Estado = Datos & {
@@ -61,9 +77,18 @@ type Estado = Datos & {
   setEscenario: (e: Escenario) => void;
   setObjetivo: (dias: number) => void;
   alternarKit: (id: string) => void;
+  anadirKit: (que: string) => void;
+  borrarKit: (id: string) => void;
   setTema: (t: Tema) => void;
   setAvisos: (v: boolean) => void;
-  empezarEmergencia: () => void;
+  setIdioma: (i: Idioma) => void;
+  guardarFuente: (f: FuenteEnergia) => void;
+  borrarFuente: (id: string) => void;
+  guardarAparato: (a: Aparato) => void;
+  borrarAparato: (id: string) => void;
+  setZonaSolar: (zona: Zona, epoca: Epoca) => void;
+  setTrueque: (texto: string) => void;
+  empezarEmergencia: (escenario?: Escenario) => void;
   terminarEmergencia: () => void;
   beber: (litros: number) => void;
   comer: (productoId: string, unidades: number) => void;
@@ -82,9 +107,13 @@ const INICIAL: Datos = {
   escenario: {},
   objetivoDias: 7,
   kit: {},
+  kitPropio: [],
   emergencia: null,
   tema: 'sistema',
+  idioma: 'sistema',
   avisos: false,
+  energia: { fuentes: [], aparatos: [], zona: 'centro', epoca: 'invierno' },
+  trueque: '',
 };
 
 /** Sustituye el elemento con el mismo id o lo añade al final. */
@@ -107,6 +136,12 @@ export const fechaISO = (d: Date) => {
 
 export const hoyISO = () => fechaISO(new Date());
 
+/** Horas desde que se fue la luz en la emergencia en curso (0 si hay luz o no hay emergencia). */
+export function horasSinLuz(e: Emergencia | null, esc: Escenario, ahora: number = Date.now()): number {
+  if (!e || !esc.sinLuz || !e.sinLuzDesde) return 0;
+  return Math.max(0, (ahora - new Date(e.sinLuzDesde).getTime()) / 3_600_000);
+}
+
 export const nuevoId = () => `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 7)}`;
 
 // Redondeo a centésimas para que sumar y restar cuartos no deje 0,0000001
@@ -122,9 +157,13 @@ function soloDatos(s: Estado): Datos {
     escenario: s.escenario,
     objetivoDias: s.objetivoDias,
     kit: s.kit,
+    kitPropio: s.kitPropio,
     emergencia: s.emergencia,
     tema: s.tema,
+    idioma: s.idioma,
     avisos: s.avisos,
+    energia: s.energia,
+    trueque: s.trueque,
   };
 }
 
@@ -156,19 +195,45 @@ export const useAguante = create<Estado>()(
           }
           return { manual };
         }),
-      setEscenario: (escenario) => set({ escenario }),
+      // En plena emergencia, apunto cuándo se va la luz: de eso depende cuánto
+      // aguantan la nevera y el congelador.
+      setEscenario: (escenario) =>
+        set((s) => {
+          if (!s.emergencia || !!escenario.sinLuz === !!s.escenario.sinLuz) return { escenario };
+          return {
+            escenario,
+            emergencia: { ...s.emergencia, sinLuzDesde: escenario.sinLuz ? new Date().toISOString() : undefined },
+          };
+        }),
       setObjetivo: (objetivoDias) => set({ objetivoDias }),
       alternarKit: (id) => set((s) => ({ kit: { ...s.kit, [id]: !s.kit[id] } })),
+      anadirKit: (que) => set((s) => ({ kitPropio: [...s.kitPropio, { id: `propio-${nuevoId()}`, que }] })),
+      borrarKit: (id) => set((s) => ({ kitPropio: s.kitPropio.filter((k) => k.id !== id), kit: sin(s.kit, id) })),
       setTema: (tema) => set({ tema }),
       setAvisos: (avisos) => set({ avisos }),
+      setIdioma: (idioma) => set({ idioma }),
+      guardarFuente: (f) => set((s) => ({ energia: { ...s.energia, fuentes: upsert(s.energia.fuentes, f) } })),
+      borrarFuente: (id) =>
+        set((s) => ({ energia: { ...s.energia, fuentes: s.energia.fuentes.filter((f) => f.id !== id) } })),
+      guardarAparato: (a) => set((s) => ({ energia: { ...s.energia, aparatos: upsert(s.energia.aparatos, a) } })),
+      borrarAparato: (id) =>
+        set((s) => ({ energia: { ...s.energia, aparatos: s.energia.aparatos.filter((a) => a.id !== id) } })),
+      setZonaSolar: (zona, epoca) => set((s) => ({ energia: { ...s.energia, zona, epoca } })),
+      setTrueque: (trueque) => set({ trueque }),
 
-      empezarEmergencia: () =>
-        set({
-          emergencia: {
-            inicio: new Date().toISOString(),
-            aguaHoy: { fecha: hoyISO(), litros: 0 },
-            comidoHoy: { fecha: hoyISO(), items: [] },
-          },
+      empezarEmergencia: (escenario) =>
+        set((s) => {
+          const esc = escenario ?? s.escenario;
+          const ahora = new Date().toISOString();
+          return {
+            escenario: esc,
+            emergencia: {
+              inicio: ahora,
+              sinLuzDesde: esc.sinLuz ? ahora : undefined,
+              aguaHoy: { fecha: hoyISO(), litros: 0 },
+              comidoHoy: { fecha: hoyISO(), items: [] },
+            },
+          };
         }),
       terminarEmergencia: () => set({ emergencia: null }),
 
@@ -230,7 +295,7 @@ export const useAguante = create<Estado>()(
           };
         }),
 
-      exportar: () => JSON.stringify({ app: 'aguante', version: 2, datos: soloDatos(get()) }),
+      exportar: () => JSON.stringify({ app: 'aguante', version: 3, datos: soloDatos(get()) }),
 
       // Devuelve null si ha ido bien, o el motivo por el que no se ha importado
       importar: (json) => {
@@ -238,36 +303,48 @@ export const useAguante = create<Estado>()(
         try {
           copia = JSON.parse(json);
         } catch {
-          return 'El texto no es una copia válida: tiene que ser el que da «Exportar», entero.';
+          return t('El texto no es una copia válida: tiene que ser el que da «Exportar», entero.');
         }
         const c = copia as { app?: string; datos?: Partial<Datos> };
         const d = c?.datos;
         if (c?.app !== 'aguante' || !d || !Array.isArray(d.personas) || !Array.isArray(d.productos)) {
-          return 'Ese texto no es una copia de Aguante.';
+          return t('Ese texto no es una copia de Aguante.');
         }
-        set({ ...INICIAL, ...d, emergencia: normalizarEmergencia(d.emergencia ?? null) });
+        set(normalizar({ ...INICIAL, ...d }));
         return null;
       },
 
-      borrarTodo: () => set({ ...INICIAL, tema: get().tema }),
+      borrarTodo: () => set({ ...INICIAL, tema: get().tema, idioma: get().idioma }),
     }),
     {
       name: 'aguante',
-      version: 2,
+      version: 3,
       storage: createJSONStorage(() => almacen),
-      // La versión 1 no tenía el registro de lo comido en la emergencia
-      migrate: (guardado) => {
-        const s = guardado as Partial<Datos>;
-        return { ...s, emergencia: normalizarEmergencia(s.emergencia ?? null) } as Estado;
-      },
+      // v1 no tenía el registro de lo comido; v2 no tenía energía, idioma ni
+      // dónde se guarda cada producto.
+      migrate: (guardado) => normalizar({ ...INICIAL, ...(guardado as Partial<Datos>) }) as Estado,
     },
   ),
 );
+
+/** Completa lo que falte en datos de versiones anteriores (guardados o importados). */
+function normalizar(d: Datos): Datos {
+  return {
+    ...d,
+    energia: { ...INICIAL.energia, ...d.energia },
+    // El antiguo «necesita frío» pasa a «se guarda en la nevera»
+    productos: d.productos.map((p) =>
+      p.conservacion || !p.necesitaFrio ? p : { ...p, conservacion: 'nevera' as const, necesitaFrio: undefined },
+    ),
+    emergencia: normalizarEmergencia(d.emergencia ?? null),
+  };
+}
 
 function normalizarEmergencia(e: Emergencia | null): Emergencia | null {
   if (!e) return null;
   return {
     inicio: e.inicio,
+    sinLuzDesde: e.sinLuzDesde,
     aguaHoy: e.aguaHoy ?? { fecha: hoyISO(), litros: 0 },
     comidoHoy: e.comidoHoy ?? { fecha: hoyISO(), items: [] },
   };

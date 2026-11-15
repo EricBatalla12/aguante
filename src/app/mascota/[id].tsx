@@ -9,6 +9,7 @@ import { aguaMascota, formatoNumero, kcalMascota, type Especie, type Mascota } f
 import { numero } from '@/lib/formato';
 import { nuevoId, useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
+import { t } from '@/lib/i18n';
 
 export default function EditarMascota() {
   const C = useC();
@@ -28,9 +29,9 @@ export default function EditarMascota() {
   return (
     <Pantalla>
       <Tarjeta style={{ gap: 14 }}>
-        <Campo etiqueta="Nombre" valor={nombre} onChange={setNombre} placeholder="Toby" />
+        <Campo etiqueta={t('Nombre')} valor={nombre} onChange={setNombre} placeholder={t('Toby')} />
         <View style={{ gap: 6 }}>
-          <Texto peso="600">Especie</Texto>
+          <Texto peso="600">{t('Especie')}</Texto>
           <Segmentado
             opciones={[
               { valor: 'perro', etiqueta: 'Perro' },
@@ -40,13 +41,15 @@ export default function EditarMascota() {
             onChange={setEspecie}
           />
         </View>
-        <Campo etiqueta="Peso" sufijo="kg" valor={peso} onChange={setPeso} teclado="decimal-pad" placeholder="18" />
+        <Campo etiqueta={t('Peso')} sufijo="kg" valor={peso} onChange={setPeso} teclado="decimal-pad" placeholder="18" />
       </Tarjeta>
 
       {valida && (
         <Texto tam={13} color={C.suave}>
-          Unas {formatoNumero(kcalMascota(mascota))} kcal y {formatoNumero(aguaMascota(mascota), 1)} L de agua al día.
-          Es una estimación general: si tu veterinario te ha dado otra cifra, fíate de la suya.
+          {t('Unas {kcal} kcal y {l} L de agua al día. Es una estimación general: si tu veterinario te ha dado otra cifra, fíate de la suya.', {
+            kcal: formatoNumero(kcalMascota(mascota)),
+            l: formatoNumero(aguaMascota(mascota), 1),
+          })}
         </Texto>
       )}
 
@@ -56,18 +59,18 @@ export default function EditarMascota() {
           guardar(mascota);
           volver();
         }}>
-        Guardar
+        {t('Guardar')}
       </Boton>
       {existente && (
         <Boton
           variante="secundario"
           onPress={() =>
-            confirmar('¿Quitar esta mascota?', existente.nombre, 'Quitar', () => {
+            confirmar(t('¿Quitar esta mascota?'), existente.nombre, t('Quitar'), () => {
               borrar(existente.id);
               volver();
             })
           }>
-          Quitar del hogar
+          {t('Quitar del hogar')}
         </Boton>
       )}
     </Pantalla>

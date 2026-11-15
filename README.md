@@ -10,14 +10,22 @@ cuántos días aguantaríais con ella.
   menores, las embarazadas y las mujeres en lactancia no se racionan.
 - Reparto manual: tú fijas las kcal y los litros de cada persona y mascota, y
   la app avisa si una ración queda por debajo de lo que dicen las fuentes.
-- Escenarios: sin luz, sin poder cocinar y mucho calor.
+- Escenarios: sin luz, sin poder cocinar y mucho calor. En una emergencia se
+  eligen al empezarla.
+- Solo cuenta la comida que da tiempo a comer antes de que caduque, y sin luz
+  sigue el orden nevera → congelador → latas (con las horas que aguanta cada
+  uno).
+- Energía propia: power banks, baterías, placas y generador frente a lo que
+  gasta la casa, en días.
+- Trueque con vecinos: lo que os sobra y os falta, listo para compartir.
+- Español e inglés (sigue el idioma del móvil o se elige en Ajustes).
 - Al añadir un producto, las calorías y la foto se rellenan solas: con el
   código de barras, eligiendo una sugerencia de Open Food Facts al escribir el
   nombre o, sin conexión, con un valor típico de USDA.
 - Caducidad sin teclear separadores y con el día opcional, como viene en las
   latas (mes y año).
 - Avisos de caducidad, lista de la compra según el objetivo (72 h, 1 semana,
-  2 semanas) y kit de emergencia.
+  2 semanas) y kit de emergencia, al que se pueden añadir cosas.
 - Modo emergencia con el plan del día: lo que se apunta como comido o bebido
   se descuenta de la despensa, y se puede deshacer.
 - Ajustes: tema claro, oscuro o el del móvil, avisos, copia de seguridad y la
@@ -41,7 +49,7 @@ otra red, arranca con `npx expo start --tunnel`.
 ## Comprobaciones
 
 ```bash
-npm test          # motor de cálculo y fechas (node --test)
+npm test          # cálculo, energía, fechas y traducciones (node --test)
 npx tsc --noEmit  # tipos
 npx eslint .      # lint
 ```
@@ -52,6 +60,12 @@ npx eslint .      # lint
   cubren los tests de `tests/`.
 - `src/lib/store.ts`: el estado guardado (zustand, persistido en SQLite).
 - `src/lib/fechas.ts`: fechas de caducidad con el día opcional. También puro.
+- `src/lib/energia.ts`: el cálculo de la energía propia. También puro.
+- `src/lib/i18n.ts` y `src/i18n/en.ts`: idiomas. El texto en español es la
+  clave de `t('…')`; `tests/i18n.test.mjs` falla si falta alguna traducción.
+- `marketing/video-dias/`: vídeo vertical de 15 s hecho con HyperFrames
+  (`npm run render` dentro de esa carpeta). El último render está en
+  `marketing/aguante-dias.mp4`.
 - `src/lib/tema.tsx` y `src/constants/colores.ts`: tema claro y oscuro, y la
   fuente (Figtree).
 - `src/components/ui.tsx`: las piezas de interfaz. Todo el texto pasa por

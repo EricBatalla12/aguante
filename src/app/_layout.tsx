@@ -11,6 +11,7 @@ import { StatusBar } from 'expo-status-bar';
 import * as SystemUI from 'expo-system-ui';
 import { useEffect, useSyncExternalStore } from 'react';
 
+import { fijarLengua, lenguaDelSistema, t } from '@/lib/i18n';
 import { cancelarAvisos, reprogramarAvisos } from '@/lib/notificaciones';
 import { useAguante } from '@/lib/store';
 import { ProveedorTema, useC, useLetra, useOscuro } from '@/lib/tema';
@@ -37,11 +38,18 @@ export default function RootLayout() {
     if (listo) SplashScreen.hideAsync();
   }, [listo]);
 
+  const idioma = useAguante((s) => s.idioma);
+  const lengua = idioma === 'sistema' ? lenguaDelSistema() : idioma;
+  // Se fija antes de pintar nada: t() y los formatos de número y fecha lo leen
+  // al momento. Al cambiar de idioma, la `key` vuelve a montar la navegación
+  // para que todos los textos se repinten.
+  fijarLengua(lengua);
+
   if (!listo) return null;
 
   return (
     <ProveedorTema fuentePropia={fuentes}>
-      <Navegacion />
+      <Navegacion key={lengua} />
     </ProveedorTema>
   );
 }
@@ -81,14 +89,18 @@ function Navegacion() {
           headerBackButtonDisplayMode: 'minimal',
         }}>
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="anadir" options={{ title: 'Añadir producto', presentation: 'modal' }} />
-        <Stack.Screen name="producto/[id]" options={{ title: 'Producto' }} />
-        <Stack.Screen name="persona/[id]" options={{ title: 'Persona' }} />
-        <Stack.Screen name="mascota/[id]" options={{ title: 'Mascota' }} />
-        <Stack.Screen name="modos" options={{ title: 'Modos de aguante' }} />
-        <Stack.Screen name="manual" options={{ title: 'Reparto manual' }} />
-        <Stack.Screen name="ajustes" options={{ title: 'Ajustes' }} />
-        <Stack.Screen name="fuentes" options={{ title: 'Fuentes y método' }} />
+        <Stack.Screen name="anadir" options={{ title: t('Añadir producto'), presentation: 'modal' }} />
+        <Stack.Screen name="producto/[id]" options={{ title: t('Producto') }} />
+        <Stack.Screen name="persona/[id]" options={{ title: t('Persona') }} />
+        <Stack.Screen name="mascota/[id]" options={{ title: t('Mascota') }} />
+        <Stack.Screen name="modos" options={{ title: t('Modos de aguante') }} />
+        <Stack.Screen name="manual" options={{ title: t('Reparto manual') }} />
+        <Stack.Screen name="ajustes" options={{ title: t('Ajustes') }} />
+        <Stack.Screen name="fuentes" options={{ title: t('Fuentes y método') }} />
+        <Stack.Screen name="energia/index" options={{ title: t('Energía propia') }} />
+        <Stack.Screen name="energia/fuente/[id]" options={{ title: t('Fuente de energía') }} />
+        <Stack.Screen name="energia/aparato/[id]" options={{ title: t('Aparato') }} />
+        <Stack.Screen name="trueque" options={{ title: t('Trueque con vecinos') }} />
         <Stack.Screen name="emergencia" options={{ headerShown: false }} />
       </Stack>
     </ThemeProvider>

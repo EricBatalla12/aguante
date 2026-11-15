@@ -14,13 +14,16 @@ import {
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
+import { t, tn } from '@/lib/i18n';
 
 function datos(p: Persona): string {
-  const edad = p.edadAnios < 1 ? `${Math.round(p.edadAnios * 12)} meses` : `${p.edadAnios} años`;
-  const quien = p.edadAnios < 18 ? (p.sexo === 'hombre' ? 'Niño' : 'Niña') : p.sexo === 'hombre' ? 'Hombre' : 'Mujer';
+  const edad =
+    p.edadAnios < 1 ? t('{n} meses', { n: Math.round(p.edadAnios * 12) }) : tn(p.edadAnios, '{n} año', '{n} años');
+  const quien =
+    p.edadAnios < 18 ? (p.sexo === 'hombre' ? t('Niño') : t('Niña')) : p.sexo === 'hombre' ? t('Hombre') : t('Mujer');
   const extra = [
-    p.embarazoTrimestre ? `embarazo (${p.embarazoTrimestre}.º trim.)` : null,
-    p.lactancia ? 'lactancia' : null,
+    p.embarazoTrimestre ? t('embarazo ({n}.º trim.)', { n: p.embarazoTrimestre }) : null,
+    p.lactancia ? t('lactancia') : null,
   ].filter(Boolean);
   return [quien, edad, `${formatoNumero(p.pesoKg, p.pesoKg % 1 ? 1 : 0)} kg`, ...extra].join(' · ');
 }
@@ -35,11 +38,11 @@ export default function Hogar() {
 
   return (
     <Pantalla>
-      <Titulo>Hogar</Titulo>
+      <Titulo>{t('Hogar')}</Titulo>
 
       <View style={{ backgroundColor: C.heroe, borderWidth: 1, borderColor: C.heroeBorde, borderRadius: 22, padding: 16, gap: 10 }}>
         <Texto tam={13} color={C.heroeSuave}>
-          La casa necesita cada día, en modo normal
+          {t('La casa necesita cada día, en modo normal')}
         </Texto>
         <View style={{ flexDirection: 'row', gap: 10 }}>
           <View style={{ flex: 1 }}>
@@ -47,7 +50,7 @@ export default function Hogar() {
               {formatoNumero(normal.kcalDia)}
             </Texto>
             <Texto tam={13} color={C.heroeSuave}>
-              kcal de comida
+              {t('kcal de comida')}
             </Texto>
           </View>
           <View style={{ flex: 1 }}>
@@ -55,7 +58,7 @@ export default function Hogar() {
               {formatoNumero(normal.litrosDia, 1)} L
             </Texto>
             <Texto tam={13} color={C.heroeSuave}>
-              de agua
+              {t('de agua')}
             </Texto>
           </View>
         </View>
@@ -69,9 +72,9 @@ export default function Hogar() {
               alPulsar={() => router.push(`/persona/${p.id}`)}
               inicial={p.nombre.slice(0, 1).toUpperCase() || '?'}
               nombre={p.nombre}
-              insignia={esProtegida(p) ? 'No se raciona' : undefined}
+              insignia={esProtegida(p) ? t('No se raciona') : undefined}
               datos={datos(p)}
-              kcal={p.edadAnios < 1 ? 'Leche materna o de fórmula' : `${formatoNumero(kcalBase(p))} kcal`}
+              kcal={p.edadAnios < 1 ? t('Leche materna o de fórmula') : `${formatoNumero(kcalBase(p))} kcal`}
               agua={`${formatoNumero(aguaPersona(p, 'normal', escenario), 1)} L`}
             />
           ))}
@@ -81,7 +84,7 @@ export default function Hogar() {
               alPulsar={() => router.push(`/mascota/${m.id}`)}
               inicial={m.nombre.slice(0, 1).toUpperCase() || '?'}
               nombre={m.nombre}
-              datos={`${m.especie === 'perro' ? 'Perro' : 'Gato'} · ${formatoNumero(m.pesoKg, m.pesoKg % 1 ? 1 : 0)} kg`}
+              datos={`${m.especie === 'perro' ? t('Perro') : t('Gato')} · ${formatoNumero(m.pesoKg, m.pesoKg % 1 ? 1 : 0)} kg`}
               kcal={`${formatoNumero(kcalMascota(m))} kcal`}
               agua={`${formatoNumero(aguaMascota(m), 1)} L`}
               mascota
@@ -91,8 +94,8 @@ export default function Hogar() {
       )}
 
       <View style={{ flexDirection: 'row', gap: 8 }}>
-        <BotonAnadir alPulsar={() => router.push('/persona/nueva')} icono="account-plus-outline" texto="Persona" />
-        <BotonAnadir alPulsar={() => router.push('/mascota/nueva')} icono="paw" texto="Mascota" />
+        <BotonAnadir alPulsar={() => router.push('/persona/nueva')} icono="account-plus-outline" texto={t('Persona')} />
+        <BotonAnadir alPulsar={() => router.push('/mascota/nueva')} icono="paw" texto={t('Mascota')} />
       </View>
 
       {personas.length + mascotas.length > 0 && (
@@ -100,8 +103,8 @@ export default function Hogar() {
           <FilaEnlace
             primera
             icono="tune-variant"
-            titulo="Reparto manual"
-            detalle={modo === 'manual' ? 'Activo: las raciones las fijas tú' : 'Decide tú cuánto come y bebe cada uno'}
+            titulo={t('Reparto manual')}
+            detalle={modo === 'manual' ? t('Activo: las raciones las fijas tú') : t('Decide tú cuánto come y bebe cada uno')}
             onPress={() => router.push('/manual')}
           />
         </Tarjeta>
@@ -109,14 +112,13 @@ export default function Hogar() {
 
       <Tarjeta style={{ backgroundColor: C.verdeTinte, borderColor: C.verdeTinte }}>
         <Texto tam={13} color={C.verdeOscuro}>
-          Los menores, las embarazadas y las mujeres en lactancia nunca se racionan (FEMA). Puedes marcar a cualquier otra
-          persona como «no racionar», por ejemplo si es mayor o está enferma.
+          {t('Los menores, las embarazadas y las mujeres en lactancia nunca se racionan (FEMA). Puedes marcar a cualquier otra persona como «no racionar», por ejemplo si es mayor o está enferma.')}
         </Texto>
       </Tarjeta>
       <Pressable accessibilityRole="link" onPress={() => router.push('/fuentes')}>
         <Texto tam={12} color={C.suave}>
-          Calorías: ecuaciones de Schofield (FAO/OMS) con actividad baja. Agua: ingesta adecuada de la EFSA. Mascotas:
-          fórmula RER de la AAHA. <Tramo peso="600" color={C.enlace}>Ver las fuentes</Tramo>
+          {t('Calorías: ecuaciones de Schofield (FAO/OMS) con actividad baja. Agua: ingesta adecuada de la EFSA. Mascotas: fórmula RER de la AAHA.')}{' '}
+          <Tramo peso="600" color={C.enlace}>{t('Ver las fuentes')}</Tramo>
         </Texto>
       </Pressable>
     </Pantalla>
@@ -194,7 +196,7 @@ function BotonAnadir({ alPulsar, icono, texto }: { alPulsar: () => void; icono: 
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={`Añadir ${texto.toLowerCase()}`}
+      accessibilityLabel={t('Añadir {que}', { que: texto.toLowerCase() })}
       onPress={alPulsar}
       style={({ pressed }) => ({
         flex: 1,
