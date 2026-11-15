@@ -40,7 +40,13 @@ y `src/app/cuenta.tsx` (pantalla). Servidor: `supabase/esquema.sql`.
 
 ## Planes: dar Pro a alguien
 
-De momento solo el **trueque con vecinos** es de Pro. Sin Pro, la pantalla de
+**Apagado desde el 15/11/2026**: la idea es vivir de donaciones. Con
+`PRO_ACTIVO = false` en `src/constants/monetizacion.ts` no se bloquea nada, no
+se enseña el plan y la app no pregunta al servidor. La tabla y la función
+siguen en Supabase; para volver a usarlo basta con ponerlo a `true`. Lo de
+abajo describe cómo funciona encendido.
+
+Encendido, solo el **trueque con vecinos** es de Pro. Sin Pro, la pantalla de
 trueque enseña una tarjeta que lo explica, y en Inicio el enlace lleva la
 etiqueta «Pro». Pro va con la cuenta (sin cuenta no hay Pro), y **si alguien
 de una casa lo tiene, lo tiene toda la casa**.

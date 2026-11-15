@@ -121,7 +121,9 @@ Cómo funciona, qué tiene que configurar Eric y qué está probado:
   `soy_pro()`, ya creadas en el proyecto. En la app, `comprobarPlan` y
   `usePro` en `sincro.ts` (el plan se guarda en `useSincro` para saberlo sin
   conexión), `planActivo` en `compartido.ts` y `src/components/pro.tsx`. Solo
-  el trueque es de Pro.
+  el trueque es de Pro. **Apagado** con `PRO_ACTIVO = false` en
+  `src/constants/monetizacion.ts`: se vive de donaciones (`ENLACE_DONAR`, en
+  el mismo fichero; vacío, no sale el apartado «Apoyar Aguante» de Ajustes).
 - Gastar escaneando: `src/app/gastar.tsx`, `productosConCodigo` en
   `calculo.ts` (compara sin ceros delante) y `gastar` en el store.
 - Configurado el 15/11/2026: SQL ejecutado, SMTP con el Gmail personal de

@@ -12,6 +12,7 @@ import { AppState } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import { PRO_ACTIVO } from '../constants/monetizacion';
 import { almacen } from './almacen';
 import {
   aplicarFilas,
@@ -389,7 +390,8 @@ export async function arrancarSincro() {
  * casa). Sin conexión no hace nada: se queda lo último que se supo.
  */
 export async function comprobarPlan(): Promise<void> {
-  if (!useSincro.getState().usuario) return;
+  // Con Pro apagado no hace falta preguntar nada al servidor
+  if (!PRO_ACTIVO || !useSincro.getState().usuario) return;
   try {
     const r = comprobar<Omit<Plan, 'comprobado'> | null>(await supabase.rpc('soy_pro'));
     if (r) useSincro.setState({ plan: { pro: !!r.pro, hasta: r.hasta ?? null, deCasa: !!r.deCasa, comprobado: Date.now() } });
@@ -398,8 +400,14 @@ export async function comprobarPlan(): Promise<void> {
   }
 }
 
-/** Si esta cuenta tiene Pro, para bloquear o enseñar las funciones de pago. */
-export const usePro = () => planActivo(useSincro((s) => s.plan), hoyISO());
+/**
+ * Si esta cuenta puede usar las funciones de Pro. Con Pro apagado
+ * (src/constants/monetizacion.ts) todo el mundo puede.
+ */
+export function usePro(): boolean {
+  const plan = useSincro((s) => s.plan);
+  return !PRO_ACTIVO || planActivo(plan, hoyISO());
+}
 
 export { planActivo };
 

@@ -2,13 +2,15 @@
 // etiqueta «Pro» de los enlaces y el estado del plan en la pantalla de cuenta.
 //
 // De momento el Pro se da a mano desde Supabase (tabla `planes`, ver
-// docs/cuentas.md): aquí no se cobra nada.
+// docs/cuentas.md): aquí no se cobra nada. Está apagado con PRO_ACTIVO
+// (src/constants/monetizacion.ts): estas piezas no pintan nada.
 
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { View } from 'react-native';
 
 import { Boton, Icono, Pastilla, Tarjeta, Texto } from '@/components/ui';
+import { PRO_ACTIVO } from '@/constants/monetizacion';
 import { textoFecha } from '@/lib/fechas';
 import { t } from '@/lib/i18n';
 import { comprobarPlan, planActivo, useSincro } from '@/lib/sincro';
@@ -17,6 +19,7 @@ import { useC } from '@/lib/tema';
 
 export function PastillaPro() {
   const C = useC();
+  if (!PRO_ACTIVO) return null;
   return <Pastilla texto="Pro" fondo={C.ambarTinte} color={C.ambar} icono="crown-outline" />;
 }
 
@@ -62,6 +65,7 @@ export function SinPro({ funcion, explicacion }: { funcion: string; explicacion:
 export function EstadoPlan() {
   const C = useC();
   const plan = useSincro((s) => s.plan);
+  if (!PRO_ACTIVO) return null;
   const activo = planActivo(plan, hoyISO());
   const detalle = !activo
     ? t('Plan gratuito. El trueque con vecinos es de Pro.')

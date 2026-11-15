@@ -65,10 +65,19 @@ de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
 - Quitar un producto escaneándolo al gastarlo.
 - Medicinas y pilas con caducidad.
 
-## Planes de pago (Pro)
+## Donaciones y planes de pago
 
-Hecho el reparto a mano (ver [cuentas.md](cuentas.md#planes-dar-pro-a-alguien)):
-de momento solo el trueque es de Pro. Queda:
+Desde el 15/11/2026 la monetización es por **donaciones**: apartado «Apoyar
+Aguante» en Ajustes con un enlace de PayPal (`ENLACE_DONAR` en
+`src/constants/monetizacion.ts`; vacío, no sale). Si la app va a Google Play:
+su política de pagos no deja llevar a pagar fuera de Play desde la app salvo
+«tax exempt donations» (leído el 15/11/2026; no aclara las propinas a un
+desarrollador particular). Para Play: dejar el enlace vacío y hacer una
+propina con su sistema de pagos (módulo nativo, APK nuevo, app publicada en
+Play para probarlo).
+
+El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
+[cuentas.md](cuentas.md#planes-dar-pro-a-alguien)). Si se enciende:
 
 - Cobrar de verdad dentro de la app: mirar antes las normas de pago de Google
   Play (creo que exigen su sistema de pagos para funciones digitales; sin
@@ -82,7 +91,8 @@ de momento solo el trueque es de Pro. Queda:
   varios con el mismo código, primero el que antes caduca; en la emergencia,
   la comida se apunta como comida en el plan del día.
 - Borrar la cuenta desde la app.
-- Plan Pro asignado a mano desde Supabase; el trueque es de Pro.
+- Plan Pro asignado a mano desde Supabase (apagado: se vive de donaciones).
+- Apartado de donaciones con PayPal en Ajustes (paypal.me/EBatalla167).
 
 - Cuenta opcional con correo y código, casa compartida con código de
   invitación y sincronización sin conexión primero (gana el último cambio de

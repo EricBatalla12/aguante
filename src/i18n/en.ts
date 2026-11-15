@@ -775,4 +775,10 @@ export const EN: Record<string, string> = {
   'lo tiene alguien de tu casa': 'someone in your home has it',
   'Plan Pro': 'Pro plan',
   'Plan gratuito': 'Free plan',
+
+  // ------------------------------------------------------------ Donaciones
+  'Apoyar Aguante': 'Support Aguante',
+  'Aguante es gratis, sin anuncios y sin nada bloqueado. Si te es útil, una donación ayuda a mantenerla y a seguir mejorándola.':
+    'Aguante is free, with no ads and nothing locked. If it is useful to you, a donation helps keep it going and improving.',
+  'Donar con PayPal': 'Donate with PayPal',
 };
