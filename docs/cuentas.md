@@ -38,6 +38,39 @@ Código: `src/lib/compartido.ts` (puro, con tests en `tests/compartido.test.mjs`
 `src/lib/sincro.ts` (motor de sincronización), `src/lib/supabase.ts` (cliente)
 y `src/app/cuenta.tsx` (pantalla). Servidor: `supabase/esquema.sql`.
 
+## Entrar con Google
+
+Hecho en la app el 15/11/2026 sin módulo nativo nuevo (llega con EAS Update):
+`entrarConGoogle` en `src/lib/sincro.ts` abre la página de Google en el
+navegador del móvil (`expo-web-browser`), Supabase vuelve a `aguante://auth`
+con la sesión y `src/lib/oauth.ts` la lee. `src/app/+native-intent.tsx` evita
+que la navegación intente abrir una pantalla «auth». El botón **solo sale si
+Google está activado en Supabase** (la app lo pregunta a
+`/auth/v1/settings`), y nunca en la web de vista previa.
+
+Hecho en Supabase: `aguante://**` en *Authentication › URL Configuration ›
+Redirect URLs*.
+
+Lo que falta lo tiene que hacer Eric, porque crea credenciales con su cuenta
+de Google y hay un secreto que no debo ver:
+
+1. En [Google Cloud Console](https://console.cloud.google.com/), crear un
+   proyecto (por ejemplo «Aguante»).
+2. En *Google Auth Platform*: configurar la pantalla de consentimiento
+   (nombre «Aguante», correo de soporte, público externo) y en *Data Access*
+   tener los permisos `openid`, `userinfo.email` y `userinfo.profile`.
+3. En *Clients › Create client*: tipo **Web application**. En *Authorized
+   redirect URIs* poner exactamente
+   `https://dndvwxfnaqdivcttxwku.supabase.co/auth/v1/callback`.
+4. Copiar el *Client ID* y el *Client secret*.
+5. En Supabase, *Authentication › Sign In / Providers › Google*: activarlo,
+   pegar el Client ID y el Client secret, y guardar.
+
+Al guardar, el botón «Entrar con Google» aparece solo en *Cuenta y casa*.
+Según la documentación de Supabase, si la cuenta de Google tiene el mismo
+correo que una que ya entró con código, se unen en el mismo usuario (no lo
+dice explícito para cuentas creadas con código).
+
 ## Planes: dar Pro a alguien
 
 **Apagado desde el 15/11/2026**: la idea es vivir de donaciones. Con

@@ -797,4 +797,12 @@ export const EN: Record<string, string> = {
   'Error al actualizar: {error}': 'Update error: {error}',
   'Buscando…': 'Searching…',
   'Buscar actualización': 'Check for update',
+
+  // ------------------------------------------------------------ Entrar con Google
+  'Entrar con Google': 'Sign in with Google',
+  'Abriendo Google…': 'Opening Google…',
+  'o con tu correo:': 'or with your email:',
+  'No se ha podido abrir Google. Prueba otra vez.': 'Google could not be opened. Try again.',
+  'Google no ha dejado entrar: {error}': 'Google did not let you in: {error}',
+  'No ha llegado la sesión de Google. Prueba otra vez.': 'The Google session did not arrive. Try again.',
 };

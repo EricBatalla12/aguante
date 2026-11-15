@@ -13,8 +13,8 @@ import { AppState, Platform } from 'react-native';
 
 import { almacen } from './almacen';
 
-const URL_SUPABASE = 'https://dndvwxfnaqdivcttxwku.supabase.co';
-const CLAVE_PUBLICABLE = 'sb_publishable_2ExGbQV4Bzbv5YvRhjzq7w_EWEv35IL';
+export const URL_SUPABASE = 'https://dndvwxfnaqdivcttxwku.supabase.co';
+export const CLAVE_PUBLICABLE = 'sb_publishable_2ExGbQV4Bzbv5YvRhjzq7w_EWEv35IL';
 
 export const supabase = createClient(URL_SUPABASE, CLAVE_PUBLICABLE, {
   auth: {

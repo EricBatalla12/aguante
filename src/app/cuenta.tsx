@@ -17,7 +17,9 @@ import {
   comprobarCodigo,
   crearCasa,
   entrarEnCasa,
+  entrarConGoogle,
   enviarCodigo,
+  googleDisponible,
   miembros,
   misCasas,
   salirDeCasa,
@@ -68,6 +70,7 @@ function Entrar() {
       <Texto color={C.suave}>
         {t('Con una cuenta, quienes vivís juntos compartís la despensa, el hogar, el kit y la energía desde varios móviles. Es opcional: sin cuenta todo sigue guardado solo en este móvil.')}
       </Texto>
+      <BotonGoogle />
       <Tarjeta style={{ gap: 12 }}>
         {!enviado ? (
           <>
@@ -121,6 +124,32 @@ function Entrar() {
         {a.error && <Aviso texto={a.error} />}
       </Tarjeta>
       <QueSeComparte />
+    </>
+  );
+}
+
+/** Entrar con Google. Solo sale si Google está activado en Supabase (y no en la web). */
+function BotonGoogle() {
+  const C = useC();
+  const [disponible, setDisponible] = useState(false);
+  const a = useAccion();
+  useEffect(() => {
+    let vivo = true;
+    googleDisponible().then((d) => vivo && setDisponible(d));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+  if (!disponible) return null;
+  return (
+    <>
+      <Boton variante="secundario" icono="google" deshabilitado={a.ocupado} onPress={() => a.hacer(entrarConGoogle)}>
+        {a.ocupado ? t('Abriendo Google…') : t('Entrar con Google')}
+      </Boton>
+      {a.error && <Aviso texto={a.error} />}
+      <Texto tam={13} color={C.suave} centro>
+        {t('o con tu correo:')}
+      </Texto>
     </>
   );
 }

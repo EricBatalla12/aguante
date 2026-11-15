@@ -132,6 +132,11 @@ Cómo funciona, qué tiene que configurar Eric y qué está probado:
   el trueque es de Pro. **Apagado** con `PRO_ACTIVO = false` en
   `src/constants/monetizacion.ts`: se vive de donaciones (`ENLACE_DONAR`, en
   el mismo fichero; vacío, no sale el apartado «Apoyar Aguante» de Ajustes).
+- Entrar con Google: navegador del sistema + `aguante://auth`, sin módulo
+  nativo. El botón solo sale si Google está activado en Supabase. Pasos de
+  Google Cloud para Eric en `docs/cuentas.md`.
+- APK versionCode 3 (commit `91ca425`, con el aviso y el estado de las
+  actualizaciones): https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
 - Gastar escaneando: `src/app/gastar.tsx`, `productosConCodigo` en
   `calculo.ts` (compara sin ceros delante) y `gastar` en el store.
 - Configurado el 15/11/2026: SQL ejecutado, SMTP con el Gmail personal de

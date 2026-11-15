@@ -8,7 +8,9 @@
 // cada elemento (src/lib/compartido.ts y supabase/esquema.sql).
 
 import type { RealtimeChannel } from '@supabase/supabase-js';
-import { AppState } from 'react-native';
+import * as Linking from 'expo-linking';
+import * as WebBrowser from 'expo-web-browser';
+import { AppState, Platform } from 'react-native';
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
@@ -28,7 +30,8 @@ import {
 } from './compartido';
 import { t } from './i18n';
 import { hoyISO, useAguante } from './store';
-import { supabase } from './supabase';
+import { leerRespuestaOAuth } from './oauth';
+import { CLAVE_PUBLICABLE, supabase, URL_SUPABASE } from './supabase';
 
 export type Casa = { id: string; nombre: string; codigo: string };
 export type Miembro = { usuario: string; correo: string | null; unido: string };
@@ -437,6 +440,47 @@ export const enviarCodigo = (correo: string) =>
 export const comprobarCodigo = (correo: string, codigo: string) =>
   intentar(async () => {
     comprobar(await supabase.auth.verifyOtp({ email: correo.trim(), token: codigo.trim(), type: 'email' }));
+  });
+
+/**
+ * Si se puede entrar con Google: solo en el móvil (en la web de vista previa
+ * no) y solo si Google está activado en Supabase. Se pregunta a los ajustes
+ * públicos de Auth para no enseñar un botón que acabe en error.
+ */
+export async function googleDisponible(): Promise<boolean> {
+  if (Platform.OS === 'web') return false;
+  try {
+    const r = await fetch(`${URL_SUPABASE}/auth/v1/settings`, { headers: { apikey: CLAVE_PUBLICABLE } });
+    const ajustes = (await r.json()) as { external?: { google?: boolean } };
+    return !!ajustes.external?.google;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Entra con Google: abre la página de Google en el navegador del móvil y, al
+ * aceptar, Supabase vuelve a aguante://auth con la sesión. Si se cancela, no
+ * pasa nada (devuelve null sin error). Si la cuenta de Google tiene el mismo
+ * correo que una que ya entró con código, Supabase dice que las une.
+ */
+export const entrarConGoogle = () =>
+  intentar(async () => {
+    const vuelta = Linking.createURL('auth');
+    const r = await supabase.auth.signInWithOAuth({ provider: 'google', options: { redirectTo: vuelta, skipBrowserRedirect: true } });
+    const url = comprobar<{ url: string | null }>(r).url;
+    if (!url) throw new Aviso(t('No se ha podido abrir Google. Prueba otra vez.'));
+    const res = await WebBrowser.openAuthSessionAsync(url, vuelta);
+    if (res.type !== 'success') return;
+    const leido = leerRespuestaOAuth(res.url);
+    if (leido.error) throw new Aviso(t('Google no ha dejado entrar: {error}', { error: leido.error }));
+    if (leido.code) {
+      comprobar(await supabase.auth.exchangeCodeForSession(leido.code));
+    } else if (leido.access_token && leido.refresh_token) {
+      comprobar(await supabase.auth.setSession({ access_token: leido.access_token, refresh_token: leido.refresh_token }));
+    } else {
+      throw new Aviso(t('No ha llegado la sesión de Google. Prueba otra vez.'));
+    }
   });
 
 export const cerrarSesion = () =>
