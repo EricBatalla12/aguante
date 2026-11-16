@@ -24,7 +24,7 @@ export const BLOQUES: Bloque[] = [
     enlaces: [
       { nombre: tx('FEMA, Cruz Roja y USDA: Food and Water in an Emergency (archivo)'), url: 'https://webharvest.gov/peth04/20041015031112/http://www.fema.gov/rrr/foodwtr.shtm' },
       { nombre: tx('CDC: comida en el kit de emergencia (archivo de 2009)'), url: 'https://webarchive.library.unt.edu/web/20090116155203/http://emergency.cdc.gov/preparedness/kit/food' },
-      { nombre: tx('Comisión Europea: estrategia de preparación'), url: 'https://commission.europa.eu/topics/preparedness_uk' },
+      { nombre: tx('Comisión Europea: estrategia de preparación'), url: 'https://commission.europa.eu/topics/preparedness_en' },
     ],
   },
   {
@@ -150,5 +150,18 @@ export const BLOQUES: Bloque[] = [
       { texto: tx('Los vatios de los aparatos de partida son orientativos: hay que cambiarlos por los de su etiqueta.'), propio: true },
     ],
     enlaces: [{ nombre: tx('PVGIS (Comisión Europea, JRC)'), url: 'https://re.jrc.ec.europa.eu/pvg_tools/es/' }],
+  },
+  {
+    titulo: tx('Kit de emergencia'),
+    icono: 'clipboard-check-outline',
+    puntos: [
+      { texto: tx('Las listas de casa, mochila y botiquín salen del kit básico de Ready.gov y de sus suministros adicionales; la del coche, de su kit para el coche.') },
+      { texto: tx('La mochila se mide contra 72 horas: el agua para beber (EFSA) y la comida de un día, por tres. Con la higiene, el agua del modo normal.'), propio: true },
+      { texto: tx('La Comisión Europea se ha propuesto que la población pueda valerse por sí misma al menos 72 horas (estrategia de preparación, marzo de 2025).') },
+    ],
+    enlaces: [
+      { nombre: tx('Ready.gov: arma un kit'), url: 'https://www.ready.gov/kit' },
+      { nombre: tx('Ready.gov: kit para el coche'), url: 'https://www.ready.gov/car' },
+    ],
   },
 ];

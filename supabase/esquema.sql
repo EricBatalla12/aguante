@@ -211,6 +211,68 @@ begin
 end;
 $$;
 
+-- Cambia el código de invitación, por ejemplo si se ha compartido de más.
+-- Puede hacerlo cualquiera de la casa; el código viejo deja de valer. Los que
+-- ya están dentro siguen dentro.
+create or replace function public.cambiar_codigo(p_casa uuid)
+returns public.casas
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  yo uuid := (select auth.uid());
+  casa public.casas;
+begin
+  if yo is null then
+    raise exception 'sin_sesion' using errcode = '28000';
+  end if;
+  if not exists (select 1 from public.miembros where casa_id = p_casa and usuario = yo) then
+    raise exception 'no_eres_de_la_casa' using errcode = '42501';
+  end if;
+  loop
+    begin
+      update public.casas set codigo = privado.nuevo_codigo() where id = p_casa returning * into casa;
+      exit;
+    exception when unique_violation then
+      -- El código nuevo ya existía: se prueba con otro
+    end;
+  end loop;
+  return casa;
+end;
+$$;
+
+-- Saca a alguien de la casa. Puede hacerlo quien la creó; si esa persona ya
+-- no está en la casa, cualquiera de la casa. Para irse uno mismo está
+-- salir_casa. Lo que tenía en su móvil se le queda como copia propia.
+create or replace function public.echar_de_casa(p_casa uuid, p_usuario uuid)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  yo uuid := (select auth.uid());
+  creador uuid;
+begin
+  if yo is null then
+    raise exception 'sin_sesion' using errcode = '28000';
+  end if;
+  if not exists (select 1 from public.miembros where casa_id = p_casa and usuario = yo) then
+    raise exception 'no_eres_de_la_casa' using errcode = '42501';
+  end if;
+  if p_usuario = yo then
+    raise exception 'usa_salir' using errcode = 'P0001';
+  end if;
+  select creada_por into creador from public.casas where id = p_casa;
+  if creador is not null and creador <> yo
+     and exists (select 1 from public.miembros where casa_id = p_casa and usuario = creador) then
+    raise exception 'solo_quien_la_creo' using errcode = '42501';
+  end if;
+  delete from public.miembros where casa_id = p_casa and usuario = p_usuario;
+end;
+$$;
+
 -- Sube cambios: [{tipo, id, datos, borrado, cambiado}, …]. Cada uno solo
 -- sustituye al del servidor si es más nuevo. Devuelve cómo ha quedado cada
 -- elemento en el servidor, para que el móvil vea cuáles ha perdido.
@@ -291,8 +353,10 @@ end;
 $$;
 
 revoke all on function public.crear_casa(text), public.unirse_casa(text), public.salir_casa(uuid),
+  public.cambiar_codigo(uuid), public.echar_de_casa(uuid, uuid),
   public.subir_cambios(uuid, jsonb), public.borrar_cuenta() from public, anon;
 grant execute on function public.crear_casa(text), public.unirse_casa(text), public.salir_casa(uuid),
+  public.cambiar_codigo(uuid), public.echar_de_casa(uuid, uuid),
   public.subir_cambios(uuid, jsonb), public.borrar_cuenta() to authenticated;
 revoke all on function privado.nuevo_codigo() from public, anon, authenticated;
 

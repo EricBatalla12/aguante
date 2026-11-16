@@ -67,11 +67,12 @@ function Navegacion() {
   const oscuro = useOscuro();
   const letra = useLetra();
   const productos = useAguante((s) => s.productos);
+  const kitPropio = useAguante((s) => s.kitPropio);
   const avisos = useAguante((s) => s.avisos);
 
   useEffect(() => {
-    (avisos ? reprogramarAvisos(productos) : cancelarAvisos()).catch(() => {});
-  }, [avisos, productos]);
+    (avisos ? reprogramarAvisos(productos, kitPropio) : cancelarAvisos()).catch(() => {});
+  }, [avisos, productos, kitPropio]);
 
   // Fondo de la ventana: evita un fogonazo blanco al navegar en modo oscuro
   useEffect(() => {
@@ -100,6 +101,7 @@ function Navegacion() {
         <Stack.Screen name="anadir" options={{ title: t('Añadir producto'), presentation: 'modal' }} />
         <Stack.Screen name="gastar" options={{ title: t('Gastar producto'), presentation: 'modal' }} />
         <Stack.Screen name="producto/[id]" options={{ title: t('Producto') }} />
+        <Stack.Screen name="kit/[id]" options={{ title: t('Kit de emergencia') }} />
         <Stack.Screen name="persona/[id]" options={{ title: t('Persona') }} />
         <Stack.Screen name="mascota/[id]" options={{ title: t('Mascota') }} />
         <Stack.Screen name="modos" options={{ title: t('Modos de aguante') }} />

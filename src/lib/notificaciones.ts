@@ -8,6 +8,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { diasHasta, type Producto } from './calculo';
+import type { ElementoKit } from '../constants/kit';
 import { t } from '@/lib/i18n';
 
 // Cuántos días antes de caducar se avisa. Dos meses dan margen para comerse
@@ -44,14 +45,19 @@ export async function cancelarAvisos(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
-export async function reprogramarAvisos(productos: Producto[]): Promise<void> {
+/** Avisa de los productos de la despensa y de lo del kit con caducidad (medicinas, pilas…). */
+export async function reprogramarAvisos(productos: Producto[], kit: ElementoKit[] = []): Promise<void> {
   if (Platform.OS === 'web') return;
   const permiso = await Notifications.getPermissionsAsync();
   if (!permiso.granted) return;
   await Notifications.cancelAllScheduledNotificationsAsync();
   const hoy = new Date();
-  for (const p of productos) {
-    if (!p.caducidad || p.cantidad <= 0) continue;
+  const conFecha = [
+    ...productos.filter((p) => p.cantidad > 0).map((p) => ({ nombre: p.nombre, caducidad: p.caducidad, kit: false })),
+    ...kit.map((k) => ({ nombre: k.que, caducidad: k.caducidad, kit: true })),
+  ];
+  for (const p of conFecha) {
+    if (!p.caducidad) continue;
     const dias = diasHasta(p.caducidad, hoy);
     for (const n of [AVISO_DIAS, RECORDATORIO_DIAS]) {
       if (dias < n) continue; // ese aviso ya habría saltado
@@ -63,7 +69,7 @@ export async function reprogramarAvisos(productos: Producto[]): Promise<void> {
         n === AVISO_DIAS
           ? t('{nombre} caduca en 2 meses', { nombre: p.nombre })
           : t('{nombre} caduca en 1 semana', { nombre: p.nombre }),
-          body: t('Gástalo en el día a día y repón la reserva.'),
+          body: p.kit ? t('Es del kit de emergencia: cámbialo por uno nuevo.') : t('Gástalo en el día a día y repón la reserva.'),
         },
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
       });

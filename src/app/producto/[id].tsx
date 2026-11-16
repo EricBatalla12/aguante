@@ -1,5 +1,6 @@
 import { useLocalSearchParams } from 'expo-router';
 
+import { BotonCalendario } from '@/components/boton-calendario';
 import { ProductoForm } from '@/components/producto-form';
 import { Boton, Pantalla, Texto } from '@/components/ui';
 import { confirmar } from '@/lib/confirmar';
@@ -37,6 +38,9 @@ export default function EditarProducto() {
           volver();
         }}
       />
+      {producto.caducidad && (
+        <BotonCalendario nombre={producto.nombre} caducidad={producto.caducidad} sinDia={producto.caducidadSinDia} />
+      )}
       <Boton
         variante="secundario"
         icono="trash-can-outline"

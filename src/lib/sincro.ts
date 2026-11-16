@@ -112,6 +112,8 @@ function textoError(e: unknown): string {
   }
   if (/demasiados_intentos/.test(m)) return t('Demasiados códigos de casa incorrectos. Prueba dentro de una hora.');
   if (/demasiadas_casas/.test(m)) return t('Ya estás en 5 casas, que es el máximo.');
+  if (/solo_quien_la_creo/.test(m)) return t('Solo puede sacar a alguien quien creó la casa.');
+  if (/usa_salir/.test(m)) return t('Para irte tú, usa «Salir de la casa».');
   if (/PGRST202|42P01|42883|does not exist|Could not find the function/i.test(m)) {
     return t('El servidor aún no está preparado: faltan las tablas de la casa.');
   }
@@ -153,6 +155,8 @@ function meterEnStore(nuevo: Compartido) {
       manual: nuevo.manual,
       modo: nuevo.modo,
       energia: nuevo.energia,
+      emergencia: nuevo.emergencia,
+      escenario: nuevo.escenario,
     } as never);
   } finally {
     aplicando = false;
@@ -192,6 +196,20 @@ async function subir(casa: Casa) {
     aplicarDelServidor(aplicar);
     useSincro.setState({ pendientes: quedan });
     if (lote.length < LOTE) return;
+  }
+}
+
+/**
+ * Si te han sacado de la casa o se ha borrado, el servidor ya no la enseña
+ * (RLS) y bajar no daría error: se mira antes. De paso se recoge el código si
+ * alguien lo ha cambiado.
+ */
+async function comprobarCasa(casa: Casa) {
+  const filas = comprobar<Casa[] | null>(await supabase.from('casas').select('id, nombre, codigo').eq('id', casa.id));
+  const delServidor = filas?.[0];
+  if (!delServidor) throw new Error('no_eres_de_la_casa');
+  if (delServidor.codigo !== casa.codigo || delServidor.nombre !== casa.nombre) {
+    useSincro.setState({ casa: { id: casa.id, nombre: delServidor.nombre, codigo: delServidor.codigo } });
   }
 }
 
@@ -254,6 +272,7 @@ export function sincronizar(): Promise<void> {
       if (!casa || !useSincro.getState().usuario) return;
       useSincro.setState({ estado: 'sincronizando' });
       try {
+        await comprobarCasa(casa);
         // Primero se baja: así, al entrar en una casa, lo de este móvil no
         // pisa lo que ya tenía la casa
         await bajar(casa);
@@ -550,6 +569,23 @@ export const unirseACasa = (codigo: string) =>
     const casa = comprobar<Casa | null>(await supabase.rpc('unirse_casa', { p_codigo: codigo }));
     if (!casa?.id) throw new Aviso(t('No hay ninguna casa con ese código.'));
     await entrarEnCasa({ id: casa.id, nombre: casa.nombre, codigo: casa.codigo });
+  });
+
+/** Cambia el código de invitación: el viejo deja de valer. */
+export const cambiarCodigo = () =>
+  intentar(async () => {
+    const casa = useSincro.getState().casa;
+    if (!casa) return;
+    const nueva = comprobar<Casa>(await supabase.rpc('cambiar_codigo', { p_casa: casa.id }));
+    useSincro.setState({ casa: { ...casa, codigo: nueva.codigo } });
+  });
+
+/** Saca a alguien de la casa (solo quien la creó, o cualquiera si esa persona ya no está). */
+export const echarDeCasa = (usuario: string) =>
+  intentar(async () => {
+    const casa = useSincro.getState().casa;
+    if (!casa) return;
+    comprobar(await supabase.rpc('echar_de_casa', { p_casa: casa.id, p_usuario: usuario }));
   });
 
 /** Sale de la casa. Lo que hay en este móvil se queda como copia propia. */

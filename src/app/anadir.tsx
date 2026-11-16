@@ -1,5 +1,6 @@
 import { CameraView, useCameraPermissions } from 'expo-camera';
-import { useRef, useState } from 'react';
+import { useLocalSearchParams } from 'expo-router';
+import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 
 import { ProductoForm } from '@/components/producto-form';
@@ -13,6 +14,11 @@ import { useResultado } from '@/lib/use-resultado';
 import { t } from '@/lib/i18n';
 
 type Fase = 'escaneando' | 'buscando' | 'formulario';
+
+// Solo en desarrollo y en la web, para probar y para las capturas de los vídeos:
+// `?escanear=1` abre el escáner (la web normal va directa al formulario) y
+// `?codigo=…` busca ese código como si lo hubiera leído la cámara.
+const PRUEBAS_WEB = __DEV__ && Platform.OS === 'web';
 
 /** Lo que se ha encontrado, en la forma en que lo espera el formulario. */
 function aProducto(d: DatosOFF): Partial<Producto> {
@@ -29,17 +35,25 @@ export default function Anadir() {
   const [permiso, pedirPermiso] = useCameraPermissions();
   const guardar = useAguante((s) => s.guardarProducto);
   const r = useResultado('normal');
-  const [fase, setFase] = useState<Fase>(Platform.OS === 'web' ? 'formulario' : 'escaneando');
+  const prueba = useLocalSearchParams<{ escanear?: string; codigo?: string }>();
+  const codigoPrueba = PRUEBAS_WEB ? prueba.codigo : undefined;
+  const [fase, setFase] = useState<Fase>(
+    codigoPrueba ? 'buscando' : Platform.OS === 'web' && !(PRUEBAS_WEB && prueba.escanear) ? 'formulario' : 'escaneando',
+  );
   const [datos, setDatos] = useState<DatosOFF | null>(null);
   const [mensaje, setMensaje] = useState<string | null>(null);
-  const [codigo, setCodigo] = useState<string | null>(null);
+  const [codigo, setCodigo] = useState<string | null>(codigoPrueba ?? null);
   const [sinConexion, setSinConexion] = useState(false);
   // La cámara dispara el mismo código varias veces seguidas: nos quedamos con el primero
   const leido = useRef(false);
 
-  const buscar = async (c: string) => {
+  const buscar = (c: string) => {
     setCodigo(c);
     setFase('buscando');
+    return consultar(c);
+  };
+
+  const consultar = async (c: string) => {
     const res = await buscarCodigo(c);
     setSinConexion(res.estado === 'error');
     if (res.estado === 'encontrado') {
@@ -58,6 +72,12 @@ export default function Anadir() {
     }
     setFase('formulario');
   };
+
+  useEffect(() => {
+    if (codigoPrueba) consultar(codigoPrueba);
+    // Solo al abrir la pantalla
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const alEscanear = (c: string) => {
     if (leido.current) return;

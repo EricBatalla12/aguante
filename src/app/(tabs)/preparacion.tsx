@@ -2,13 +2,15 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { Barra, Boton, Campo, Icono, Pantalla, Pastilla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
-import { calcularFaltante, estadoCaducidad, formatoNumero } from '@/lib/calculo';
+import { PlanCompra } from '@/components/plan-compra';
+import { Barra, Boton, Campo, CampoFecha, Icono, Pantalla, Pastilla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
+import { aguaBeber, aguaMascota, calcularFaltante, estadoCaducidad, formatoNumero } from '@/lib/calculo';
+import { componerFecha, FECHA_VACIA } from '@/lib/fechas';
 import { coloresCaducidad, textoCaducidad } from '@/lib/formato';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
-import { KIT } from '@/constants/kit';
+import { DE_SERIE, EXPLICA_LISTA, LISTAS_KIT, listaDe, type ListaKit } from '@/constants/kit';
 import { t, tx } from '@/lib/i18n';
 
 const OBJETIVOS = [
@@ -28,19 +30,30 @@ export default function Preparacion() {
   const alternarKit = useAguante((s) => s.alternarKit);
   const kitPropio = useAguante((s) => s.kitPropio);
   const anadirKit = useAguante((s) => s.anadirKit);
-  const borrarKit = useAguante((s) => s.borrarKit);
   const [nuevo, setNuevo] = useState('');
-  const elementosKit = [...KIT, ...kitPropio];
+  const [fechaNuevo, setFechaNuevo] = useState(FECHA_VACIA);
+  const [listaKit, setListaKit] = useState<ListaKit>('casa');
+  const elementosKit = [...DE_SERIE[listaKit], ...kitPropio.filter((k) => listaDe(k) === listaKit)];
   const normal = useResultado('normal');
+  const fechaNueva = componerFecha(fechaNuevo);
+  // La mochila hay que cargarla: el agua solo para beber (EFSA), no la de higiene
+  const beberDia = personas.reduce((s, p) => s + aguaBeber(p), 0) + mascotas.reduce((s, m) => s + aguaMascota(m), 0);
 
   const falta = useMemo(
     () => calcularFaltante(personas, mascotas, productos, objetivo),
     [personas, mascotas, productos, objetivo],
   );
   const hoy = new Date();
-  const rotar = productos
-    .filter((p) => p.cantidad > 0 && ['rojo', 'ambar', 'caducado'].includes(estadoCaducidad(p, hoy)))
-    .sort((a, b) => (a.caducidad ?? '').localeCompare(b.caducidad ?? ''));
+  // Lo que caduca pronto: productos de la despensa y lo del kit con fecha (medicinas, pilas…)
+  const pronto = (c?: string) => ['rojo', 'ambar', 'caducado'].includes(estadoCaducidad({ caducidad: c }, hoy));
+  const rotar = [
+    ...productos
+      .filter((p) => p.cantidad > 0 && pronto(p.caducidad))
+      .map((p) => ({ id: p.id, nombre: p.nombre, caducidad: p.caducidad, ruta: `/producto/${p.id}` as const, kit: false })),
+    ...kitPropio
+      .filter((k) => pronto(k.caducidad))
+      .map((k) => ({ id: k.id, nombre: k.que, caducidad: k.caducidad, ruta: `/kit/${k.id}` as const, kit: true })),
+  ].sort((a, b) => (a.caducidad ?? '').localeCompare(b.caducidad ?? ''));
   const hechos = elementosKit.filter((k) => kit[k.id]).length;
   const diasHoy = Math.min(normal.diasAgua, normal.diasComida);
 
@@ -120,6 +133,13 @@ export default function Preparacion() {
                     {t('Como os limita el agua, mejor comida que no haya que cocinar: conservas, legumbre cocida, galletas.')}
                   </Texto>
                 )}
+                {(falta.faltanLitros > 0 || falta.faltanKcal > 0) && (
+                  <PlanCompra
+                    faltanLitros={falta.faltanLitros}
+                    faltanKcal={falta.faltanKcal}
+                    faltaPienso={falta.faltanKcalMascotas > 0}
+                  />
+                )}
               </View>
             )}
           </>
@@ -141,7 +161,7 @@ export default function Preparacion() {
               <Pressable
                 key={p.id}
                 accessibilityRole="button"
-                onPress={() => router.push(`/producto/${p.id}`)}
+                onPress={() => router.push(p.ruta)}
                 style={{
                   flexDirection: 'row',
                   alignItems: 'center',
@@ -157,7 +177,7 @@ export default function Preparacion() {
                     {p.nombre}
                   </Texto>
                   <Texto tam={12} color={C.suave}>
-                    {t('Gástalo en el día a día y repón la reserva')}
+                    {p.kit ? t('Del kit: cámbialo por uno nuevo') : t('Gástalo en el día a día y repón la reserva')}
                   </Texto>
                 </View>
                 <Pastilla texto={textoCaducidad(p)} fondo={c.fondo} color={c.color} />
@@ -176,6 +196,19 @@ export default function Preparacion() {
             {t('{a} de {b}', { a: hechos, b: elementosKit.length })}
           </Texto>
         </View>
+        <Segmentado opciones={LISTAS_KIT} valor={listaKit} onChange={setListaKit} />
+        <Texto tam={13} color={C.suave} style={{ paddingTop: 6 }}>
+          {t(EXPLICA_LISTA[listaKit])}
+        </Texto>
+        {listaKit === 'mochila' && personas.length > 0 && (
+          <Texto tam={13} color={C.texto2} style={{ paddingBottom: 4 }}>
+            {t('Para 72 horas fuera de casa: {b} L de agua solo para beber (pesan unos {b} kg) y unas {kcal} kcal de comida que no haya que cocinar. Con la higiene serían {l} L.', {
+              b: formatoNumero(beberDia * 3, 1),
+              l: formatoNumero(normal.litrosDia * 3, 1),
+              kcal: formatoNumero(Math.ceil((normal.kcalDia * 3) / 100) * 100),
+            })}
+          </Texto>
+        )}
         <Barra fraccion={hechos / elementosKit.length} color={C.verde} alto={6} />
         {elementosKit.map((k, i) => {
           const ok = !!kit[k.id];
@@ -211,13 +244,16 @@ export default function Preparacion() {
                 {t(k.que)}
               </Texto>
               {k.clave && !ok && <Pastilla texto={t('Se olvida mucho')} fondo={C.rojoTinte} color={C.rojo} />}
+              {k.caducidad && (
+                <Pastilla texto={textoCaducidad(k)} fondo={coloresCaducidad(k, C).fondo} color={coloresCaducidad(k, C).color} />
+              )}
               {k.id.startsWith('propio-') && (
                 <Pressable
                   accessibilityRole="button"
-                  accessibilityLabel={t('Quitar {que} del kit', { que: t(k.que) })}
+                  accessibilityLabel={t('Cambiar {que}', { que: k.que })}
                   hitSlop={10}
-                  onPress={() => borrarKit(k.id)}>
-                  <Icono name="close" color={C.suave} size={18} />
+                  onPress={() => router.push(`/kit/${k.id}`)}>
+                  <Icono name="pencil-outline" color={C.suave} size={18} />
                 </Pressable>
               )}
             </Pressable>
@@ -225,23 +261,44 @@ export default function Preparacion() {
         })}
         <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8, paddingTop: 8 }}>
           <View style={{ flex: 1 }}>
-            <Campo etiqueta={t('Añadir algo al kit')} valor={nuevo} onChange={setNuevo} placeholder={t('Gafas de repuesto')} />
+            <Campo
+              etiqueta={t('Añadir algo a esta lista')}
+              valor={nuevo}
+              onChange={setNuevo}
+              placeholder={listaKit === 'botiquin' ? t('Ibuprofeno') : t('Pilas AA')}
+            />
           </View>
           <Boton
             pequeno
             icono="plus"
-            deshabilitado={nuevo.trim() === ''}
+            deshabilitado={nuevo.trim() === '' || fechaNueva.estado === 'error' || fechaNueva.estado === 'incompleta'}
             onPress={() => {
-              anadirKit(nuevo.trim());
+              const conFecha = fechaNueva.estado === 'ok' ? fechaNueva : null;
+              anadirKit({
+                que: nuevo.trim(),
+                lista: listaKit,
+                caducidad: conFecha?.iso,
+                caducidadSinDia: conFecha?.sinDia || undefined,
+              });
               setNuevo('');
+              setFechaNuevo(FECHA_VACIA);
             }}>
             {t('Añadir')}
           </Boton>
         </View>
+        {nuevo.trim() !== '' && (
+          <CampoFecha
+            etiqueta={t('Caducidad (si tiene)')}
+            valor={fechaNuevo}
+            onChange={setFechaNuevo}
+            ayuda={t('Medicinas, pilas, pastillas potabilizadoras… Te avisamos antes de que caduquen.')}
+            error={fechaNueva.estado === 'error' ? fechaNueva.mensaje : undefined}
+          />
+        )}
       </Tarjeta>
 
       <Texto tam={12} color={C.suave}>
-        {t('La UE recomienda que cada hogar aguante al menos 72 horas por su cuenta.')}
+        {t('La Comisión Europea se ha propuesto que la población pueda valerse por sí misma al menos 72 horas (estrategia de preparación, marzo de 2025).')}
       </Texto>
     </Pantalla>
   );

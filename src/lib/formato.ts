@@ -1,10 +1,10 @@
 import type { Paleta } from '@/constants/colores';
 
 import { t, tn } from './i18n';
-import { diasHasta, estadoCaducidad, separadorDecimal, type Categoria, type Producto } from './calculo';
+import { diasHasta, estadoCaducidad, separadorDecimal, type Categoria } from './calculo';
 
 /** «24 días», «3 meses», «1 año y 7 meses»… */
-export function textoCaducidad(p: Producto, hoy = new Date()): string {
+export function textoCaducidad(p: { caducidad?: string }, hoy = new Date()): string {
   if (!p.caducidad) return t('Sin fecha');
   const d = diasHasta(p.caducidad, hoy);
   if (d < 0) return t('Caducado');
@@ -18,7 +18,7 @@ export function textoCaducidad(p: Producto, hoy = new Date()): string {
   return resto ? t('{a} y {m}', { a, m: tn(resto, '{n} mes', '{n} meses') }) : a;
 }
 
-export function coloresCaducidad(p: Producto, C: Paleta, hoy = new Date()) {
+export function coloresCaducidad(p: { caducidad?: string }, C: Paleta, hoy = new Date()) {
   const e = estadoCaducidad(p, hoy);
   if (e === 'caducado' || e === 'rojo') return { fondo: C.rojoTinte, color: C.rojo };
   if (e === 'ambar') return { fondo: C.ambarTinte, color: C.ambar };

@@ -24,8 +24,10 @@ cuántos días aguantaríais con ella.
   nombre o, sin conexión, con un valor típico de USDA.
 - Caducidad sin teclear separadores y con el día opcional, como viene en las
   latas (mes y año).
-- Avisos de caducidad, lista de la compra según el objetivo (72 h, 1 semana,
-  2 semanas) y kit de emergencia, al que se pueden añadir cosas.
+- Avisos de caducidad (también en Google Calendar), lista de la compra según
+  el objetivo (72 h, 1 semana, 2 semanas) repartida en meses según tu
+  presupuesto, y kit de emergencia en cuatro listas (casa, mochila, coche y
+  botiquín), con la caducidad de tus medicinas y pilas.
 - Modo emergencia con el plan del día: lo que se apunta como comido o bebido
   se descuenta de la despensa, y se puede deshacer.
 - Ajustes: tema claro, oscuro o el del móvil, avisos, copia de seguridad y la
@@ -33,8 +35,8 @@ cuántos días aguantaríais con ella.
 - Todo se guarda en el móvil y funciona sin internet. Solo el escáner y las
   sugerencias necesitan red, para buscar el producto.
 - Cuenta opcional (correo y código, sin contraseña) para compartir la casa con
-  quien vive contigo: despensa, hogar, kit y energía se sincronizan con
-  Supabase cuando hay red. Cómo funciona y qué configurar:
+  quien vive contigo: despensa, hogar, kit, energía y la emergencia en curso
+  se sincronizan con Supabase cuando hay red. Cómo funciona y qué configurar:
   [docs/cuentas.md](docs/cuentas.md).
 
 Las reglas de cálculo y sus fuentes (FAO/OMS, EFSA, FEMA, Sphere, PMA) están

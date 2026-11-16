@@ -12,9 +12,22 @@ Cómo funciona y qué hay que configurar en el proyecto de Supabase
 - Una persona crea la **casa** y le sale un código (`K7P-29Q`); las demás lo
   escriben en *Ajustes › Cuenta y casa › Unirme a una casa*.
 - Se comparte la despensa, el hogar (personas y mascotas), el kit y el kit
-  propio, la energía (fuentes, aparatos, zona y época), el modo y el reparto
-  manual. Tema, idioma, avisos, la emergencia en curso, el escenario, el
-  objetivo de días y la nota de trueque son de cada móvil.
+  propio (con sus listas y caducidades), la energía (fuentes, aparatos, zona y
+  época), el modo, el reparto manual y, desde el 16/11/2026, la **emergencia
+  en curso** con su escenario (el ajuste `emergencia`; sin emergencia viaja
+  null). Tema, idioma, avisos, el escenario fuera de una emergencia, el
+  objetivo de días, el plan de compra y la nota de trueque son de cada móvil.
+  Si dos personas apuntan agua o comida a la vez sin conexión, se queda el
+  último apunte, como con los productos.
+- **Código y miembros** (16/11/2026): cualquiera de la casa puede cambiar el
+  código (`cambiar_codigo`; el viejo deja de valer). Sacar a alguien
+  (`echar_de_casa`) solo puede quien creó la casa; si esa persona ya no está,
+  cualquiera. Cada sincronización mira antes si la casa sigue a la vista: si
+  te han sacado o se ha borrado, el móvil la olvida y se queda con su copia, y
+  si alguien cambió el código, recoge el nuevo. **Hay que volver a ejecutar
+  `supabase/esquema.sql`** en el SQL Editor para que existan las dos funciones
+  (probado en un Postgres 17 local con el `auth` simulado, también como rol
+  `authenticated` y `anon`).
 - **Sin conexión primero**: el store local manda. Cada cambio se apunta como
   pendiente (guardado) y se sube cuando hay red. Lo que cambian los demás llega
   en tiempo real con la app abierta, al volver a ella y, por si acaso, cada

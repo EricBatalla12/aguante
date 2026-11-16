@@ -10,7 +10,11 @@
 
 type ConId = { id: string };
 
-/** La parte del estado que se comparte. Tema, idioma, avisos, emergencia y trueque son de cada móvil. */
+/**
+ * La parte del estado que se comparte. Tema, idioma, avisos, trueque y plan de
+ * compra son de cada móvil. La emergencia en curso se comparte entera, con su
+ * escenario, como un ajuste: gana el último cambio, como en el resto.
+ */
 export type Compartido = {
   personas: ConId[];
   mascotas: ConId[];
@@ -20,6 +24,8 @@ export type Compartido = {
   manual: Record<string, unknown>;
   modo: string;
   energia: { fuentes: ConId[]; aparatos: ConId[]; zona: string; epoca: string };
+  emergencia: Record<string, unknown> | null;
+  escenario: Record<string, unknown>;
 };
 
 export type Tipo = 'persona' | 'mascota' | 'producto' | 'kitPropio' | 'kit' | 'manual' | 'fuente' | 'aparato' | 'ajuste';
@@ -57,6 +63,13 @@ const SECCIONES: { leer: (c: Compartido) => unknown; elementos: (c: Compartido) 
     // Zona y época van juntas: son una sola elección en la pantalla de energía
     leer: (c) => `${c.energia.zona}|${c.energia.epoca}`,
     elementos: (c) => [['ajuste', 'zonaSolar', { zona: c.energia.zona, epoca: c.energia.epoca }]],
+  },
+  {
+    // La emergencia en curso y su escenario (sin luz, sin cocina…). Sin
+    // emergencia viaja null: los ajustes no se borran. Fuera de la emergencia
+    // el escenario es de cada móvil.
+    leer: (c) => JSON.stringify(c.emergencia ? [c.emergencia, c.escenario] : null),
+    elementos: (c) => [['ajuste', 'emergencia', c.emergencia ? { ...c.emergencia, escenario: c.escenario } : null]],
   },
 ];
 
@@ -105,6 +118,17 @@ function valorValido(tipo: Tipo, id: string, datos: unknown): unknown {
   if (tipo === 'ajuste' && id === 'zonaSolar') {
     return esObjeto(datos) && typeof datos.zona === 'string' && typeof datos.epoca === 'string' ? datos : undefined;
   }
+  if (tipo === 'ajuste' && id === 'emergencia') {
+    if (datos === null) return null;
+    const vale =
+      esObjeto(datos) &&
+      typeof datos.inicio === 'string' &&
+      esObjeto(datos.aguaHoy) &&
+      esObjeto(datos.comidoHoy) &&
+      Array.isArray(datos.comidoHoy.items) &&
+      (datos.escenario === undefined || esObjeto(datos.escenario));
+    return vale ? datos : undefined;
+  }
   return undefined;
 }
 
@@ -138,6 +162,15 @@ export function aplicarFilas<T extends Compartido>(c: T, filas: Fila[]): T | nul
   const mapa = <V>(tipo: Tipo) => Object.fromEntries(de(tipo).map((e) => [e.id, e.valor as V]));
   const ajuste = (id: string) => m.get(clave('ajuste', id))?.valor;
   const zonaSolar = ajuste('zonaSolar') as { zona: string; epoca: string } | undefined;
+  const emergencia = m.has(clave('ajuste', 'emergencia'))
+    ? (ajuste('emergencia') as (Record<string, unknown> & { escenario?: Record<string, unknown> }) | null)
+    : undefined;
+  let deEmergencia: Pick<Compartido, 'emergencia' | 'escenario'> = { emergencia: c.emergencia, escenario: c.escenario };
+  if (emergencia === null) deEmergencia = { emergencia: null, escenario: c.escenario };
+  else if (emergencia) {
+    const { escenario, ...resto } = emergencia;
+    deEmergencia = { emergencia: resto, escenario: escenario ?? c.escenario };
+  }
 
   return {
     ...c,
@@ -155,6 +188,7 @@ export function aplicarFilas<T extends Compartido>(c: T, filas: Fila[]): T | nul
       zona: zonaSolar?.zona ?? c.energia.zona,
       epoca: zonaSolar?.epoca ?? c.energia.epoca,
     },
+    ...deEmergencia,
   };
 }
 

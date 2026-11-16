@@ -309,6 +309,32 @@ las personas. El agua es común.
 - **Días que aguantáis** = mínimo de los dos, redondeado hacia abajo
 - No se cuenta lo caducado ni, sin cocina, lo que hay que cocinar.
 
+## Kit de emergencia
+
+Consultado el 16/11/2026.
+
+- Listas de `src/constants/kit.ts`:
+  - **Casa, mochila y botiquín**: kit básico de Ready.gov y sus «suministros
+    adicionales» (https://www.ready.gov/kit, actualizada el 07/01/2026).
+    Ready.gov pide agua y comida «para varios días» sin dar una cifra, y que
+    el kit esté listo por si hay que salir de casa deprisa.
+  - **Coche**: «extras» de Ready.gov para el coche (https://www.ready.gov/car,
+    actualizada el 03/12/2026), más el agua y la comida del kit básico.
+  - El botiquín de la Cruz Roja americana no se pudo leer (la página devuelve
+    403): no se ha usado.
+- **Mochila medida contra 72 horas** **[propio]**: el agua solo para beber
+  (EFSA, la de `aguaBeber`, más la de las mascotas) y la comida de un día en
+  modo normal, por tres. La de higiene (modo normal, 3,8 L por persona) se
+  enseña aparte: con ella la mochila de una casa de tres pesaría más de 30 kg. Las 72 horas vienen de la Comisión Europea,
+  que en su estrategia de preparación (marzo de 2025) se propone «develop
+  guidelines to reach a population self-sufficiency of minimum 72 hours»
+  (https://commission.europa.eu/topics/preparedness_en). Es un objetivo de la
+  estrategia, no una recomendación a los hogares: la app ya no dice que «la UE
+  recomienda».
+- **Plan de compra** **[propio]**: el bote de referencia son 400 g de
+  garbanzos cocidos escurridos con las kcal de USDA de `genericos.ts`
+  (556 kcal). Los precios y el presupuesto los pone cada uno.
+
 ## Trueque
 
 - Lo que sobra o falta se calcula respecto al objetivo de días con el modo en

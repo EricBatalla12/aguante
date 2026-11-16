@@ -62,7 +62,11 @@ type Datos = {
   avisos: boolean;
   energia: Energia;
   trueque: string; // nota libre: lo que se ofrece o se busca
+  compra: Compra; // presupuesto y precios del plan de compra: de cada móvil, no se comparte
 };
+
+/** Presupuesto al mes y precios que pone cada uno para el plan de compra (en euros). */
+export type Compra = { presupuesto?: number; precioGarrafa?: number; precioBote?: number };
 
 type Estado = Datos & {
   guardarPersona: (p: Persona) => void;
@@ -78,7 +82,9 @@ type Estado = Datos & {
   setEscenario: (e: Escenario) => void;
   setObjetivo: (dias: number) => void;
   alternarKit: (id: string) => void;
-  anadirKit: (que: string) => void;
+  anadirKit: (e: Omit<ElementoKit, 'id'>) => void;
+  guardarKit: (e: ElementoKit) => void;
+  setCompra: (c: Compra) => void;
   borrarKit: (id: string) => void;
   setTema: (t: Tema) => void;
   setAvisos: (v: boolean) => void;
@@ -115,6 +121,7 @@ const INICIAL: Datos = {
   avisos: false,
   energia: { fuentes: [], aparatos: [], zona: 'centro', epoca: 'invierno' },
   trueque: '',
+  compra: {},
 };
 
 /** Sustituye el elemento con el mismo id o lo añade al final. */
@@ -165,6 +172,7 @@ function soloDatos(s: Estado): Datos {
     avisos: s.avisos,
     energia: s.energia,
     trueque: s.trueque,
+    compra: s.compra,
   };
 }
 
@@ -216,7 +224,9 @@ export const useAguante = create<Estado>()(
         }),
       setObjetivo: (objetivoDias) => set({ objetivoDias }),
       alternarKit: (id) => set((s) => ({ kit: { ...s.kit, [id]: !s.kit[id] } })),
-      anadirKit: (que) => set((s) => ({ kitPropio: [...s.kitPropio, { id: `propio-${nuevoId()}`, que }] })),
+      anadirKit: (e) => set((s) => ({ kitPropio: [...s.kitPropio, { ...e, id: `propio-${nuevoId()}` }] })),
+      guardarKit: (e) => set((s) => ({ kitPropio: upsert(s.kitPropio, e) })),
+      setCompra: (compra) => set({ compra }),
       borrarKit: (id) => set((s) => ({ kitPropio: s.kitPropio.filter((k) => k.id !== id), kit: sin(s.kit, id) })),
       setTema: (tema) => set({ tema }),
       setAvisos: (avisos) => set({ avisos }),

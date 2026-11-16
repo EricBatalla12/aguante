@@ -21,12 +21,22 @@ const base = () => ({
   // Esto es de cada móvil: no debe viajar
   tema: 'oscuro',
   emergencia: null,
+  // Solo viaja dentro de una emergencia
+  escenario: {},
 });
 
-test('todasLasFilas sube cada elemento y los dos ajustes', () => {
+test('todasLasFilas sube cada elemento y los tres ajustes', () => {
   const filas = todasLasFilas(base(), 5);
   const claves = filas.map((f) => `${f.tipo}:${f.id}`).sort();
-  assert.deepEqual(claves, ['ajuste:modo', 'ajuste:zonaSolar', 'kit:linterna', 'persona:ana', 'producto:p1', 'producto:p2']);
+  assert.deepEqual(claves, [
+    'ajuste:emergencia',
+    'ajuste:modo',
+    'ajuste:zonaSolar',
+    'kit:linterna',
+    'persona:ana',
+    'producto:p1',
+    'producto:p2',
+  ]);
   assert.ok(filas.every((f) => f.cambiado === 5 && !f.borrado));
 });
 
@@ -136,4 +146,52 @@ test('planActivo: sin plan, gratis, caducado, último día y sin caducidad', () 
   assert.equal(planActivo({ pro: true, hasta: '2026-11-14' }, '2026-11-15'), false);
   assert.equal(planActivo({ pro: true, hasta: '2026-11-15' }, '2026-11-15'), true);
   assert.equal(planActivo({ pro: true, hasta: null }, '2026-11-15'), true);
+});
+
+// ------------------------------------------------------------------ Emergencia compartida
+
+const enEmergencia = () => ({
+  ...base(),
+  emergencia: {
+    inicio: '2026-11-16T18:42:00.000Z',
+    sinLuzDesde: '2026-11-16T18:42:00.000Z',
+    aguaHoy: { fecha: '2026-11-16', litros: 1.5 },
+    comidoHoy: { fecha: '2026-11-16', items: [] },
+  },
+  escenario: { sinLuz: true },
+});
+
+test('la emergencia viaja con su escenario y vuelve igual', () => {
+  const a = base();
+  const b = enEmergencia();
+  const filas = cambiosEntre(a, b, 7);
+  assert.equal(filas.length, 1);
+  assert.equal(filas[0].tipo, 'ajuste');
+  assert.equal(filas[0].id, 'emergencia');
+  assert.deepEqual(filas[0].datos.escenario, { sinLuz: true });
+  // Otro móvil sin emergencia la recibe con su escenario
+  const otro = aplicarFilas(base(), filas);
+  assert.deepEqual(otro.emergencia, b.emergencia);
+  assert.deepEqual(otro.escenario, { sinLuz: true });
+});
+
+test('terminar la emergencia viaja como null y los demás la terminan', () => {
+  const filas = cambiosEntre(enEmergencia(), { ...enEmergencia(), emergencia: null }, 8);
+  assert.deepEqual(filas, [{ tipo: 'ajuste', id: 'emergencia', datos: null, borrado: false, cambiado: 8 }]);
+  const otro = aplicarFilas(enEmergencia(), filas);
+  assert.equal(otro.emergencia, null);
+  // Fuera de la emergencia el escenario no se toca
+  assert.deepEqual(otro.escenario, { sinLuz: true });
+});
+
+test('apuntar agua cambia la emergencia; el escenario fuera de ella no viaja', () => {
+  const a = enEmergencia();
+  const b = { ...a, emergencia: { ...a.emergencia, aguaHoy: { fecha: '2026-11-16', litros: 2 } } };
+  assert.equal(cambiosEntre(a, b, 9).length, 1);
+  assert.deepEqual(cambiosEntre(base(), { ...base(), escenario: { calor: true } }, 9), []);
+});
+
+test('una emergencia rota de otro móvil no se mete', () => {
+  const rota = [{ tipo: 'ajuste', id: 'emergencia', datos: { inicio: 3 }, borrado: false, cambiado: 9 }];
+  assert.equal(aplicarFilas(base(), rota), null);
 });

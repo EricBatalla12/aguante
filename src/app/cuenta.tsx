@@ -3,7 +3,7 @@
 // (sin contraseñas). Una persona crea la casa y las demás entran con su código.
 
 import { useEffect, useState } from 'react';
-import { Share, View } from 'react-native';
+import { Pressable, Share, View } from 'react-native';
 
 import { EstadoPlan } from '@/components/pro';
 import { Aviso, Boton, Campo, Icono, Pantalla, Pastilla, Seccion, Tarjeta, Texto } from '@/components/ui';
@@ -13,9 +13,11 @@ import { textoDia } from '@/lib/fechas';
 import { t, tn } from '@/lib/i18n';
 import {
   borrarCuenta,
+  cambiarCodigo,
   cerrarSesion,
   comprobarCodigo,
   crearCasa,
+  echarDeCasa,
   entrarEnCasa,
   entrarConGoogle,
   enviarCodigo,
@@ -281,6 +283,7 @@ function ConCasa({ casa }: { casa: Casa }) {
   const pendientes = useSincro((s) => Object.keys(s.pendientes).length);
   const usuario = useSincro((s) => s.usuario);
   const [gente, setGente] = useState<Miembro[]>([]);
+  const [vuelta, setVuelta] = useState(0);
   const a = useAccion();
 
   useEffect(() => {
@@ -289,7 +292,7 @@ function ConCasa({ casa }: { casa: Casa }) {
     return () => {
       vivo = false;
     };
-  }, [casa]);
+  }, [casa, vuelta]);
 
   const pastilla =
     estado === 'sincronizando' || (estado === 'parado' && !ultima)
@@ -344,6 +347,23 @@ function ConCasa({ casa }: { casa: Casa }) {
         <Boton pequeno icono="share-variant-outline" onPress={compartirCodigo}>
           {t('Compartir el código')}
         </Boton>
+        <Boton
+          pequeno
+          variante="suave"
+          icono="refresh"
+          deshabilitado={a.ocupado}
+          onPress={() =>
+            confirmar({
+              titulo: t('¿Cambiar el código?'),
+              nombre: casa.codigo,
+              mensaje: t('El código de ahora deja de valer para entrar. Quienes ya están en la casa siguen dentro.'),
+              accion: t('Cambiar'),
+              icono: 'refresh',
+              alAceptar: () => a.hacer(cambiarCodigo),
+            })
+          }>
+          {t('Cambiar el código')}
+        </Boton>
       </Tarjeta>
 
       <Seccion>{t('Quién está')}</Seccion>
@@ -357,10 +377,32 @@ function ConCasa({ casa }: { casa: Casa }) {
             <View key={m.usuario} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 32 }}>
               <Icono name="account-outline" color={C.suave} size={18} />
               <Texto style={{ flex: 1 }}>{m.correo ?? t('Sin correo')}</Texto>
-              {m.usuario === usuario && (
+              {m.usuario === usuario ? (
                 <Texto tam={13} color={C.suave}>
                   {t('tú')}
                 </Texto>
+              ) : (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={t('Sacar a {quien} de la casa', { quien: m.correo ?? t('Sin correo') })}
+                  hitSlop={8}
+                  disabled={a.ocupado}
+                  onPress={() =>
+                    confirmar({
+                      titulo: t('¿Sacar de la casa?'),
+                      nombre: m.correo ?? t('Sin correo'),
+                      mensaje: t('Deja de ver y de cambiar lo de la casa. Lo que tenga en su móvil se le queda como copia suya. Cambia también el código si lo tiene.'),
+                      accion: t('Sacar'),
+                      icono: 'account-remove-outline',
+                      alAceptar: async () => {
+                        if (await a.hacer(() => echarDeCasa(m.usuario))) setVuelta((v) => v + 1);
+                      },
+                    })
+                  }>
+                  <Texto tam={13} peso="600" color={C.rojo}>
+                    {t('Sacar')}
+                  </Texto>
+                </Pressable>
               )}
             </View>
           ))
@@ -431,7 +473,7 @@ function QueSeComparte() {
   const C = useC();
   return (
     <Texto tam={12} color={C.suave}>
-      {t('Se comparte la despensa, el hogar (personas y mascotas), el kit, la energía, el modo y el reparto manual. El tema, el idioma, los avisos, la emergencia en curso y la nota de trueque son de cada móvil. Sin conexión la app funciona igual: los cambios se suben cuando vuelve la red y, si dos personas tocan lo mismo, se queda el último cambio.')}
+      {t('Se comparte la despensa, el hogar (personas y mascotas), el kit, la energía, el modo, el reparto manual y la emergencia en curso. El tema, el idioma, los avisos, la nota de trueque y el plan de compra son de cada móvil. Sin conexión la app funciona igual: los cambios se suben cuando vuelve la red y, si dos personas tocan lo mismo, se queda el último cambio.')}
     </Texto>
   );
 }
