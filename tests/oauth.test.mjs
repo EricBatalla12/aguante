@@ -26,3 +26,8 @@ test('sin nada y con un parámetro mal codificado', () => {
   assert.ok(Object.values(leerRespuestaOAuth('aguante://auth')).every((v) => v === undefined));
   assert.equal(leerRespuestaOAuth('aguante://auth#access_token=%E0%A4%A&refresh_token=r').refresh_token, 'r');
 });
+
+test('error codificado dos veces, como lo manda Supabase', () => {
+  const r = leerRespuestaOAuth('aguante://auth#error=server_error&error_description=Unable+to+exchange+external+code%253A+4%252F0A');
+  assert.equal(r.error, 'Unable to exchange external code: 4/0A');
+});

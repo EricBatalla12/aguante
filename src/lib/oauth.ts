@@ -31,6 +31,20 @@ export function leerRespuestaOAuth(url: string): RespuestaOAuth {
     code: p.code || undefined,
     access_token: p.access_token || undefined,
     refresh_token: p.refresh_token || undefined,
-    error: p.error_description || p.error || undefined,
+    error: decodificarDeNuevo(p.error_description || p.error) || undefined,
   };
+}
+
+/**
+ * Supabase manda el texto del error codificado dos veces (llega
+ * «code%3A 4%2F0A…» tras decodificar una): se decodifica otra vez si aún
+ * quedan secuencias %XX.
+ */
+function decodificarDeNuevo(texto: string | undefined): string | undefined {
+  if (!texto || !/%[0-9A-Fa-f]{2}/.test(texto)) return texto;
+  try {
+    return decodeURIComponent(texto);
+  } catch {
+    return texto;
+  }
 }
