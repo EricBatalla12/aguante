@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calculadora: cuántos días aguanta tu casa · Aguante</title>
+<meta name="description" content="Calcula en un minuto cuántos días aguantaría tu casa con el agua y la comida que tienes guardadas.">
+<link rel="stylesheet" href="estilo.css">
+<!-- Dirección prevista en GitHub Pages: si cambia, cambiarla en todas las páginas (web/README.md) -->
+<link rel="icon" href="img/icono-32.png" sizes="32x32">
+<link rel="apple-touch-icon" href="img/icono-180.png">
+<meta name="theme-color" content="#14211b">
+<meta property="og:type" content="website">
+<meta property="og:locale" content="es_ES">
+<meta property="og:site_name" content="Aguante">
+<meta property="og:title" content="Calculadora: cuántos días aguanta tu casa · Aguante">
+<meta property="og:description" content="Calcula en un minuto cuántos días aguantaría tu casa con el agua y la comida que tienes guardadas.">
+<meta property="og:url" content="https://ericbatalla12.github.io/aguante/calculadora.html">
+<meta property="og:image" content="https://ericbatalla12.github.io/aguante/img/compartir.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta name="twitter:card" content="summary_large_image">
+</head>
+<body>
+<header class="barra"><div class="ancho">
+  <a class="marca" href="index.html">Aguante</a>
+  <nav>
+    <a href="calculadora.html">Calculadora</a>
+    <a href="guias/agua.html">Guías</a>
+    <a href="privacidad.html">Privacidad</a>
+  </nav>
+</div></header>
+<main class="ancho">
+
+<h1>Calculadora</h1>
+<p class="entradilla">Pon quién vive en casa y lo que tenéis guardado. Es el mismo cálculo que hace la app, en modo normal
+(raciones completas).</p>
+
+<form id="calculadora" class="tarjeta" onsubmit="return false">
+  <h3 style="margin-top:0">Quién vive en casa</h3>
+  <div id="personas"></div>
+  <p><button type="button" class="boton secundario" id="otra">Añadir persona</button></p>
+
+  <h3>Mascotas</h3>
+  <div id="mascotas"></div>
+  <p><button type="button" class="boton secundario" id="otraMascota">Añadir mascota</button></p>
+
+  <h3>Lo que tenéis guardado</h3>
+  <label for="agua">Agua embotellada (litros en total)</label>
+  <input id="agua" type="number" min="0" step="0.5" inputmode="decimal" placeholder="24">
+  <label for="botes">Botes de legumbre cocida (400 g escurridos)</label>
+  <input id="botes" type="number" min="0" step="1" inputmode="numeric" placeholder="6">
+  <label for="latas">Latas de atún o sardinas en aceite (80 g escurridos)</label>
+  <input id="latas" type="number" min="0" step="1" inputmode="numeric" placeholder="6">
+  <label for="secos">Arroz y pasta secos (kg en total)</label>
+  <input id="secos" type="number" min="0" step="0.5" inputmode="decimal" placeholder="2">
+  <label for="otras">Otra comida (kcal en total, de las etiquetas)</label>
+  <input id="otras" type="number" min="0" step="100" inputmode="numeric" placeholder="0">
+</form>
+
+<div id="resultado" aria-live="polite"></div>
+
+<p class="nota">Las calorías por 100 g son de USDA FoodData Central: garbanzos cocidos 139, atún en aceite 198, arroz
+crudo 365. El arroz y la pasta necesitan agua para cocerse, que aquí no se descuenta: la app sí la cuenta. Los bebés de
+menos de un año, el embarazo y la lactancia solo están en la app.</p>
+<div class="tarjeta">
+  <p><strong>En la app lo apuntas escaneando el código de barras</strong> de cada lata y cada garrafa, te avisa antes de
+  que caduque y funciona sin internet.</p>
+  <a class="boton" href="index.html#descargar">Descargar Aguante</a>
+</div>
+<script type="module" src="js/calculadora.js"></script>
+</main>
+<footer class="ancho">
+  <p>Aguante es gratis, sin anuncios y funciona sin internet. Las cifras salen de FAO, EFSA, FEMA y Ready.gov:
+  la app enseña cada fuente en «Fuentes y método».</p>
+  <p><a href="privacidad.html">Privacidad</a> · <a href="borrar-cuenta.html">Borrar tu cuenta</a> ·
+  <a href="guias/agua.html">Cuánta agua guardar</a> · <a href="guias/sin-luz.html">Si se va la luz</a> ·
+  <a href="guias/rotar.html">Rotar la despensa</a></p>
+</footer>
+</body>
+</html>
