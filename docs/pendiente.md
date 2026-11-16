@@ -4,14 +4,15 @@ Ideas apuntadas para más adelante. Lo ya hecho está al final.
 
 ## Cuentas y casa compartida: lo que falta
 
-Hecho el 15/11/2026 (ver [cuentas.md](cuentas.md)). Queda:
+Hecho el 15/11/2026 (ver [cuentas.md](cuentas.md)). El 16/11/2026 se hizo
+compartir la emergencia en curso, cambiar el código de la casa y sacar a
+alguien (hay que volver a ejecutar `supabase/esquema.sql`), y la página web
+para pedir el borrado de la cuenta (`web/borrar-cuenta.html`, sin publicar).
+Queda:
 
-- Si se sube a Google Play: una página web para pedir que se borre la cuenta
-  sin instalar la app (creo que Play lo pide además del botón de la app; sin
-  comprobar).
-- Compartir también la emergencia en curso: hoy es de cada móvil, porque el
-  agua y la comida apuntadas hoy se pisarían si dos personas apuntan a la vez.
-- Cambiar el código de la casa o echar a alguien.
+- Si dos personas apuntan agua o comida a la vez sin conexión, se queda el
+  último apunte. Para que no se pierda ninguno habría que guardar cada apunte
+  como un elemento propio (un tipo nuevo en el SQL).
 
 ## Trueque entre usuarios
 
@@ -19,6 +20,28 @@ La versión de ahora es local: calcula lo que sobra y lo que falta y lo deja
 listo para mandarlo por WhatsApp o Telegram. Un trueque entre usuarios
 cercanos dentro de la app necesita las cuentas de arriba y decidir qué pasa
 sin internet.
+
+Revisado el 16/11/2026 y **sin hacer a propósito**: antes hay que decidir lo
+que expone a desconocidos. Propuesta, para que Eric decida:
+
+- **Zona por código postal**, nunca por GPS: ni permiso de ubicación ni módulo
+  nativo, y no se puede triangular dónde vive nadie.
+- **Anuncios sin datos de casa**: «ofrezco 10 L de agua», «busco pilas AA».
+  Nada de cuántos días aguanta la casa ni quién vive en ella (diría a un
+  desconocido qué casa tiene reservas y cuál está vacía).
+- **Contacto**: o chat dentro de la app (más trabajo, pero no se publica nada)
+  o un contacto que el anunciante pone a mano y que solo se enseña a quien
+  pulsa «Me interesa». Recomendación: el segundo, con caducidad del anuncio a
+  los 7 días.
+- **Moderación**: botón de denunciar, ocultar anuncios con varias denuncias y
+  límite de anuncios por cuenta. Alguien (Eric) tiene que revisar denuncias.
+- **Servidor**: tabla `anuncios` con RLS (se leen los del mismo código postal,
+  se escriben solo los propios) y funciones como las de la casa. Sin conexión,
+  solo se ven los que se bajaron la última vez.
+- **Privacidad**: el contacto es un dato personal que se enseña a terceros:
+  va en la política de privacidad y necesita consentimiento explícito.
+- Encaja como función de Pro (hoy apagado) o gratis: decidirlo con lo de
+  monetizar.
 
 ## Monetizar
 
@@ -39,21 +62,24 @@ de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
 
 ## Marketing
 
-- Más vídeos con HyperFrames a partir de `marketing/video-dias/` (el kit de
-  72 h en 30 s, la energía sin luz…). Para subirlos a redes falta música:
-  HyperFrames recomienda sonido en vídeos de más de 15 s.
-- Calculadora en una web sin instalar nada que lleve a descargar la app (lo
-  hace Provision); el cálculo de `src/lib/calculo.ts` es puro y se puede
-  reutilizar.
-- Aprovechar los momentos en que la gente busca esto: apagones, DANAs, olas
-  de calor, la campaña de la UE de tener reservas para 72 h (citada de
-  memoria, sin comprobar).
-- Contenido útil con fuentes y guías en la web («cuánta agua por persona»,
-  «rotar la despensa»), y que un nutricionista o alguien de protección civil
-  revise la pantalla de fuentes.
-- Compartir el resultado como imagen (hoy se comparte como texto).
-- Asociaciones de vecinos, scouts, protección civil y prepper/camping en foros
-  y Reddit.
+- Más vídeos con HyperFrames (el kit de 72 h en 30 s, la energía sin luz…).
+  Hechos: `aguante-dias.mp4`, `aguante-semana.mp4` y `aguante-apagon.mp4`. El
+  siguiente, según Eric: el móvil más grande y más arriba, que se vea escanear
+  el código de barras y que la app es para latas y conservas (detalle en
+  CLAUDE.md, «Vídeos de marketing»).
+- **Web publicada** (16/11/2026) en https://ericbatalla12.github.io/aguante/: `web/` con página principal,
+  calculadora (el mismo `calculo.ts`, compilado con `npm run sitio`), tres
+  guías, política de privacidad y página para borrar la cuenta. Se publica
+  sola al subir cambios de `web/` a `main` (ver `web/README.md`).
+- **Textos de difusión** para Reddit y foros, asociaciones de vecinos, scouts y
+  Protección Civil: `marketing/difusion.md` (los publica o manda Eric).
+- Que un nutricionista o alguien de protección civil revise la pantalla de
+  fuentes (el correo a Protección Civil de `difusion.md` lo pide).
+- La UE: no «recomienda» 72 horas; su estrategia de preparación (marzo de
+  2025) se propone elaborar pautas para que la población aguante un mínimo de
+  72 horas. Corregido en la app el 16/11/2026.
+- Compartir el resultado como imagen (hoy se comparte como texto): necesita
+  módulos nativos y APK nuevo; Eric lo ha dejado para más adelante.
 
 ## Noticias de guerra o posibles desastres
 
@@ -62,15 +88,13 @@ relacionadas con guerras o posibles desastres. Pendiente de mirar la
 viabilidad (de dónde salen las noticias, si hay fuentes oficiales de avisos,
 coste y que no sea alarmista) y contársela a Eric.
 
-## Ideas sacadas de otras apps (sin hacer)
+## Ideas sacadas de otras apps
 
-- Avisos de caducidad en tu propio calendario (suscripción ICS), como
-  Provision.
-- Plan de compra con presupuesto mensual.
-- Mochila de evacuación aparte, medida contra 72 horas, y plantillas de kit
-  (coche, botiquín).
-- Quitar un producto escaneándolo al gastarlo.
-- Medicinas y pilas con caducidad.
+Hechas el 16/11/2026 (ver «Hecho el 16/11/2026»). Queda:
+
+- Una suscripción ICS que se actualice sola (como Provision): necesitaría un
+  servidor que sirva el calendario de cada casa. Hoy cada aviso se añade a
+  mano a Google Calendar desde el producto o el elemento del kit.
 
 ## Donaciones y planes de pago
 
@@ -91,6 +115,22 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
   comprobar).
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
+
+## Hecho el 16/11/2026
+
+Todo sin módulos nativos: llega por actualización, sin APK nuevo. Probado en
+la versión web y con tests; no probado en el móvil.
+
+- Kit en cuatro listas (casa, mochila, coche y botiquín) sacadas de Ready.gov.
+  La mochila dice el agua para beber y la comida de 72 horas para la casa.
+- Lo que añade cada casa al kit puede llevar caducidad (medicinas, pilas…):
+  sale en «Rotar pronto», avisa como los productos y se edita en `kit/[id]`.
+- Plan de compra por meses en Preparación, con el presupuesto y los precios
+  que pone cada uno (`planCompra` en `calculo.ts`).
+- Aviso de caducidad en Google Calendar desde un producto o un elemento del
+  kit (`src/lib/calendario.ts`).
+- Casa: cambiar el código, sacar a alguien y compartir la emergencia en curso.
+- Web y textos de difusión (ver «Marketing»).
 
 ## Hecho el 15/11/2026
 

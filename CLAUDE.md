@@ -32,8 +32,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - Cuenta de Expo de Eric: `eric_161`; proyecto `@eric_161/aguante`, paquete
   `com.eric_161.aguante`. Desde aquí `npx --yes eas-cli@latest …` funciona con
   su sesión (`whoami`, `build:list`, `build:view`, `update:list`).
-- APK nuevo: lo lanza Eric con `npx eas-cli build -p android --profile preview`.
-  `preview` tiene `autoIncrement` (sube el versionCode en cada APK).
+- APK nuevo: `npx --yes eas-cli@latest build -p android --profile preview
+  --non-interactive --no-wait` (desde aquí funciona, con el visto bueno de
+  Eric). `preview` tiene `autoIncrement` (sube el versionCode en cada APK).
+  Para ver canal y runtime de una compilación: `build:view <id>` (en el JSON
+  son `updateChannel.name` y `runtime.version`, no `channel`).
 - **EAS Update** configurado (canal `preview`, `runtimeVersion` con política
   `appVersion`). Cambios solo de JS/textos: `npm run publicar -- -m "…"` y le
   llegan al abrir la app (se aplican en el siguiente arranque). En Ajustes,
@@ -43,13 +46,14 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - Publicar una actualización o lanzar una compilación es algo que se ve fuera
   del PC: confirmarlo con Eric antes.
 
-- **Las actualizaciones no se aplicaban** en el APK versionCode 2 (15/11/2026):
-  el APK está bien configurado (comprobado dentro del APK: URL, runtime 1.0.0,
-  canal `preview`, `CHECK_ON_LAUNCH=ALWAYS`) y el servidor entrega la última
-  actualización a ese canal y runtime, pero EAS no registra ningún lanzamiento
-  (`npx eas-cli update:insights <grupo>`). Para verlo desde el móvil:
-  `src/components/actualizacion.tsx` (aviso «Reiniciar ahora» en Inicio y
-  estado con errores y «Buscar actualización» en Ajustes).
+- Eric tiene instalado el **APK versionCode 3** (commit `91ca425`) y **ese sí
+  recibe las actualizaciones** (comprobado el 15/11/2026: le llegó la
+  `5a049262`). Con el versionCode 2 no se aplicaban y nunca se supo por qué
+  (el APK estaba bien configurado). Para verlo desde el móvil:
+  `src/components/actualizacion.tsx` (aviso «Reiniciar ahora» en Inicio y, en
+  Ajustes, canal, runtime, última comprobación, errores y «Buscar
+  actualización»). Lanzamientos por actualización: `npx eas-cli
+  update:insights <grupo>`.
 
 ## Convenciones del código
 
@@ -81,26 +85,94 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `Cannot access refs during render`): un `Animated.Value` va en `useState`.
 - Las rutas tipadas (`.expo/types/router.d.ts`) se regeneran al arrancar Metro:
   hasta entonces `tsc` da error en rutas nuevas.
-- Vídeo de marketing: `marketing/video-dias/` (HyperFrames, 1080×1920, 15 s);
-  `npm run check` y `npm run render` dentro de esa carpeta. Último render en
-  `marketing/aguante-dias.mp4`.
+- Vídeos de marketing (HyperFrames, 1080×1920; `npm run check` y `npm run render` dentro de cada
+  carpeta; `video-semana` y `video-apagon` tienen `SPEC.md` y `REVIEW.md`):
+  - `marketing/video-dias/` (15 s, sin sonido) → `marketing/aguante-dias.mp4`.
+  - `marketing/video-semana/` (27,6 s, de 3 a 7 días, música y efectos) → `marketing/aguante-semana.mp4`.
+  - `marketing/video-apagon/` (25,9 s, el reloj del apagón, el más dramático) →
+    `marketing/aguante-apagon.mp4`.
+  - `marketing/video-escaner/` (21 s, escanear una lata; hecho con las notas de abajo) →
+    `marketing/aguante-escaner.mp4`.
+  - **Capturas del escáner**: en la web la cámara no se abre; en desarrollo, `/anadir?escanear=1` abre el
+    escáner y `/anadir?codigo=…` busca un código (`src/app/anadir.tsx`). Con Chrome sin ventana y
+    `--use-fake-device-for-media-stream --use-file-for-fake-video-capture=<vídeo .y4m>` el escáner de la app
+    lee de verdad un código de barras dibujado. La web pinta la cámara en espejo: quitar el `transform` del
+    `<video>` antes de capturar.
+  - **Notas de Eric para los vídeos** (16/11/2026, tras ver `aguante-apagon.mp4`, que le gustó; aplicadas en
+    `video-escaner`):
+    - El móvil tiene que verse más: en los dos últimos empieza en y = 560 px y, entre el titular y la
+      franja de abajo que tapan las redes (desde 1248 px), solo se ve un trozo de la pantalla. Subirlo
+      y agrandarlo, y dejar el titular corto, encima o al lado.
+    - Tiene que verse la idea principal: escanear el código de barras.
+    - Tiene que quedar claro que la app está pensada para latas y conservas.
+    - El escáner que salga tiene que ser el de la app (ver «Capturas del escáner»), no uno dibujado.
+  - Música del catálogo de HeyGen con la sesión de `npx hyperframes auth login` (cuenta de Eric). La
+    búsqueda va por `~/.claude/skills/media-use/audio/scripts/audio.mjs` (`media-use resolve --type bgm`
+    pide la CLI `heygen`, que no está instalada).
 
-## Estado a 15/11/2026
+## Estado a 16/11/2026
 
-- Rama `feat/mvp`, sin remoto. Commits: `f9b33af` (MVP), `ede1c89` (energía,
-  nevera-congelador-latas, inglés, trueque, vídeo), `93982e6` (EAS Update) y
-  el del diálogo de confirmación (ver `git log`).
-- El último commit añade el diálogo de confirmación propio
-  (`src/components/dialogo.tsx`, `confirmar` con firma de objeto) y
-  `autoIncrement` en el perfil `preview`. Probado en web; no en el móvil.
-- 15/11/2026: publicado con EAS Update (grupo `beb14447`, runtime 1.0.0) el
-  diálogo de confirmación y la casa compartida (luego en commit `30814b7`).
-- 15/11/2026: APK nuevo (versionCode 2, canal `preview`) compilado desde
-  `30814b7`; los APK anteriores al de las 15:11 no reciben actualizaciones.
-  Publicado con EAS Update el grupo `a2dcd56c` (borrar cuenta y gastar
-  escaneando, commit `3a676d4`).
+- **En GitHub** desde el 16/11/2026: repositorio **público**
+  `EricBatalla12/aguante` (se llamaba `aguante-web` y solo tenía la web). La
+  rama local `feat/mvp` se sube a `main` del remoto (`git push origin
+  feat/mvp:main`). No van a git la caché de los vídeos ni la música de HeyGen
+  (`marketing/*/.media/`): para volver a renderizar un vídeo hay que volver a
+  bajarla (la búsqueda está en su `REVIEW.md`). Al ser público, no escribir
+  aquí ni en `docs/` nada privado.
+- Antes de GitHub, último commit: `2deff68` (entrar con Google).
+  Antes: `91ca425` (aviso de actualizaciones), `a53cf12` (donaciones, Pro
+  apagado), `49ba3cf` (planes), `3a676d4` (borrar cuenta, gastar escaneando),
+  `30814b7` (casa compartida).
+- **Sin commit** (preguntar a Eric antes de commitear y publicar):
+  - `src/lib/oauth.ts` y `tests/oauth.test.mjs`: el error de Google llega
+    codificado dos veces y ahora se decodifica bien.
+  - Lo del 16/11/2026 (detalle en `docs/pendiente.md`, «Hecho el 16/11/2026»):
+    kit en cuatro listas con caducidades, plan de compra por meses, avisos en
+    Google Calendar, cambiar el código de la casa, sacar a alguien y compartir
+    la emergencia en curso. 70 tests en verde, `tsc`, lint, `expo-doctor` y
+    export de Android limpios; probado en la versión web, **no en el móvil**.
+    Va por actualización (sin módulos nativos), pero **antes hay que volver a
+    ejecutar `supabase/esquema.sql`** en el SQL Editor (funciones
+    `cambiar_codigo` y `echar_de_casa`).
+  - `web/` (sin publicar), `marketing/difusion.md`, los vídeos
+    `video-semana` y `video-apagon` y este CLAUDE.md.
+- Última actualización publicada: grupo `5a049262` (entrar con Google), canal
+  `preview`, runtime 1.0.0.
+- APK versionCode 3: https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
+- El modo automático bloquea a veces `git commit` si Eric no lo ha pedido en
+  ese mismo mensaje: no rodearlo, preguntar.
+- Para capturas o pruebas en la versión web con el panel sin pintar: Chrome sin
+  ventana de HyperFrames (`~/.cache/hyperframes/chrome/…/chrome-headless-shell`)
+  con `puppeteer-core` de la caché de npx, escribiendo `localStorage['aguante']`
+  antes de cargar.
 
-## Cuentas y casa compartida (Supabase), hecho el 15/11/2026 sin commit
+## Siguiente trabajo
+
+Lo que queda está en `docs/pendiente.md`. Eric dejó para más adelante
+compartir el resultado como imagen (necesita APK nuevo) y las noticias. El
+trueque entre vecinos tiene una propuesta escrita y espera a que Eric decida.
+
+## Pendiente fuera del código
+
+- Probar «Entrar con Google» con el secreto nuevo (Eric tenía que pegarlo en
+  Supabase el 15/11/2026; el primer intento falló con «Unable to exchange
+  external code» por un secreto mal copiado de una captura).
+- Cambiar la contraseña de aplicación de Gmail del SMTP y el secreto de
+  Google: los dos quedaron escritos en la conversación. Y quitar el JSON del
+  secreto de `~/Descargas`.
+- **Web publicada** el 16/11/2026 en https://ericbatalla12.github.io/aguante/,
+  desde el mismo repositorio que la app (ver «Estado»): el flujo
+  `.github/workflows/web.yml` la publica sola al subir cambios de `web/` a
+  `main`. Falta poner esas direcciones en
+  Google Cloud (pantalla de consentimiento: página principal
+  `index.html` y privacidad `privacidad.html`) y, cuando toque, en Google Play
+  (privacidad y `borrar-cuenta.html`). Contacto público de la web:
+  ericbatalla16@gmail.com. El responsable figura solo como «Eric»: quizá haga
+  falta identificarlo más (sin comprobar).
+- Viabilidad de la idea de noticias de guerra o desastres (en
+  `docs/pendiente.md`): contársela a Eric.
+
+## Cuentas y casa compartida (Supabase), hecho el 15/11/2026
 
 Cómo funciona, qué tiene que configurar Eric y qué está probado:
 [docs/cuentas.md](docs/cuentas.md). Resumen para trabajar en ello:
@@ -131,17 +203,28 @@ Cómo funciona, qué tiene que configurar Eric y qué está probado:
   conexión), `planActivo` en `compartido.ts` y `src/components/pro.tsx`. Solo
   el trueque es de Pro. **Apagado** con `PRO_ACTIVO = false` en
   `src/constants/monetizacion.ts`: se vive de donaciones (`ENLACE_DONAR`, en
-  el mismo fichero; vacío, no sale el apartado «Apoyar Aguante» de Ajustes).
+  el mismo fichero; si se deja vacío, no sale el apartado «Apoyar Aguante» de
+  Ajustes).
 - Entrar con Google: navegador del sistema + `aguante://auth`, sin módulo
   nativo. El botón solo sale si Google está activado en Supabase. Pasos de
-  Google Cloud para Eric en `docs/cuentas.md`.
-- APK versionCode 3 (commit `91ca425`, con el aviso y el estado de las
-  actualizaciones): https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
+  Google Cloud para Eric en `docs/cuentas.md`. Proyecto de Google Cloud
+  «Aguante», pantalla de consentimiento en estado **Prueba** (solo entran los
+  usuarios de prueba; para publicar, Google pide página principal y política
+  de privacidad). Cliente OAuth «Web application», creado el 15/11/2026:
+  - ID de cliente: `24235143956-dlc7o305nsalmhlalejl19ml28u8duov.apps.googleusercontent.com`
+  - **El secreto del cliente no se guarda en el repo**: lo tiene Eric y va
+    solo en Supabase (*Sign In / Providers › Google*).
 - Gastar escaneando: `src/app/gastar.tsx`, `productosConCodigo` en
   `calculo.ts` (compara sin ceros delante) y `gastar` en el store.
 - Configurado el 15/11/2026: SQL ejecutado, SMTP con el Gmail personal de
   Eric (usuario = dirección completa, contraseña de aplicación) y el código en
   las plantillas Magic link y Confirm sign up. El envío del código funciona
-  (comprobado en la web). Sin probar: entrar con el código, crear casa y
-  sincronizar entre dos móviles. Si falla un envío, la causa está en
-  *Logs › Auth* del panel (el 500 de la app es el SMTP).
+  (comprobado en la web) y Eric dice que ha probado la casa compartida en el
+  móvil. Si falla un envío, la causa está en *Logs › Auth* del panel (el 500
+  de la app es el SMTP). En el panel se puede ejecutar SQL desde el SQL Editor
+  con la sesión de Eric en el navegador integrado (pegar con
+  `editor.trigger('keyboard', 'paste', {text})` de Monaco; Supabase avisa de
+  «operaciones destructivas» si hay `delete` aunque sea dentro de una función).
+- Donaciones: `ENLACE_DONAR = 'https://paypal.me/EBatalla167'` en
+  `src/constants/monetizacion.ts`. Para una versión de Google Play hay que
+  dejarlo vacío (su política de pagos no deja llevar a pagar fuera de Play).
