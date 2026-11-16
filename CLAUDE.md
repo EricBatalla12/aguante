@@ -110,65 +110,66 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
     búsqueda va por `~/.claude/skills/media-use/audio/scripts/audio.mjs` (`media-use resolve --type bgm`
     pide la CLI `heygen`, que no está instalada).
 
-## Estado a 16/11/2026
+## Estado a 16/11/2026 (al final del día)
 
-- **En GitHub** desde el 16/11/2026: repositorio **público**
-  `EricBatalla12/aguante` (se llamaba `aguante-web` y solo tenía la web). La
-  rama local `feat/mvp` se sube a `main` del remoto (`git push origin
-  feat/mvp:main`). No van a git la caché de los vídeos ni la música de HeyGen
+- **En GitHub**: repositorio **público** `EricBatalla12/aguante` (se llamaba
+  `aguante-web` y solo tenía la web). La rama local `feat/mvp` sigue a
+  `origin/main` (`git push origin feat/mvp:main`); la local `master` se quedó
+  en el commit inicial y no se usa. Todo está commiteado y subido
+  (`git log -1` dice cuál es el último). No van a git la caché de los vídeos ni la música de HeyGen
   (`marketing/*/.media/`): para volver a renderizar un vídeo hay que volver a
-  bajarla (la búsqueda está en su `REVIEW.md`). Al ser público, no escribir
-  aquí ni en `docs/` nada privado.
-- Antes de GitHub, último commit: `2deff68` (entrar con Google).
-  Antes: `91ca425` (aviso de actualizaciones), `a53cf12` (donaciones, Pro
-  apagado), `49ba3cf` (planes), `3a676d4` (borrar cuenta, gastar escaneando),
-  `30814b7` (casa compartida).
-- **Sin commit** (preguntar a Eric antes de commitear y publicar):
-  - `src/lib/oauth.ts` y `tests/oauth.test.mjs`: el error de Google llega
-    codificado dos veces y ahora se decodifica bien.
-  - Lo del 16/11/2026 (detalle en `docs/pendiente.md`, «Hecho el 16/11/2026»):
-    kit en cuatro listas con caducidades, plan de compra por meses, avisos en
-    Google Calendar, cambiar el código de la casa, sacar a alguien y compartir
-    la emergencia en curso. 70 tests en verde, `tsc`, lint, `expo-doctor` y
-    export de Android limpios; probado en la versión web, **no en el móvil**.
-    Va por actualización (sin módulos nativos), pero **antes hay que volver a
-    ejecutar `supabase/esquema.sql`** en el SQL Editor (funciones
-    `cambiar_codigo` y `echar_de_casa`).
-  - `web/` (sin publicar), `marketing/difusion.md`, los vídeos
-    `video-semana` y `video-apagon` y este CLAUDE.md.
-- Última actualización publicada: grupo `5a049262` (entrar con Google), canal
-  `preview`, runtime 1.0.0.
+  bajarla (la búsqueda está en su `REVIEW.md`). **Al ser público, no escribir
+  aquí ni en `docs/` nada privado.**
+- Lo del 16/11/2026 (detalle en `docs/pendiente.md`, «Hecho el 16/11/2026»):
+  kit en cuatro listas con caducidades, plan de compra por meses, avisos en
+  Google Calendar, cambiar el código de la casa, sacar a alguien y compartir la
+  emergencia en curso. Tests, `tsc`, lint, `expo-doctor` y export de Android
+  limpios; probado en la versión web, **no en el móvil**. Publicado por EAS
+  Update el 16/11/2026 con el visto bueno de Eric, después de que ejecutara
+  `supabase/esquema.sql` (comprobado: el servidor ya tiene `cambiar_codigo` y
+  `echar_de_casa`; sin sesión responden «permission denied», no «no existe»).
+  Falta que Eric lo pruebe en el móvil.
+- Última actualización publicada: grupo `533b7fe4` (kit en listas, plan de
+  compra, calendario y casa compartida), canal `preview`, runtime 1.0.0. La
+  anterior: `5a049262` (entrar con Google).
 - APK versionCode 3: https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
 - El modo automático bloquea a veces `git commit` si Eric no lo ha pedido en
   ese mismo mensaje: no rodearlo, preguntar.
 - Para capturas o pruebas en la versión web con el panel sin pintar: Chrome sin
   ventana de HyperFrames (`~/.cache/hyperframes/chrome/…/chrome-headless-shell`)
   con `puppeteer-core` de la caché de npx, escribiendo `localStorage['aguante']`
-  antes de cargar.
+  antes de cargar. La web estática se ve en local con la configuración
+  `aguante-sitio` de `/home/eric/Proyectos/.claude/launch.json` (puerto 8090).
 
 ## Siguiente trabajo
 
-Lo que queda está en `docs/pendiente.md`. Eric dejó para más adelante
-compartir el resultado como imagen (necesita APK nuevo) y las noticias. El
-trueque entre vecinos tiene una propuesta escrita y espera a que Eric decida.
+- **TikTok** (propuesta del 16/11/2026, Eric no ha respondido aún): Claude
+  prepara vídeos y textos, lee las estadísticas en TikTok Studio con la sesión
+  de Eric en el navegador integrado y cada semana propone qué tipo de vídeo
+  hacer. **Cada publicación necesita el sí de Eric a ese vídeo**; nada de
+  publicar solo ni de saltar captchas. Empezar por los tres vídeos de
+  `marketing/` (apagón, escáner, de 3 a 7 días), uno cada 2–3 días, probando
+  una sola cosa a la vez (el gancho). Con menos de 8–10 vídeos los números son
+  ruido: decirlo así.
+- Lo demás está en `docs/pendiente.md`. Eric dejó para más adelante compartir
+  el resultado como imagen (necesita APK nuevo) y las noticias. El trueque
+  entre vecinos tiene una propuesta escrita y espera a que Eric decida.
 
 ## Pendiente fuera del código
 
-- Probar «Entrar con Google» con el secreto nuevo (Eric tenía que pegarlo en
-  Supabase el 15/11/2026; el primer intento falló con «Unable to exchange
-  external code» por un secreto mal copiado de una captura).
-- Cambiar la contraseña de aplicación de Gmail del SMTP y el secreto de
-  Google: los dos quedaron escritos en la conversación. Y quitar el JSON del
-  secreto de `~/Descargas`.
-- **Web publicada** el 16/11/2026 en https://ericbatalla12.github.io/aguante/,
-  desde el mismo repositorio que la app (ver «Estado»): el flujo
-  `.github/workflows/web.yml` la publica sola al subir cambios de `web/` a
-  `main`. Falta poner esas direcciones en
-  Google Cloud (pantalla de consentimiento: página principal
-  `index.html` y privacidad `privacidad.html`) y, cuando toque, en Google Play
-  (privacidad y `borrar-cuenta.html`). Contacto público de la web:
-  ericbatalla16@gmail.com. El responsable figura solo como «Eric»: quizá haga
-  falta identificarlo más (sin comprobar).
+- Poner la web en Google Cloud (pantalla de consentimiento de OAuth del
+  proyecto «Aguante»): página principal https://ericbatalla12.github.io/aguante/
+  y privacidad https://ericbatalla12.github.io/aguante/privacidad.html. Cuando
+  toque, en Google Play: privacidad y `borrar-cuenta.html`.
+- Probar «Entrar con Google» con el secreto nuevo (el primer intento falló con
+  «Unable to exchange external code» por un secreto mal copiado).
+- Cambiar, por precaución, la contraseña de aplicación de Gmail del SMTP y el
+  secreto de Google, y quitar el JSON del secreto de `~/Descargas`.
+- **Web publicada** en https://ericbatalla12.github.io/aguante/ desde este
+  repositorio: el flujo `.github/workflows/web.yml` la publica sola al subir
+  cambios de `web/` a `main`. Contacto público: ericbatalla16@gmail.com. El
+  responsable figura solo como «Eric»: quizá haga falta identificarlo más (sin
+  comprobar).
 - Viabilidad de la idea de noticias de guerra o desastres (en
   `docs/pendiente.md`): contársela a Eric.
 
