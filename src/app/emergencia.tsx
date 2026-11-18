@@ -10,6 +10,7 @@ import { ControlesEscenario } from '@/components/escenario';
 import { SelectorModo } from '@/components/selector-modo';
 import { Barra, Boton, Icono, Pastilla, Segmentado, Tarjeta, Texto, type NombreIcono } from '@/components/ui';
 import {
+  ACTIVIDAD_POR_DEFECTO,
   aguaMascota,
   aguaPersona,
   conservacionDe,
@@ -30,7 +31,7 @@ import { textoCantidad } from '@/lib/formato';
 import { volver } from '@/lib/navegacion';
 import { fechaISO, horasSinLuz, hoyISO, useAguante } from '@/lib/store';
 import { ProveedorTema, useC } from '@/lib/tema';
-import { ETIQUETA_MODO, useResultado } from '@/lib/use-resultado';
+import { ETIQUETA_MODO, useEscenario, useResultado } from '@/lib/use-resultado';
 import { t, tx } from '@/lib/i18n';
 
 // Medidas para apuntar el agua: un vaso, un botellín, un litro y una botella
@@ -56,14 +57,15 @@ function Contenido() {
   const deshacerComido = useAguante((s) => s.deshacerComido);
   const modo = useAguante((s) => s.modo);
   const manual = useAguante((s) => s.manual);
-  const escenario = useAguante((s) => s.escenario);
+  const escenario = useEscenario();
   const personas = useAguante((s) => s.personas);
   const mascotas = useAguante((s) => s.mascotas);
   const productos = useAguante((s) => s.productos);
   const setEscenario = useAguante((s) => s.setEscenario);
   const [medida, setMedida] = useState(0.5);
-  // Escenario que se elige antes de empezar; arranca con el guardado
-  const [escInicio, setEscInicio] = useState<Escenario>(escenario);
+  // Escenario que se elige antes de empezar; arranca con el guardado, pero
+  // sedentarios: en una emergencia se hace poco (se puede cambiar)
+  const [escInicio, setEscInicio] = useState<Escenario>(() => ({ ...escenario, actividad: ACTIVIDAD_POR_DEFECTO }));
   const [cambiarEsc, setCambiarEsc] = useState(false);
   // Reloj de minuto en minuto: las horas sin luz cambian lo que se puede comer
   const [ahora, setAhora] = useState(() => Date.now());
@@ -147,6 +149,12 @@ function Contenido() {
               </View>
               <View style={{ flexDirection: 'row', gap: 6, flexWrap: 'wrap' }}>
                 <Pastilla texto={t('Modo {m}', { m: t(ETIQUETA_MODO[modo]).toLowerCase() })} fondo={C.rojoTinte} color={C.rojoOscuro} />
+                <Pastilla
+                  texto={escenario.actividad === 'normal' ? t('Con actividad') : t('Sedentarios')}
+                  icono={escenario.actividad === 'normal' ? 'walk' : 'sofa-outline'}
+                  fondo={C.segmento}
+                  color={C.texto2}
+                />
                 {escenario.sinLuz && <Pastilla texto={t('Sin luz')} icono="flash-off" fondo={C.segmento} color={C.texto2} />}
                 {escenario.sinCocina && <Pastilla texto={t('Sin cocina')} icono="fire-off" fondo={C.segmento} color={C.texto2} />}
                 {escenario.calor && <Pastilla texto={t('Calor')} icono="weather-sunny" fondo={C.segmento} color={C.texto2} />}
@@ -287,7 +295,7 @@ function Contenido() {
                   <Racion
                     key={p.id}
                     nombre={p.nombre}
-                    kcal={p.edadAnios < 1 ? null : kcalPersona(p, modo, manual)}
+                    kcal={p.edadAnios < 1 ? null : kcalPersona(p, modo, manual, escenario)}
                     litros={aguaPersona(p, modo === 'manual' ? 'manual' : 'extremo', escenario, manual)}
                   />
                 ))}

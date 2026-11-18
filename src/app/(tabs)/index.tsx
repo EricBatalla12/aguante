@@ -18,6 +18,7 @@ import {
   Texto,
   type NombreIcono,
 } from '@/components/ui';
+import { Hueco } from '@/components/tutorial';
 import { diasHasta, estadoCaducidad, formatoNumero } from '@/lib/calculo';
 import { calcularEnergia } from '@/lib/energia';
 import { textoDia } from '@/lib/fechas';
@@ -83,6 +84,7 @@ export default function Inicio() {
           </Texto>
         </View>
         <BotonIcono icono="cog-outline" etiqueta={t('Ajustes')} onPress={() => router.push('/ajustes')} />
+        <Hueco id="inicio-emergencia">
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={emergencia ? t('Modo emergencia, activo') : t('Modo emergencia')}
@@ -102,8 +104,10 @@ export default function Inicio() {
             {emergencia ? t('Activa') : t('Emergencia')}
           </Texto>
         </Pressable>
+        </Hueco>
       </View>
 
+      <Hueco id="inicio-dias">
       {r.sinPersonas ? (
         <View style={{ backgroundColor: C.heroe, borderColor: C.heroeBorde, borderWidth: 1, borderRadius: 24, padding: 20, gap: 12 }}>
           <Texto tam={20} peso="800" color={C.heroeTexto}>
@@ -179,6 +183,7 @@ export default function Inicio() {
           </View>
         </View>
       )}
+      </Hueco>
 
       <Tarjeta>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: 8 }}>
@@ -200,7 +205,16 @@ export default function Inicio() {
           <Recurso
             icono="water-outline"
             nombre={t('Agua')}
-            detalle={t('{a} L útiles · {b} L al día', { a: formatoNumero(Math.max(0, r.litrosTotal - r.litrosCocinar), 1), b: formatoNumero(r.litrosDia, 1) })}
+            detalle={
+              r.litrosHigieneDia > 0
+                ? t('{a} L útiles · {b} L al día ({c} para beber, {d} de higiene)', {
+                    a: formatoNumero(Math.max(0, r.litrosTotal - r.litrosCocinar), 1),
+                    b: formatoNumero(r.litrosDia, 1),
+                    c: formatoNumero(r.litrosBeberDia, 1),
+                    d: formatoNumero(r.litrosHigieneDia, 1),
+                  })
+                : t('{a} L útiles · {b} L al día', { a: formatoNumero(Math.max(0, r.litrosTotal - r.litrosCocinar), 1), b: formatoNumero(r.litrosDia, 1) })
+            }
             dias={r.diasAgua}
             objetivo={objetivo}
             color={C.agua}

@@ -8,11 +8,13 @@ import { volver } from '@/lib/navegacion';
 import { formatoNumero, kcalBase, type Persona, type Sexo } from '@/lib/calculo';
 import { numero } from '@/lib/formato';
 import { nuevoId, useAguante } from '@/lib/store';
+import { useEscenario } from '@/lib/use-resultado';
 import { useC } from '@/lib/tema';
 import { t } from '@/lib/i18n';
 
 export default function EditarPersona() {
   const C = useC();
+  const escenario = useEscenario();
   const { id } = useLocalSearchParams<{ id: string }>();
   const existente = useAguante((s) => s.personas.find((p) => p.id === id));
   const guardar = useAguante((s) => s.guardarPersona);
@@ -98,7 +100,7 @@ export default function EditarPersona() {
       )}
       {valida && edadN >= 1 && (
         <Texto tam={13} color={C.suave}>
-          {t('Necesita unas {kcal} kcal al día sin racionar.', { kcal: formatoNumero(kcalBase(persona)) })}
+          {t('Necesita unas {kcal} kcal al día sin racionar.', { kcal: formatoNumero(kcalBase(persona, escenario)) })}
         </Texto>
       )}
 

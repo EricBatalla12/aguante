@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 
 import { PlanCompra } from '@/components/plan-compra';
+import { Hueco } from '@/components/tutorial';
 import { Barra, Boton, Campo, CampoFecha, Icono, Pantalla, Pastilla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
 import { aguaBeber, aguaMascota, calcularFaltante, estadoCaducidad, formatoNumero } from '@/lib/calculo';
 import { componerFecha, FECHA_VACIA } from '@/lib/fechas';
@@ -25,6 +26,7 @@ export default function Preparacion() {
   const mascotas = useAguante((s) => s.mascotas);
   const productos = useAguante((s) => s.productos);
   const objetivo = useAguante((s) => s.objetivoDias);
+  const actividad = useAguante((s) => s.actividad);
   const setObjetivo = useAguante((s) => s.setObjetivo);
   const kit = useAguante((s) => s.kit);
   const alternarKit = useAguante((s) => s.alternarKit);
@@ -36,12 +38,13 @@ export default function Preparacion() {
   const elementosKit = [...DE_SERIE[listaKit], ...kitPropio.filter((k) => listaDe(k) === listaKit)];
   const normal = useResultado('normal');
   const fechaNueva = componerFecha(fechaNuevo);
-  // La mochila hay que cargarla: el agua solo para beber (EFSA), no la de higiene
-  const beberDia = personas.reduce((s, p) => s + aguaBeber(p), 0) + mascotas.reduce((s, m) => s + aguaMascota(m), 0);
+  // La mochila hay que cargarla: el agua solo para beber, no la de higiene
+  const beberDia =
+    personas.reduce((s, p) => s + aguaBeber(p, { actividad }), 0) + mascotas.reduce((s, m) => s + aguaMascota(m), 0);
 
   const falta = useMemo(
-    () => calcularFaltante(personas, mascotas, productos, objetivo),
-    [personas, mascotas, productos, objetivo],
+    () => calcularFaltante(personas, mascotas, productos, objetivo, new Date(), actividad),
+    [personas, mascotas, productos, objetivo, actividad],
   );
   const hoy = new Date();
   // Lo que caduca pronto: productos de la despensa y lo del kit con fecha (medicinas, pilas…)
@@ -85,10 +88,12 @@ export default function Preparacion() {
       <Titulo>{t('Preparación')}</Titulo>
 
       <Tarjeta style={{ gap: 12 }}>
-        <Texto tam={18} peso="800">
-          {t('Tu objetivo')}
-        </Texto>
-        <Segmentado opciones={OBJETIVOS} valor={objetivo} onChange={setObjetivo} />
+        <Hueco id="preparacion-objetivo" style={{ gap: 12 }}>
+          <Texto tam={18} peso="800">
+            {t('Tu objetivo')}
+          </Texto>
+          <Segmentado opciones={OBJETIVOS} valor={objetivo} onChange={setObjetivo} />
+        </Hueco>
         {personas.length === 0 ? (
           <Texto tam={14} color={C.suave}>
             {t('Añade quién vive en casa (pestaña Hogar) para calcular lo que te falta.')}

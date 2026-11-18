@@ -23,6 +23,7 @@ export type Compartido = {
   kit: Record<string, boolean>;
   manual: Record<string, unknown>;
   modo: string;
+  actividad?: string; // la del cálculo fuera de la emergencia; la de la emergencia va dentro de ella
   energia: { fuentes: ConId[]; aparatos: ConId[]; zona: string; epoca: string };
   emergencia: Record<string, unknown> | null;
   escenario: Record<string, unknown>;
@@ -59,6 +60,10 @@ const SECCIONES: { leer: (c: Compartido) => unknown; elementos: (c: Compartido) 
     elementos: (c) => Object.entries(c.manual).map(([id, v]): [Tipo, string, unknown] => ['manual', id, v]),
   },
   { leer: (c) => c.modo, elementos: (c) => [['ajuste', 'modo', c.modo]] },
+  {
+    leer: (c) => c.actividad,
+    elementos: (c) => (c.actividad ? [['ajuste', 'actividad', c.actividad]] : []),
+  },
   {
     // Zona y época van juntas: son una sola elección en la pantalla de energía
     leer: (c) => `${c.energia.zona}|${c.energia.epoca}`,
@@ -115,6 +120,7 @@ function valorValido(tipo: Tipo, id: string, datos: unknown): unknown {
   if (tipo === 'kit') return typeof datos === 'boolean' ? datos : undefined;
   if (tipo === 'manual') return esObjeto(datos) ? datos : undefined;
   if (tipo === 'ajuste' && id === 'modo') return typeof datos === 'string' ? datos : undefined;
+  if (tipo === 'ajuste' && id === 'actividad') return datos === 'sedentaria' || datos === 'normal' ? datos : undefined;
   if (tipo === 'ajuste' && id === 'zonaSolar') {
     return esObjeto(datos) && typeof datos.zona === 'string' && typeof datos.epoca === 'string' ? datos : undefined;
   }
@@ -181,6 +187,7 @@ export function aplicarFilas<T extends Compartido>(c: T, filas: Fila[]): T | nul
     kit: mapa<boolean>('kit'),
     manual: mapa<unknown>('manual'),
     modo: (ajuste('modo') as string | undefined) ?? c.modo,
+    actividad: (ajuste('actividad') as string | undefined) ?? c.actividad,
     energia: {
       ...c.energia,
       fuentes: lista('fuente'),

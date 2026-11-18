@@ -154,6 +154,7 @@ function meterEnStore(nuevo: Compartido) {
       kit: nuevo.kit,
       manual: nuevo.manual,
       modo: nuevo.modo,
+      actividad: nuevo.actividad,
       energia: nuevo.energia,
       emergencia: nuevo.emergencia,
       escenario: nuevo.escenario,

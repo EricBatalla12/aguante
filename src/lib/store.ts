@@ -8,10 +8,12 @@ import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
 import {
+  ACTIVIDAD_POR_DEFECTO,
   aguaPersona,
   descontarAgua,
   devolverAgua,
   kcalPersona,
+  type Actividad,
   type Escenario,
   type Manual,
   type Mascota,
@@ -31,6 +33,7 @@ export type Comido = { id: string; productoId: string; nombre: string; unidades:
 export type Emergencia = {
   inicio: string; // ISO
   sinLuzDesde?: string; // ISO: cuándo se fue la luz, para las horas de nevera y congelador
+  actividad?: Actividad; // se elige al empezarla; si falta, sedentaria
   aguaHoy: { fecha: string; litros: number };
   comidoHoy: { fecha: string; items: Comido[] };
 };
@@ -52,7 +55,8 @@ type Datos = {
   productos: Producto[];
   modo: Modo;
   manual: Manual;
-  escenario: Escenario;
+  escenario: Escenario; // sin luz, sin cocina, calor… (la actividad no: va aparte)
+  actividad: Actividad; // con la que se calcula fuera de la emergencia; se comparte con la casa
   objetivoDias: number;
   kit: Record<string, boolean>;
   kitPropio: ElementoKit[]; // lo que añade cada casa al kit de serie
@@ -69,6 +73,10 @@ type Datos = {
 export type Compra = { presupuesto?: number; precioGarrafa?: number; precioBote?: number };
 
 type Estado = Datos & {
+  // Del móvil: no va en las copias ni se comparte
+  tutorialVisto: boolean;
+  setTutorialVisto: (v: boolean) => void;
+  setActividad: (a: Actividad) => void;
   guardarPersona: (p: Persona) => void;
   borrarPersona: (id: string) => void;
   guardarMascota: (m: Mascota) => void;
@@ -112,6 +120,7 @@ const INICIAL: Datos = {
   modo: 'normal',
   manual: {},
   escenario: {},
+  actividad: ACTIVIDAD_POR_DEFECTO,
   objetivoDias: 7,
   kit: {},
   kitPropio: [],
@@ -144,6 +153,21 @@ export const fechaISO = (d: Date) => {
 
 export const hoyISO = () => fechaISO(new Date());
 
+/**
+ * El escenario con el que se calcula: el guardado más la actividad, que en
+ * plena emergencia es la que se eligió al empezarla y, fuera, la de Ajustes.
+ */
+export function escenarioEfectivo(s: { escenario: Escenario; emergencia: Emergencia | null; actividad: Actividad }): Escenario {
+  const actividad = s.emergencia ? (s.emergencia.actividad ?? ACTIVIDAD_POR_DEFECTO) : s.actividad;
+  return { ...s.escenario, actividad };
+}
+
+/** Quita la actividad del escenario: se guarda aparte. */
+function sinActividad(e: Escenario): Escenario {
+  const { actividad: _, ...resto } = e;
+  return resto;
+}
+
 /** Horas desde que se fue la luz en la emergencia en curso (0 si hay luz o no hay emergencia). */
 export function horasSinLuz(e: Emergencia | null, esc: Escenario, ahora: number = Date.now()): number {
   if (!e || !esc.sinLuz || !e.sinLuzDesde) return 0;
@@ -163,6 +187,7 @@ function soloDatos(s: Estado): Datos {
     modo: s.modo,
     manual: s.manual,
     escenario: s.escenario,
+    actividad: s.actividad,
     objetivoDias: s.objetivoDias,
     kit: s.kit,
     kitPropio: s.kitPropio,
@@ -180,7 +205,11 @@ export const useAguante = create<Estado>()(
   persist(
     (set, get) => ({
       ...INICIAL,
+      tutorialVisto: false,
 
+      setTutorialVisto: (tutorialVisto) => set({ tutorialVisto }),
+      // La del día a día (Ajustes). La de la emergencia se cambia con setEscenario.
+      setActividad: (actividad) => set({ actividad }),
       guardarPersona: (p) => set((s) => ({ personas: upsert(s.personas, p) })),
       borrarPersona: (id) =>
         set((s) => ({ personas: s.personas.filter((p) => p.id !== id), manual: sin(s.manual, id) })),
@@ -204,23 +233,28 @@ export const useAguante = create<Estado>()(
       copiarManualDe: (modo) =>
         set((s) => {
           const manual: Manual = {};
+          const esc = escenarioEfectivo(s);
           for (const p of s.personas) {
             manual[p.id] = {
-              kcal: Math.round(kcalPersona(p, modo) / 50) * 50,
-              litros: Math.ceil(aguaPersona(p, modo, s.escenario) * 4) / 4,
+              kcal: Math.round(kcalPersona(p, modo, {}, esc) / 50) * 50,
+              litros: Math.ceil(aguaPersona(p, modo, esc) * 4) / 4,
             };
           }
           return { manual };
         }),
       // En plena emergencia, apunto cuándo se va la luz: de eso depende cuánto
-      // aguantan la nevera y el congelador.
-      setEscenario: (escenario) =>
+      // aguantan la nevera y el congelador. Si trae actividad, va a su sitio
+      // (la de la emergencia o la de Ajustes), no al escenario.
+      setEscenario: (nuevo) =>
         set((s) => {
-          if (!s.emergencia || !!escenario.sinLuz === !!s.escenario.sinLuz) return { escenario };
-          return {
-            escenario,
-            emergencia: { ...s.emergencia, sinLuzDesde: escenario.sinLuz ? new Date().toISOString() : undefined },
-          };
+          const escenario = sinActividad(nuevo);
+          const actividad = nuevo.actividad;
+          if (!s.emergencia) return actividad ? { escenario, actividad } : { escenario };
+          const emergencia = { ...s.emergencia, ...(actividad ? { actividad } : {}) };
+          if (!!escenario.sinLuz !== !!s.escenario.sinLuz) {
+            emergencia.sinLuzDesde = escenario.sinLuz ? new Date().toISOString() : undefined;
+          }
+          return { escenario, emergencia };
         }),
       setObjetivo: (objetivoDias) => set({ objetivoDias }),
       alternarKit: (id) => set((s) => ({ kit: { ...s.kit, [id]: !s.kit[id] } })),
@@ -245,10 +279,12 @@ export const useAguante = create<Estado>()(
           const esc = escenario ?? s.escenario;
           const ahora = new Date().toISOString();
           return {
-            escenario: esc,
+            escenario: sinActividad(esc),
             emergencia: {
               inicio: ahora,
               sinLuzDesde: esc.sinLuz ? ahora : undefined,
+              // En una emergencia se hace poco: sedentaria salvo que se diga otra cosa
+              actividad: esc.actividad ?? ACTIVIDAD_POR_DEFECTO,
               aguaHoy: { fecha: hoyISO(), litros: 0 },
               comidoHoy: { fecha: hoyISO(), items: [] },
             },
@@ -333,7 +369,7 @@ export const useAguante = create<Estado>()(
         return null;
       },
 
-      borrarTodo: () => set({ ...INICIAL, tema: get().tema, idioma: get().idioma }),
+      borrarTodo: () => set({ ...INICIAL, tema: get().tema, idioma: get().idioma, tutorialVisto: get().tutorialVisto }),
     }),
     {
       name: 'aguante',
@@ -351,6 +387,8 @@ function normalizar(d: Datos): Datos {
   return {
     ...d,
     energia: { ...INICIAL.energia, ...d.energia },
+    actividad: d.actividad === 'normal' ? 'normal' : ACTIVIDAD_POR_DEFECTO,
+    escenario: sinActividad(d.escenario ?? {}),
     // El antiguo «necesita frío» pasa a «se guarda en la nevera»
     productos: d.productos.map((p) =>
       p.conservacion || !p.necesitaFrio ? p : { ...p, conservacion: 'nevera' as const, necesitaFrio: undefined },
@@ -364,6 +402,7 @@ function normalizarEmergencia(e: Emergencia | null): Emergencia | null {
   return {
     inicio: e.inicio,
     sinLuzDesde: e.sinLuzDesde,
+    actividad: e.actividad === 'normal' ? 'normal' : e.actividad === 'sedentaria' ? 'sedentaria' : undefined,
     aguaHoy: e.aguaHoy ?? { fecha: hoyISO(), litros: 0 },
     comidoHoy: e.comidoHoy ?? { fecha: hoyISO(), items: [] },
   };

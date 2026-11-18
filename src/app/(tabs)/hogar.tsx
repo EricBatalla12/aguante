@@ -1,9 +1,11 @@
 import { router } from 'expo-router';
 import { Pressable, View } from 'react-native';
 
+import { Hueco } from '@/components/tutorial';
 import { FilaEnlace, Icono, Pantalla, Pastilla, Tarjeta, Texto, Titulo, Tramo } from '@/components/ui';
 import {
   aguaMascota,
+  aguaBeber,
   aguaPersona,
   esProtegida,
   formatoNumero,
@@ -13,7 +15,7 @@ import {
 } from '@/lib/calculo';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
-import { useResultado } from '@/lib/use-resultado';
+import { useEscenario, useResultado } from '@/lib/use-resultado';
 import { t, tn } from '@/lib/i18n';
 
 function datos(p: Persona): string {
@@ -32,7 +34,7 @@ export default function Hogar() {
   const C = useC();
   const personas = useAguante((s) => s.personas);
   const mascotas = useAguante((s) => s.mascotas);
-  const escenario = useAguante((s) => s.escenario);
+  const escenario = useEscenario();
   const modo = useAguante((s) => s.modo);
   const normal = useResultado('normal');
 
@@ -60,6 +62,12 @@ export default function Hogar() {
             <Texto tam={13} color={C.heroeSuave}>
               {t('de agua')}
             </Texto>
+            <Texto tam={12} color={C.heroeSuave}>
+              {t('{b} L para beber y {h} L de higiene', {
+                b: formatoNumero(normal.litrosBeberDia, 1),
+                h: formatoNumero(normal.litrosHigieneDia, 1),
+              })}
+            </Texto>
           </View>
         </View>
       </View>
@@ -74,8 +82,11 @@ export default function Hogar() {
               nombre={p.nombre}
               insignia={esProtegida(p) ? t('No se raciona') : undefined}
               datos={datos(p)}
-              kcal={p.edadAnios < 1 ? t('Leche materna o de fórmula') : `${formatoNumero(kcalBase(p))} kcal`}
-              agua={`${formatoNumero(aguaPersona(p, 'normal', escenario), 1)} L`}
+              kcal={p.edadAnios < 1 ? t('Leche materna o de fórmula') : `${formatoNumero(kcalBase(p, escenario))} kcal`}
+              agua={t('{l} L ({b} para beber)', {
+                l: formatoNumero(aguaPersona(p, 'normal', escenario), 1),
+                b: formatoNumero(aguaBeber(p, escenario), 1),
+              })}
             />
           ))}
           {mascotas.map((m) => (
@@ -93,10 +104,10 @@ export default function Hogar() {
         </View>
       )}
 
-      <View style={{ flexDirection: 'row', gap: 8 }}>
+      <Hueco id="hogar-anadir" style={{ flexDirection: 'row', gap: 8 }}>
         <BotonAnadir alPulsar={() => router.push('/persona/nueva')} icono="account-plus-outline" texto={t('Persona')} />
         <BotonAnadir alPulsar={() => router.push('/mascota/nueva')} icono="paw" texto={t('Mascota')} />
-      </View>
+      </Hueco>
 
       {personas.length + mascotas.length > 0 && (
         <Tarjeta style={{ paddingVertical: 6 }}>

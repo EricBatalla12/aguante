@@ -7,15 +7,15 @@ import { Aviso, FilaEnlace, Pantalla, Tarjeta, Texto } from '@/components/ui';
 import { calcular, type ModoAuto } from '@/lib/calculo';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
-import { ETIQUETA_MODO, MODOS_AUTO } from '@/lib/use-resultado';
+import { ETIQUETA_MODO, MODOS_AUTO, useEscenario } from '@/lib/use-resultado';
 import { t, tx } from '@/lib/i18n';
 
 const INFO: Record<ModoAuto, { nivel: number; comida: string; agua: string; fuente: string }> = {
   normal: {
     nivel: 1,
     comida: '100 %',
-    agua: tx('3,8 L o lo que se beba, si es más'),
-    fuente: tx('Agua: 1 galón por persona y día para beber y saneamiento (Ready.gov).'),
+    agua: tx('Para beber + 1,5 L de higiene'),
+    fuente: tx('Ready.gov pide 1 galón (3,8 L) por persona y día para beber y saneamiento. Los 1,5 L de higiene son un valor nuestro entre ese galón y el mínimo de Sphere.'),
   },
   ligero: {
     nivel: 2,
@@ -42,7 +42,7 @@ export default function Modos() {
   const personas = useAguante((s) => s.personas);
   const mascotas = useAguante((s) => s.mascotas);
   const productos = useAguante((s) => s.productos);
-  const escenario = useAguante((s) => s.escenario);
+  const escenario = useEscenario();
   const setEscenario = useAguante((s) => s.setEscenario);
   const modo = useAguante((s) => s.modo);
   const setModo = useAguante((s) => s.setModo);

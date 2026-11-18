@@ -2,6 +2,7 @@ import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
 import { Pressable, TextInput, View } from 'react-native';
 
+import { Hueco } from '@/components/tutorial';
 import { Boton, BotonIcono, Icono, Miniatura, Pantalla, Pastilla, Segmentado, Tarjeta, Texto, Titulo } from '@/components/ui';
 import { normalizar } from '@/constants/genericos';
 import { conservacionDe, formatoNumero, type Categoria, type Producto } from '@/lib/calculo';
@@ -49,12 +50,12 @@ export default function Despensa() {
     <Pantalla>
       <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 8 }}>
         <Titulo>{t('Despensa')}</Titulo>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
+        <Hueco id="despensa-anadir" style={{ flexDirection: 'row', gap: 8 }}>
           {productos.length > 0 && (
             <BotonIcono icono="basket-minus-outline" etiqueta={t('Gastar producto')} onPress={() => router.push('/gastar')} />
           )}
           <BotonIcono icono="plus" etiqueta={t('Añadir producto')} lleno onPress={() => router.push('/anadir')} />
-        </View>
+        </Hueco>
       </View>
 
       <View style={{ flexDirection: 'row', gap: 8 }}>

@@ -195,3 +195,18 @@ test('una emergencia rota de otro móvil no se mete', () => {
   const rota = [{ tipo: 'ajuste', id: 'emergencia', datos: { inicio: 3 }, borrado: false, cambiado: 9 }];
   assert.equal(aplicarFilas(base(), rota), null);
 });
+
+test('la actividad del cálculo viaja como ajuste y se valida', () => {
+  const antes = { ...base(), actividad: 'sedentaria' };
+  const ahora = { ...antes, actividad: 'normal' };
+  const filas = cambiosEntre(antes, ahora, 7);
+  assert.deepEqual(
+    filas.map((f) => [f.tipo, f.id, f.datos]),
+    [['ajuste', 'actividad', 'normal']],
+  );
+  assert.equal(aplicarFilas(antes, filas).actividad, 'normal');
+  // Un valor raro de otro móvil no se mete
+  assert.equal(aplicarFilas(antes, [{ tipo: 'ajuste', id: 'actividad', datos: 'atleta', borrado: false, cambiado: 8 }]), null);
+  // Sin actividad (datos antiguos) no se sube nada
+  assert.ok(!todasLasFilas(base(), 1).some((f) => f.id === 'actividad'));
+});

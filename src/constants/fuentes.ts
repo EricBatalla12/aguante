@@ -9,7 +9,7 @@ export type Punto = { texto: string; propio?: boolean };
 export type Enlace = { nombre: string; url: string };
 export type Bloque = { titulo: string; icono: NombreIcono; puntos: Punto[]; enlaces: Enlace[] };
 
-export const FECHA_CONSULTA = tx('11 de noviembre de 2026');
+export const FECHA_CONSULTA = tx('18 de noviembre de 2026');
 
 export const BLOQUES: Bloque[] = [
   {
@@ -31,8 +31,9 @@ export const BLOQUES: Bloque[] = [
     titulo: tx('Calorías de cada persona'),
     icono: 'food-variant',
     puntos: [
-      { texto: tx('Adultos: gasto basal con las ecuaciones de Schofield (FAO/OMS/UNU 2004) según sexo, edad y peso, multiplicado por 1,40, el nivel de actividad sedentario más bajo que da la FAO.') },
-      { texto: tx('De 1 a 17 años: regresión de la FAO según el peso, más un 1 % por crecimiento, en su variante de actividad ligera (un 15 % menos).') },
+      { texto: tx('Adultos: gasto basal con las ecuaciones de Schofield (FAO/OMS/UNU 2004) según sexo, edad y peso, multiplicado por el nivel de actividad: 1,40 si sois sedentarios (el más bajo que da la FAO) y 1,60 con actividad normal.') },
+      { texto: tx('De 1 a 17 años: regresión de la FAO según el peso, más un 1 % por crecimiento. Sedentarios: su variante de actividad ligera (un 15 % menos); con actividad normal, la moderada.') },
+      { texto: tx('Por defecto se calcula con actividad sedentaria. En Ajustes se elige la del día a día y, al empezar una emergencia, la de la emergencia.'), propio: true },
       { texto: tx('Bebés de menos de 1 año: necesitan leche materna o de fórmula, así que su comida no se calcula. Su agua sí cuenta.') },
       { texto: tx('Embarazo: +85, +285 y +475 kcal al día por trimestre. Lactancia: +505 kcal.') },
     ],
@@ -62,18 +63,19 @@ export const BLOQUES: Bloque[] = [
     titulo: tx('Agua'),
     icono: 'water-outline',
     puntos: [
-      { texto: tx('Para beber: la ingesta adecuada de la EFSA. 2,5 L los hombres y 2,0 L las mujeres desde los 14 años; menos los niños (de 1,0 a 2,1 L según la edad). Embarazo +0,3 L y lactancia +0,7 L.') },
-      { texto: tx('Estas cifras de la EFSA vienen de fuentes que la citan: no pude leer el dictamen original.') },
-      { texto: tx('Con mucho calor se bebe el doble (FEMA).') },
-      { texto: tx('Modo normal: 3,8 L por persona y día (1 galón, Ready.gov), para beber y saneamiento.') },
-      { texto: tx('Modo ligero: lo de beber más 0,5 L de higiene mínima.'), propio: true },
-      { texto: tx('Modos severo y extremo: solo lo de beber. Eso no baja nunca.') },
+      { texto: tx('El agua de cada persona es la de beber más la de higiene. Lo de beber depende de la persona; la higiene, del modo.') },
+      { texto: tx('Para beber, lo mayor de dos cifras. Una es la ingesta adecuada de la EFSA: 2,5 L los hombres y 2,0 L las mujeres desde los 14 años, menos los niños (de 1,0 a 2,1 L según la edad), +0,3 L en el embarazo y +0,7 L en la lactancia.') },
+      { texto: tx('La otra, 1 mL por cada kcal que se gasta (NRC, 1989). Así quien pesa más o se mueve más bebe más. La EFSA advierte de que sus cifras son para temperatura y actividad moderadas.') },
+      { texto: tx('Con mucho calor se bebe el doble (Ready.gov).') },
+      { texto: tx('Higiene en modo normal: 1,5 L por persona y día. Ready.gov pide 1 galón (3,8 L) para beber y saneamiento, y Sphere da de 2 a 6 L para la higiene: 1,5 L queda entre los dos.'), propio: true },
+      { texto: tx('Modo ligero: 0,5 L de higiene mínima.'), propio: true },
+      { texto: tx('Modos severo y extremo: sin higiene, solo lo de beber. Eso no baja nunca.') },
       { texto: tx('El agua para cocinar cada producto se descuenta de la reserva.') },
     ],
     enlaces: [
       { nombre: tx('Ready.gov: cuánta agua guardar'), url: 'https://www.ready.gov/water' },
-      { nombre: tx('EUFIC: cuánta agua beber al día (cita a la EFSA)'), url: 'https://www.eufic.org/en/healthy-living/article/how-much-water-should-you-drink-per-day' },
-      { nombre: tx('Tabla EFSA/IOM de ingesta de agua'), url: 'https://pmc.ncbi.nlm.nih.gov/articles/PMC4080755/table/T3' },
+      { nombre: tx('EFSA (2010): valores de referencia para el agua'), url: 'https://efsa.onlinelibrary.wiley.com/doi/10.2903/j.efsa.2010.1459' },
+      { nombre: tx('NRC (1989): agua y electrolitos'), url: 'https://www.ncbi.nlm.nih.gov/books/NBK234935/' },
       { nombre: tx('Sphere: cantidad mínima de agua'), url: 'https://sphereprototype.conted.ox.ac.uk/standards/watersupply/accessAndWaterQuantity.html' },
     ],
   },
@@ -156,7 +158,7 @@ export const BLOQUES: Bloque[] = [
     icono: 'clipboard-check-outline',
     puntos: [
       { texto: tx('Las listas de casa, mochila y botiquín salen del kit básico de Ready.gov y de sus suministros adicionales; la del coche, de su kit para el coche.') },
-      { texto: tx('La mochila se mide contra 72 horas: el agua para beber (EFSA) y la comida de un día, por tres. Con la higiene, el agua del modo normal.'), propio: true },
+      { texto: tx('La mochila se mide contra 72 horas: el agua para beber y la comida de un día, por tres. Con la higiene, el agua del modo normal.'), propio: true },
       { texto: tx('La Comisión Europea se ha propuesto que la población pueda valerse por sí misma al menos 72 horas (estrategia de preparación, marzo de 2025).') },
     ],
     enlaces: [

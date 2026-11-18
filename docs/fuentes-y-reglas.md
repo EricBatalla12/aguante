@@ -4,7 +4,7 @@ Este documento es la referencia de `src/lib/calculo.ts`. Cada número del
 código sale de aquí, y aquí se dice de dónde sale. Donde no hay fuente y el
 valor es una decisión nuestra, se marca como **[propio]**.
 
-Consultado el 11 de noviembre de 2026.
+Consultado el 11 de noviembre de 2026 (agua y actividad, el 18).
 
 ## Principios que fijan las fuentes
 
@@ -47,10 +47,19 @@ mantiene en su tabla 5.2. El peso va en kg y el resultado en kcal/día:
 
 Fuente: <https://www.fao.org/4/y5686e/y5686e07.htm> (sección 5.2)
 
-Gasto total = BMR × **PAL 1,40**. Según FAO, 1,40 es el límite inferior de un
-estilo de vida sedentario (tabla 5.3: 1,40–1,69) y el PAL más bajo que una
-población puede mantener mucho tiempo. En una emergencia uno se mueve poco,
-así que se usa ese suelo.
+Gasto total = BMR × **PAL**, según la actividad elegida:
+
+| Actividad  | PAL  | De dónde sale |
+|------------|------|---------------|
+| Sedentaria | 1,40 | FAO, tabla 5.3: límite inferior del estilo de vida sedentario (1,40–1,69) y el PAL más bajo que una población puede mantener mucho tiempo |
+| Normal     | 1,60 | Nivel «moderado» con el que la EFSA fija sus ingestas de agua (PAL 1,6); cae dentro del rango sedentario/ligero de la FAO |
+
+**Por defecto, sedentaria** (decisión de Eric, 18/11/2026: en una emergencia uno
+se mueve poco). Hay dos actividades distintas **[propio]**:
+
+- La del día a día, en Ajustes. Se comparte con la casa (ajuste `actividad`).
+- La de la emergencia, que se elige al empezarla (por defecto, sedentaria) y va
+  dentro de la emergencia compartida.
 
 ### Niños y adolescentes (de 1 a 17 años)
 
@@ -61,7 +70,8 @@ más la energía del crecimiento (que suma ≈ 1 %):
 - Niñas: `TEE = 263,4 + 65,3·kg − 0,454·kg²`
 - Necesidad diaria = TEE × 1,01
 
-Se aplica la variante de **actividad ligera**: un 15 % menos que la moderada
+Con actividad **sedentaria** se aplica la variante de **actividad ligera**: un
+15 % menos que la moderada; con actividad **normal**, la moderada tal cual
 (tablas 4.5 y 4.6). Comprobación: una niña de 20,6 kg sale a
 1.430 × 0,85 ≈ 1.215 kcal, y la tabla de FAO dice 1.225.
 Fuente: <https://www.fao.org/4/y5686e/y5686e06.htm>
@@ -104,50 +114,92 @@ Fuentes:
 
 ## Modos de aguante: agua
 
-### Agua para beber (el suelo, nunca se recorta)
+Revisado el 18/11/2026. El agua de cada persona y día es **la de beber más la
+de higiene**. Lo de beber depende de la persona y no se recorta nunca; la
+higiene depende del modo y es lo único que se recorta. Antes, el modo normal
+daba 3,8 L fijos a todo el mundo (máx(3,8 L, beber)): lo mismo a un bebé que a
+un hombre de 115 kg, y con calor la higiene desaparecía.
 
-Ingesta adecuada de agua total de la EFSA (2010), que incluye la que llega con
-la comida, en L/día:
+### Agua para beber (nunca se recorta)
 
-| Grupo            | L/día |
-|------------------|-------|
-| 6–12 meses       | 1,0 (rango 0,8–1,0; se toma el alto) |
-| 1–2 años         | 1,2 (rango 1,1–1,2; se toma el alto) |
-| 2–3 años         | 1,3   |
-| 4–8 años         | 1,6   |
-| 9–13, niños      | 2,1   |
-| 9–13, niñas      | 1,9   |
-| 14+, hombres     | 2,5   |
-| 14+, mujeres     | 2,0   |
-| Embarazo         | +0,3  |
-| Lactancia        | +0,7 (rango 0,6–0,7; se toma el alto) |
+Lo mayor de dos cifras, y con calor el doble:
 
-Usar el agua total como agua para beber es conservador: en la práctica, un
-20 % llega con la comida.
-Fuentes: <https://www.eufic.org/en/healthy-living/article/how-much-water-should-you-drink-per-day>
-y la tabla EFSA/IOM en <https://pmc.ncbi.nlm.nih.gov/articles/PMC4080755/table/T3>.
-No pude leer el dictamen original de la EFSA (el servidor devuelve 403), así
-que estas cifras vienen de fuentes secundarias que lo citan.
+1. **Ingesta adecuada de agua total de la EFSA (2010)**, en L/día:
 
-**Calor:** FEMA dice que los ambientes calurosos pueden duplicar lo que se
-bebe. Con la opción «hace mucho calor», el agua para beber se multiplica ×2.
-Fuente: Ready.gov y el folleto de FEMA citado arriba.
+   | Grupo            | L/día |
+   |------------------|-------|
+   | 6–12 meses       | 1,0 (rango 0,8–1,0; se toma el alto) |
+   | 1–2 años         | 1,2 (rango 1,1–1,2; se toma el alto) |
+   | 2–3 años         | 1,3   |
+   | 4–8 años         | 1,6   |
+   | 9–13, niños      | 2,1   |
+   | 9–13, niñas      | 1,9   |
+   | 14+, hombres     | 2,5   |
+   | 14+, mujeres     | 2,0   |
+   | Embarazo         | +0,3  |
+   | Lactancia        | +0,7 (rango 0,6–0,7; se toma el alto) |
 
-### Por modo
+   Leído en el resumen del dictamen original el 18/11/2026 (antes venía de
+   fuentes secundarias). Incluye el agua de la comida y **solo vale con
+   temperatura y actividad moderadas (PAL 1,6)**. A los mayores les da lo mismo
+   que a los adultos. Fuente:
+   <https://efsa.onlinelibrary.wiley.com/doi/10.2903/j.efsa.2010.1459>
 
-| Modo    | Agua por persona y día | De dónde sale |
-|---------|------------------------|---------------|
-| Normal  | máx(3,8 L, beber)      | Ready.gov: 1 galón (≈ 3,8 L) por persona y día, para beber y saneamiento |
-| Ligero  | beber + 0,5 L          | **[propio]** Higiene mínima |
-| Severo  | beber                  | FEMA: no racionar el agua para beber |
-| Extremo | beber                  | Igual: el agua para beber nunca baja |
+2. **1 mL por kcal gastada** (NRC, *Recommended Dietary Allowances*, 10.ª ed.,
+   1989, capítulo «Water and Electrolytes»): es la necesidad de agua de un
+   adulto en condiciones medias. A menudo se sube a 1,5 mL/kcal para cubrir
+   actividad, sudor y carga de solutos; en bebés recomienda 1,5 mL/kcal. Las
+   kcal son las de `kcalBase` (con la actividad elegida), así que esta cifra
+   sube con el peso y la actividad. En bebés vale 0 (su comida no se calcula) y
+   manda la EFSA. Fuente: <https://www.ncbi.nlm.nih.gov/books/NBK234935/>
+   El mismo capítulo avisa de que los mayores tienen menos sed y pueden
+   necesitar mucha agua en verano.
 
-Fuente: <https://www.ready.gov/water>
+Usar agua total como agua para beber es conservador: en la práctica, un 20 %
+llega con la comida.
 
-Para comparar: Sphere fija la supervivencia en 2,5–3 L (beber y comida) y las
-necesidades básicas totales en 7,5–15 L. Nuestros valores para beber caen en
-ese rango.
-Fuente: <https://sphereprototype.conted.ox.ac.uk/standards/watersupply/accessAndWaterQuantity.html>
+**Calor:** con la opción «hace mucho calor», lo de beber se multiplica ×2.
+Ready.gov: «In very hot temperatures, water needs can double».
+
+Ejemplos (sedentaria, sin calor, calculados con el código):
+
+| Persona                 | Beber | + higiene normal | Antes (normal) |
+|-------------------------|-------|------------------|----------------|
+| Bebé de 8 meses         | 1,0   | 2,5              | 3,8            |
+| Niña de 3 años, 14 kg   | 1,3   | 2,8              | 3,8            |
+| Mujer de 35, 55 kg      | 2,0   | 3,5              | 3,8            |
+| Hombre de 40, 80 kg     | 2,5   | 4,0              | 3,8            |
+| Hombre de 40, 115 kg    | 3,1   | 4,6              | 3,8            |
+
+### Higiene por modo
+
+| Modo    | Higiene por persona y día | De dónde sale |
+|---------|---------------------------|---------------|
+| Normal  | 1,5 L | **[propio]** Ready.gov pide 1 galón (≈ 3,8 L) para beber y saneamiento y dice que una persona normalmente activa bebe unos ¾ de galón (≈ 2,8 L): deja ≈ 1 L. Sphere da 2–6 L de higiene. 1,5 L queda entre los dos |
+| Ligero  | 0,5 L | **[propio]** Higiene mínima |
+| Severo  | 0     | FEMA: no racionar el agua para beber; se recorta lo demás |
+| Extremo | 0     | Igual |
+
+Fuentes: <https://www.ready.gov/water> (actualizada el 22/02/2021) y Sphere
+<https://sphereprototype.conted.ox.ac.uk/standards/watersupply/accessAndWaterQuantity.html>
+(supervivencia 2,5–3 L «según el clima y la fisiología de cada uno»; higiene
+2–6 L «según las normas sociales y culturales»; total 7,5–15 L).
+
+En pantalla se ve partido: «X L al día (Y para beber, Z de higiene)».
+
+### Guías europeas, para comparar (leídas el 18/11/2026)
+
+Ninguna distingue por edad, sexo ni peso:
+
+- Protecció Civil de Catalunya: 1,5 L por persona y día como mínimo
+  (<https://interior.gencat.cat/ca/arees_dactuacio/proteccio_civil/consells_autoproteccio_emergencia/preparat_per_les_emergencies/equip_emergencies/>).
+- Alemania (BBK): 2 L por persona y día, 0,5 de ellos para cocinar (leído en
+  resúmenes del buscador de documentos de bbk.bund.de, no abierto).
+- Países Bajos (Denk vooruit): 3 L por persona y día.
+- Finlandia (72 tuntia): unos 2 L para beber, más cocina e higiene.
+- Suecia (MCF): 3–5 L por adulto y día para beber, cocinar e higiene básica.
+
+Los valores de Aguante quedan por encima de todas para beber e higiene.
 
 ### Agua para cocinar
 
@@ -165,7 +217,7 @@ ninguna fuente, es una función de la app.
   aplica la del modo normal.
 - La app no corrige nada, pero avisa en tres casos, que salen de los
   principios 1 y 2:
-  - alguien bebe menos de su agua para beber (la tabla de la EFSA, ×2 con calor);
+  - alguien bebe menos de su agua para beber (`aguaBeber`: EFSA o 1 mL/kcal, ×2 con calor);
   - se recorta la comida a un menor, una embarazada, una mujer en lactancia o
     alguien marcado como «no racionar»;
   - un adulto baja del 50 % de lo que necesita, que es el límite del que habla
@@ -323,8 +375,9 @@ Consultado el 16/11/2026.
   - El botiquín de la Cruz Roja americana no se pudo leer (la página devuelve
     403): no se ha usado.
 - **Mochila medida contra 72 horas** **[propio]**: el agua solo para beber
-  (EFSA, la de `aguaBeber`, más la de las mascotas) y la comida de un día en
-  modo normal, por tres. La de higiene (modo normal, 3,8 L por persona) se
+  (la de `aguaBeber` con la actividad del día a día, más la de las mascotas) y
+  la comida de un día en modo normal, por tres. Con la higiene (el agua del
+  modo normal: beber + 1,5 L por persona) se
   enseña aparte: con ella la mochila de una casa de tres pesaría más de 30 kg. Las 72 horas vienen de la Comisión Europea,
   que en su estrategia de preparación (marzo de 2025) se propone «develop
   guidelines to reach a population self-sufficiency of minimum 72 hours»

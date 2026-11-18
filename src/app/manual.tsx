@@ -20,7 +20,7 @@ import {
 import { textoCantidad } from '@/lib/formato';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
-import { ETIQUETA_MODO, MODOS_AUTO, useResultado } from '@/lib/use-resultado';
+import { ETIQUETA_MODO, MODOS_AUTO, useEscenario, useResultado } from '@/lib/use-resultado';
 import { t } from '@/lib/i18n';
 
 export default function RepartoManual() {
@@ -114,11 +114,11 @@ function RacionPersona({ p }: { p: Persona }) {
   const C = useC();
   const racion = useAguante((s) => s.manual[p.id]);
   const setRacion = useAguante((s) => s.setRacion);
-  const escenario = useAguante((s) => s.escenario);
+  const escenario = useEscenario();
 
   const bebe = p.edadAnios < 1;
-  const necesita = kcalBase(p);
-  const beber = aguaBeber(p) * (escenario.calor ? 2 : 1);
+  const necesita = kcalBase(p, escenario);
+  const beber = aguaBeber(p, escenario);
   const kcal = racion?.kcal ?? Math.round(necesita / 10) * 10;
   const litros = racion?.litros ?? Math.round(aguaPersona(p, 'normal', escenario) * 100) / 100;
   // «Una comida» es un tercio de lo que necesita al día

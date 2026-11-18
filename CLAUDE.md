@@ -77,7 +77,16 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   propio» lo que no la tenga.
 - **Estado**: `src/lib/store.ts` (zustand persistido, `version: 3`). Un campo
   nuevo va en `Datos`, `INICIAL`, `soloDatos` y, si hace falta, en `normalizar`
-  (migración y copias importadas).
+  (migración y copias importadas). Lo que es solo del móvil y no va en copias
+  (como `tutorialVisto`) va en `Estado`, fuera de `Datos`.
+- **Escenario y actividad**: para calcular, usar `useEscenario()` de
+  `use-resultado.ts` (el escenario guardado más la actividad que toque: la de
+  la emergencia en curso o la de Ajustes), no `s.escenario` a pelo.
+  `setEscenario` reparte la actividad a su sitio.
+- **Tutorial**: los pasos están en `PASOS` de `src/lib/tutorial.ts`; lo que
+  señala cada paso se envuelve con `<Hueco id>` en su pantalla. Si cambia una
+  pantalla o una regla, revisar sus textos y las preguntas de
+  `src/components/preguntas.tsx`.
 - **No usar Prettier**: el proyecto no lo tiene configurado y reformatea los
   ficheros enteros. Respetar el estilo existente (comillas simples, líneas
   largas).
@@ -129,6 +138,15 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `supabase/esquema.sql` (comprobado: el servidor ya tiene `cambiar_codigo` y
   `echar_de_casa`; sin sesión responden «permission denied», no «no existe»).
   Falta que Eric lo pruebe en el móvil.
+- **Del 18/11/2026, sin commit ni publicar** (detalle en `docs/pendiente.md`,
+  «Hecho el 18/11/2026»): agua = beber (EFSA o 1 mL/kcal) + higiene por modo,
+  actividad sedentaria/normal (día a día y emergencia), tutorial guiado y
+  Ayuda con preguntas frecuentes en Ajustes. Tests, `tsc`, lint y export de
+  Android limpios; probado en web, **no en el móvil**. Va por actualización (sin
+  módulos nativos ni SQL nuevo). Sin comprobar en Android: que el hueco del
+  tutorial (medido con `measureInWindow`) caiga justo encima de lo que señala.
+  `expo-doctor` falla por parches nuevos de Expo (`expo-web-browser` 58.1 y
+  otros); ya fallaba antes y no se ha tocado: actualizar uno nativo pide APK.
 - Última actualización publicada: grupo `533b7fe4` (kit en listas, plan de
   compra, calendario y casa compartida), canal `preview`, runtime 1.0.0. La
   anterior: `5a049262` (entrar con Google).
@@ -151,8 +169,10 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `marketing/` (apagón, escáner, de 3 a 7 días), uno cada 2–3 días, probando
   una sola cosa a la vez (el gancho). Con menos de 8–10 vídeos los números son
   ruido: decirlo así.
+- **Avisos oficiales (antes «noticias»)**: viabilidad contada el 18/11/2026 en
+  `docs/pendiente.md`; espera a que Eric decida.
 - Lo demás está en `docs/pendiente.md`. Eric dejó para más adelante compartir
-  el resultado como imagen (necesita APK nuevo) y las noticias. El trueque
+  el resultado como imagen (necesita APK nuevo). El trueque
   entre vecinos tiene una propuesta escrita y espera a que Eric decida.
 
 ## Pendiente fuera del código
@@ -170,8 +190,6 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   cambios de `web/` a `main`. Contacto público: ericbatalla16@gmail.com. El
   responsable figura solo como «Eric»: quizá haga falta identificarlo más (sin
   comprobar).
-- Viabilidad de la idea de noticias de guerra o desastres (en
-  `docs/pendiente.md`): contársela a Eric.
 
 ## Cuentas y casa compartida (Supabase), hecho el 15/11/2026
 

@@ -83,10 +83,38 @@ de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
 
 ## Noticias de guerra o posibles desastres
 
-Idea de Eric (15/11/2026), sin estudiar: una sección con noticias
-relacionadas con guerras o posibles desastres. Pendiente de mirar la
-viabilidad (de dónde salen las noticias, si hay fuentes oficiales de avisos,
-coste y que no sea alarmista) y contársela a Eric.
+Idea de Eric (15/11/2026). Primera viabilidad contada a Eric el 18/11/2026;
+falta que decida si se sigue. Conclusión: viable como **«Avisos» oficiales**,
+no como noticias de prensa.
+
+- **AEMET** (avisos meteorológicos): RSS público por comunidad autónoma
+  (`/documentos_d/eltiempo/prediccion/avisos/rss/CAP_AFAC6x_RSS.xml`,
+  comprobado que responde); cada aviso es un `.tar.gz` con ficheros CAP. La API
+  OpenData (`/api/avisos_cap/ultimoelaborado/area/{area}`) pide clave gratuita.
+  Condiciones de reutilización: sin leer (enlazan a `aemet.es/es/nota_legal`).
+- **GDACS** (ONU y Comisión Europea, JRC): terremotos, inundaciones, ciclones,
+  volcanes e incendios del mundo con nivel verde/naranja/rojo. RSS
+  `https://www.gdacs.org/xml/rss.xml` comprobado (242 avisos el 18/11/2026).
+  Gratis citando «Global Disaster Alert and Coordination System, GDACS»; las
+  condiciones completas (PDF de marzo de 2025) sin leer.
+- **ES-Alert**: no hay API ni RSS para terceros (no encontrado). Ya llega solo a
+  los móviles.
+- **IGN** (terremotos): página de últimos terremotos; feed reutilizable sin
+  confirmar.
+- **Prensa / guerras**: descartado (derechos, API de pago, alarmismo).
+- **Google Play**: si hay «noticias», declaración de News en la consola; norma de
+  eventos sensibles (se permite lo que avisa o informa). Llamarlo «Avisos» y con
+  fuentes oficiales.
+- **Cómo**: función de Supabase que recoja los avisos cada X minutos y guarde
+  los de España; la app los lee al abrirse y enseña una tarjeta en Inicio solo
+  con aviso naranja o rojo en tu comunidad, unido a la reserva («aviso rojo por
+  lluvias mañana: os quedan 3 días de agua»). Va por actualización;
+  notificaciones con la app cerrada necesitarían APK y servidor de envíos.
+- Ojo: ya hay una app oficial de Protección Civil con avisos de AEMET,
+  terremotos e incendios (según prensa y la ONCE, sin comprobar en la web
+  oficial).
+- Siguiente paso si se sigue: leer las condiciones de AEMET y GDACS y probar a
+  descomprimir los CAP de AEMET.
 
 ## Ideas sacadas de otras apps
 
@@ -115,6 +143,29 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
   comprobar).
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
+
+## Hecho el 18/11/2026
+
+Probado en la versión web (Metro 8082, 375×812), **no en el móvil**. Tests
+(75), `tsc`, lint y export de Android limpios. Sin publicar.
+
+- **Agua = beber + higiene.** Beber: lo mayor entre la EFSA y 1 mL por kcal
+  (NRC 1989), ×2 con calor; higiene por modo: normal 1,5 L, ligero 0,5 L,
+  severo y extremo 0. Con calor la higiene ya no desaparece. En Inicio y Hogar
+  se ve partido. Detalle y fuentes en `fuentes-y-reglas.md`.
+- **Actividad física** sedentaria (PAL 1,4, por defecto) o normal (1,6): la del
+  día a día en Ajustes (se comparte con la casa como ajuste `actividad`, sin
+  cambiar el SQL) y la de la emergencia, que se elige al empezarla (por defecto
+  sedentaria) y va dentro de la emergencia. También en Modos.
+- **Tutorial guiado** (`src/lib/tutorial.ts`, `src/components/tutorial.tsx`):
+  siete pasos por las pestañas y Ajustes, con la parte explicada a la vista
+  (`<Hueco id>`) y el resto oscurecido; Omitir, Atrás y Siguiente. Sale solo la
+  primera vez con la app vacía; `tutorialVisto` es del móvil (no va en copias
+  ni se comparte). Sin librerías nativas.
+- **Ayuda en Ajustes**: «Ver el tutorial» y 11 preguntas frecuentes
+  desplegables (`src/components/preguntas.tsx`).
+- La calculadora de la web (`web/js/lib/calculo.js`, `npm run sitio`), la guía
+  del agua y la portada, al día.
 
 ## Hecho el 16/11/2026
 

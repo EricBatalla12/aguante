@@ -61,7 +61,11 @@ export type Producto = {
   necesitaFrio?: boolean; // antiguo: equivale a conservacion 'nevera'
 };
 
+/** Nivel de actividad con el que se calcula. Si falta, sedentaria. */
+export type Actividad = 'sedentaria' | 'normal';
+
 export type Escenario = {
+  actividad?: Actividad;
   sinLuz?: boolean;
   sinCocina?: boolean;
   calor?: boolean;
@@ -70,8 +74,12 @@ export type Escenario = {
 
 // ---------------------------------------------------------------- Constantes
 
-// FAO 2004, tabla 5.3: 1,40 es el suelo del estilo de vida sedentario.
-export const PAL_EMERGENCIA = 1.4;
+// Nivel de actividad física (PAL) de los adultos. FAO 2004, tabla 5.3: 1,40 es
+// el suelo del estilo de vida sedentario. 1,60 es el nivel «moderado» con el
+// que la EFSA fija el agua. Por defecto, sedentaria (lo pidió Eric: en una
+// emergencia se hace poco).
+export const PAL: Record<Actividad, number> = { sedentaria: 1.4, normal: 1.6 };
+export const ACTIVIDAD_POR_DEFECTO: Actividad = 'sedentaria';
 
 // Factor de comida por modo, solo para adultos que se pueden racionar.
 // Ligero 85 % es un valor intermedio propio; el resto tiene fuente.
@@ -82,10 +90,13 @@ export const FACTOR_COMIDA: Record<ModoAuto, number> = {
   extremo: 0.5, // FEMA: la mitad de la comida habitual, adultos sanos
 };
 
-// Ready.gov: 1 galón por persona y día para beber y saneamiento.
-export const AGUA_NORMAL_L = 3.8;
-// Ligero: agua para beber más una higiene mínima (valor propio).
-export const AGUA_HIGIENE_LIGERO_L = 0.5;
+// Agua de higiene por persona y día, que se suma a la de beber. Normal: 1,5 L,
+// valor propio entre lo que deja libre el galón de Ready.gov (unos 3,8 L con
+// unos 2,8 L de bebida) y el mínimo de higiene de Sphere (2 L). Ligero: 0,5 L,
+// también propio. Severo y extremo: nada, solo se bebe.
+export const AGUA_HIGIENE_L: Record<ModoAuto, number> = { normal: 1.5, ligero: 0.5, severo: 0, extremo: 0 };
+// NRC 1989 (RDA, 10.ª ed.): 1 mL de agua por kcal gastada en adultos.
+const ML_AGUA_POR_KCAL = 1;
 
 // Sin luz y con la puerta cerrada. Nevera: unas 4 horas (Ready.gov). Congelador:
 // unas 48 horas si está lleno y 24 si está a medias (FoodSafety.gov, USDA).
@@ -114,14 +125,15 @@ export function bmrAdulto(sexo: Sexo, edad: number, kg: number): number {
 
 /**
  * Necesidad de un menor de 1 a 17 años, FAO 2004 capítulo 4: gasto total por
- * regresión según el peso, +1 % de crecimiento y actividad ligera (−15 %).
+ * regresión según el peso y +1 % de crecimiento. La regresión es de actividad
+ * moderada: sedentaria usa la variante ligera (−15 %).
  */
-export function kcalMenor(sexo: Sexo, kg: number): number {
+export function kcalMenor(sexo: Sexo, kg: number, actividad: Actividad = ACTIVIDAD_POR_DEFECTO): number {
   const tee =
     sexo === 'hombre'
       ? 310.2 + 63.3 * kg - 0.263 * kg * kg
       : 263.4 + 65.3 * kg - 0.454 * kg * kg;
-  return tee * 1.01 * 0.85;
+  return tee * 1.01 * (actividad === 'normal' ? 1 : 0.85);
 }
 
 /** ¿Se le puede recortar la comida? Ver el principio 2 de las fuentes. */
@@ -134,13 +146,14 @@ export function esProtegida(p: Persona): boolean {
   );
 }
 
-/** kcal/día de una persona sin racionar. Un bebé devuelve 0: va aparte. */
-export function kcalBase(p: Persona): number {
+/** kcal/día de una persona sin racionar, con la actividad del escenario. Un bebé devuelve 0: va aparte. */
+export function kcalBase(p: Persona, esc: Escenario = {}): number {
   if (p.edadAnios < 1) return 0;
+  const actividad = esc.actividad ?? ACTIVIDAD_POR_DEFECTO;
   let kcal =
     p.edadAnios < 18
-      ? kcalMenor(p.sexo, p.pesoKg)
-      : bmrAdulto(p.sexo, p.edadAnios, p.pesoKg) * PAL_EMERGENCIA;
+      ? kcalMenor(p.sexo, p.pesoKg, actividad)
+      : bmrAdulto(p.sexo, p.edadAnios, p.pesoKg) * PAL[actividad];
   kcal += EXTRA_EMBARAZO_KCAL[p.embarazoTrimestre ?? 0] ?? 0;
   if (p.lactancia) kcal += EXTRA_LACTANCIA_KCAL;
   return kcal;
@@ -151,16 +164,16 @@ export function kcalBase(p: Persona): number {
  * manual manda lo que haya fijado el usuario, también para ellos: la pantalla
  * avisa, pero la decisión es suya.
  */
-export function kcalPersona(p: Persona, modo: Modo, manual: Manual = {}): number {
-  const base = kcalBase(p);
+export function kcalPersona(p: Persona, modo: Modo, manual: Manual = {}, esc: Escenario = {}): number {
+  const base = kcalBase(p, esc);
   if (modo === 'manual') return p.edadAnios < 1 ? 0 : (manual[p.id]?.kcal ?? base);
   return esProtegida(p) ? base : base * FACTOR_COMIDA[modo];
 }
 
 // ---------------------------------------------------------------------- Agua
 
-/** Agua para beber (L/día), ingesta adecuada de agua total de la EFSA. */
-export function aguaBeber(p: Persona): number {
+/** Ingesta adecuada de agua total de la EFSA (L/día), por edad, sexo, embarazo y lactancia. */
+export function aguaEFSA(p: Persona): number {
   const e = p.edadAnios;
   let l: number;
   if (e < 1) l = 1.0;
@@ -175,16 +188,37 @@ export function aguaBeber(p: Persona): number {
 }
 
 /**
- * Agua de una persona en un modo. Lo que se bebe nunca se recorta (FEMA: «never
- * ration water»); solo se recorta la higiene. Con calor se duplica lo que se
- * bebe.
+ * Agua para beber (L/día): la tabla de la EFSA o 1 mL por kcal gastada (NRC
+ * 1989), lo que sea mayor. La EFSA pone el suelo por edad y sexo; las kcal
+ * hacen que suba con el peso y la actividad. Con calor, el doble (Ready.gov:
+ * «water needs can double»). Nunca se recorta.
+ */
+export function aguaBeber(p: Persona, esc: Escenario = {}): number {
+  const porEnergia = (kcalBase(p, esc) * ML_AGUA_POR_KCAL) / 1000;
+  return Math.max(aguaEFSA(p), porEnergia) * (esc.calor ? 2 : 1);
+}
+
+/**
+ * Agua de una persona en un modo: la de beber, que no se recorta nunca (FEMA:
+ * «never ration water»), más la de higiene del modo, que es lo único que se
+ * recorta. En manual manda lo fijado; sin fijar, el modo normal.
  */
 export function aguaPersona(p: Persona, modo: Modo, esc: Escenario = {}, manual: Manual = {}): number {
-  const beber = aguaBeber(p) * (esc.calor ? 2 : 1);
-  if (modo === 'manual') return manual[p.id]?.litros ?? Math.max(AGUA_NORMAL_L, beber);
-  if (modo === 'normal') return Math.max(AGUA_NORMAL_L, beber);
-  if (modo === 'ligero') return beber + AGUA_HIGIENE_LIGERO_L;
-  return beber;
+  const beber = aguaBeber(p, esc);
+  if (modo === 'manual') return manual[p.id]?.litros ?? beber + AGUA_HIGIENE_L.normal;
+  return beber + AGUA_HIGIENE_L[modo];
+}
+
+/** Lo mismo, partido en beber e higiene. En manual, si se fija menos de lo que se bebe, la higiene es 0. */
+export function aguaDesglose(
+  p: Persona,
+  modo: Modo,
+  esc: Escenario = {},
+  manual: Manual = {},
+): { beber: number; higiene: number } {
+  const total = aguaPersona(p, modo, esc, manual);
+  const beber = Math.min(total, aguaBeber(p, esc));
+  return { beber, higiene: total - beber };
 }
 
 // ------------------------------------------------------------------ Mascotas
@@ -313,6 +347,8 @@ export type Resultado = {
   limita: 'agua' | 'comida' | 'nada';
   kcalDia: number; // personas
   litrosDia: number; // personas y mascotas
+  litrosBeberDia: number; // lo que se bebe (personas y mascotas)
+  litrosHigieneDia: number; // la higiene de las personas
   kcalTotal: number; // útiles para personas: lo que da tiempo a comer
   perdidos: Perdido[]; // comida que caducará antes de que dé tiempo a comerla
   litrosTotal: number; // agua guardada que se puede usar
@@ -340,10 +376,13 @@ export function calcular(
   manual: Manual = {},
   horasSinLuz = 0,
 ): Resultado {
-  const kcalDia = personas.reduce((s, p) => s + kcalPersona(p, modo, manual), 0);
-  const litrosDia =
-    personas.reduce((s, p) => s + aguaPersona(p, modo, esc, manual), 0) +
+  const kcalDia = personas.reduce((s, p) => s + kcalPersona(p, modo, manual, esc), 0);
+  const desglose = personas.map((p) => aguaDesglose(p, modo, esc, manual));
+  const litrosBeberDia =
+    desglose.reduce((s, d) => s + d.beber, 0) +
     mascotas.reduce((s, m) => s + racionMascota(m, modo, manual).litros, 0);
+  const litrosHigieneDia = desglose.reduce((s, d) => s + d.higiene, 0);
+  const litrosDia = litrosBeberDia + litrosHigieneDia;
   const kcalMascotasDia = mascotas.reduce((s, m) => s + racionMascota(m, modo, manual).kcal, 0);
 
   const utiles = productos.filter((p) => cuenta(p, esc, hoy));
@@ -371,6 +410,8 @@ export function calcular(
     limita,
     kcalDia,
     litrosDia,
+    litrosBeberDia,
+    litrosHigieneDia,
     kcalTotal,
     perdidos: [...comida.perdidos, ...pienso.perdidos],
     litrosTotal,
@@ -395,15 +436,16 @@ export type Faltante = {
   cumplido: boolean;
 };
 
-/** Lo que falta para llegar al objetivo en modo normal. */
+/** Lo que falta para llegar al objetivo en modo normal, sin escenario salvo la actividad. */
 export function calcularFaltante(
   personas: Persona[],
   mascotas: Mascota[],
   productos: Producto[],
   objetivoDias: number,
   hoy: Date = new Date(),
+  actividad: Actividad = ACTIVIDAD_POR_DEFECTO,
 ): Faltante {
-  const r = calcular(personas, mascotas, productos, 'normal', {}, hoy);
+  const r = calcular(personas, mascotas, productos, 'normal', { actividad }, hoy);
   const faltanLitros = Math.max(0, objetivoDias * r.litrosDia + r.litrosCocinar - r.litrosTotal);
   const faltanKcal = Math.max(0, objetivoDias * r.kcalDia - r.kcalTotal);
   const kcalMascotasTotal = r.mascotas ? r.mascotas.diasComida * r.mascotas.kcalDia : 0;

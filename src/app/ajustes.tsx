@@ -6,6 +6,9 @@ import { Linking, Platform, Share, View } from 'react-native';
 
 import { Aviso, Boton, Campo, FilaEnlace, Interruptor, Pantalla, Seccion, Segmentado, Tarjeta, Texto } from '@/components/ui';
 import { EstadoActualizaciones } from '@/components/actualizacion';
+import { SelectorActividad } from '@/components/escenario';
+import { PreguntasFrecuentes } from '@/components/preguntas';
+import { Hueco } from '@/components/tutorial';
 import { ENLACE_DONAR } from '@/constants/monetizacion';
 import { confirmar } from '@/lib/confirmar';
 import { pedirPermiso } from '@/lib/notificaciones';
@@ -13,6 +16,7 @@ import { useSincro } from '@/lib/sincro';
 import { useAguante, type Idioma, type Tema } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { textoDia } from '@/lib/fechas';
+import { empezarTutorial } from '@/lib/tutorial';
 import { t } from '@/lib/i18n';
 
 const TEMAS: { valor: Tema; etiqueta: string }[] = [
@@ -35,6 +39,8 @@ export default function Ajustes() {
   const setTema = useAguante((s) => s.setTema);
   const idioma = useAguante((s) => s.idioma);
   const setIdioma = useAguante((s) => s.setIdioma);
+  const actividad = useAguante((s) => s.actividad);
+  const setActividad = useAguante((s) => s.setActividad);
   const avisos = useAguante((s) => s.avisos);
   const setAvisos = useAguante((s) => s.setAvisos);
   const exportar = useAguante((s) => s.exportar);
@@ -89,6 +95,7 @@ export default function Ajustes() {
   return (
     <Pantalla>
       <Seccion>{t('Casa compartida')}</Seccion>
+      <Hueco id="ajustes-casa">
       <Tarjeta style={{ paddingVertical: 6, gap: 0 }}>
         <FilaEnlace
           primera
@@ -104,6 +111,7 @@ export default function Ajustes() {
           onPress={() => router.push('/cuenta')}
         />
       </Tarjeta>
+      </Hueco>
 
       <Seccion>{t('Apariencia')}</Seccion>
       <Tarjeta>
@@ -142,6 +150,12 @@ export default function Ajustes() {
       </Tarjeta>
 
       <Seccion>{t('Cómo se calcula')}</Seccion>
+      <Tarjeta style={{ gap: 8 }}>
+        <SelectorActividad valor={actividad} onChange={setActividad} />
+        <Texto tam={12} color={C.suave}>
+          {t('Es la que se usa en el día a día. Al empezar una emergencia se elige otra vez (por defecto, sedentaria).')}
+        </Texto>
+      </Tarjeta>
       <Tarjeta style={{ paddingVertical: 6, gap: 0 }}>
         <FilaEnlace
           primera
@@ -223,6 +237,22 @@ export default function Ajustes() {
           </Tarjeta>
         </>
       ) : null}
+
+      <Seccion>{t('Ayuda')}</Seccion>
+      <Tarjeta style={{ gap: 10 }}>
+        <Texto tam={13} color={C.suave}>
+          {t('Un recorrido corto por la app, paso a paso. Lo puedes repetir cuando quieras.')}
+        </Texto>
+        <Boton pequeno variante="suave" icono="school-outline" onPress={() => empezarTutorial('/ajustes')}>
+          {t('Ver el tutorial')}
+        </Boton>
+      </Tarjeta>
+      <Texto tam={15} peso="700" style={{ paddingHorizontal: 4 }}>
+        {t('Preguntas frecuentes')}
+      </Texto>
+      <Tarjeta style={{ paddingVertical: 4, gap: 0 }}>
+        <PreguntasFrecuentes />
+      </Tarjeta>
 
       <EstadoActualizaciones />
 

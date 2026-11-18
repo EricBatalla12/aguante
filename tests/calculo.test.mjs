@@ -11,6 +11,9 @@ import {
   kcalBase,
   kcalPersona,
   aguaPersona,
+  aguaBeber,
+  aguaEFSA,
+  aguaDesglose,
   aguaMascota,
   calcular,
   calcularFaltante,
@@ -65,15 +68,51 @@ test('niños, embarazo, lactancia y «no racionar» no se racionan', () => {
   cerca(kcalBase(lactante) - kcalBase(mujer), 505, 0.01, 'extra lactancia');
 });
 
-test('el agua para beber nunca baja, en ningún modo', () => {
-  assert.equal(aguaPersona(hombre, 'normal'), 3.8);
-  assert.equal(aguaPersona(hombre, 'ligero'), 3.0);
-  assert.equal(aguaPersona(hombre, 'severo'), 2.5);
-  assert.equal(aguaPersona(hombre, 'extremo'), 2.5);
+test('el agua para beber nunca baja, en ningún modo; solo se recorta la higiene', () => {
+  const beber = aguaBeber(hombre);
+  cerca(aguaPersona(hombre, 'normal'), beber + 1.5, 1e-9, 'normal');
+  cerca(aguaPersona(hombre, 'ligero'), beber + 0.5, 1e-9, 'ligero');
+  assert.equal(aguaPersona(hombre, 'severo'), beber);
+  assert.equal(aguaPersona(hombre, 'extremo'), beber);
+  // Mujer de 62 kg sedentaria: gasta menos de 2.000 kcal, así que manda la EFSA
   assert.equal(aguaPersona(mujer, 'extremo'), 2.0);
-  assert.equal(aguaPersona(hombre, 'extremo', { calor: true }), 5.0);
-  // Con calor fuerte, lo que se bebe supera los 3,8 L del modo normal
-  assert.equal(aguaPersona(hombre, 'normal', { calor: true }), 5.0);
+});
+
+test('beber: la EFSA es el suelo y 1 mL por kcal lo sube con el peso', () => {
+  const grande = { ...hombre, id: 'g', pesoKg: 115 };
+  assert.equal(aguaEFSA(grande), 2.5);
+  cerca(aguaBeber(grande), kcalBase(grande) / 1000, 1e-9, 'por energía');
+  assert.ok(aguaBeber(grande) > 3, 'un hombre de 115 kg bebe más de 3 L');
+  // Una niña pequeña gasta poco: manda la tabla de la EFSA
+  assert.equal(aguaBeber(nina), aguaEFSA(nina));
+});
+
+test('con calor se duplica lo que se bebe y la higiene se sigue sumando', () => {
+  const beber = aguaBeber(hombre);
+  cerca(aguaBeber(hombre, { calor: true }), beber * 2, 1e-9, 'beber con calor');
+  cerca(aguaPersona(hombre, 'normal', { calor: true }), beber * 2 + 1.5, 1e-9, 'normal con calor');
+  cerca(aguaPersona(hombre, 'extremo', { calor: true }), beber * 2, 1e-9, 'extremo con calor');
+});
+
+test('actividad: sedentaria por defecto; normal sube kcal y agua', () => {
+  assert.equal(kcalBase(hombre), kcalBase(hombre, { actividad: 'sedentaria' }));
+  cerca(kcalBase(hombre, { actividad: 'normal' }) / kcalBase(hombre), 1.6 / 1.4, 1e-9, 'adulto PAL');
+  cerca(kcalBase(nina, { actividad: 'normal' }) / kcalBase(nina), 1 / 0.85, 1e-9, 'menor sin el −15 %');
+  assert.ok(aguaBeber(hombre, { actividad: 'normal' }) > aguaBeber(hombre));
+  cerca(kcalPersona(hombre, 'severo', {}, { actividad: 'normal' }), kcalBase(hombre, { actividad: 'normal' }) * 0.7, 0.01, 'severo');
+  const r = calcular([hombre], [], [], 'normal', { actividad: 'normal' }, HOY);
+  cerca(r.kcalDia, kcalBase(hombre, { actividad: 'normal' }), 0.01, 'calcular usa la actividad');
+});
+
+test('el resultado separa beber e higiene', () => {
+  const r = calcular([hombre, mujer], [perro], [], 'normal', {}, HOY);
+  cerca(r.litrosHigieneDia, 3, 1e-9, 'higiene de dos personas');
+  cerca(r.litrosBeberDia, aguaBeber(hombre) + aguaBeber(mujer) + aguaMascota(perro), 1e-9, 'beber');
+  cerca(r.litrosDia, r.litrosBeberDia + r.litrosHigieneDia, 1e-9, 'total');
+  const extremo = calcular([hombre], [], [], 'extremo', {}, HOY);
+  assert.equal(extremo.litrosHigieneDia, 0);
+  // En manual por debajo de lo que se bebe, la higiene es 0 (no negativa)
+  assert.deepEqual(aguaDesglose(hombre, 'manual', {}, { h: { litros: 1 } }), { beber: 1, higiene: 0 });
 });
 
 test('un bebé no cuenta comida, pero sí agua', () => {
@@ -101,7 +140,7 @@ test('balance: no cuenta lo caducado y descuenta el agua para cocinar', () => {
   assert.equal(r.kcalTotal, 2 * 546 + 2 * 3500 + 4 * 100);
   assert.deepEqual(r.caducados, ['Galletas viejas']);
   assert.equal(r.litrosCocinar, 5);
-  cerca(r.diasAgua, (30 - 5) / 3.8, 0.001, 'días de agua');
+  cerca(r.diasAgua, (30 - 5) / aguaPersona(hombre, 'normal'), 0.001, 'días de agua');
   assert.equal(r.dias, Math.floor(Math.min(r.diasAgua, r.diasComida)));
 });
 
@@ -121,7 +160,7 @@ test('la comida de mascota solo cuenta para mascotas y el agua es común', () =>
   const r = calcular([hombre], [perro], despensa, 'normal', {}, HOY);
   assert.ok(r.mascotas);
   cerca(r.mascotas.diasComida, 10500 / r.mascotas.kcalDia, 0.001, 'días de pienso');
-  cerca(r.litrosDia, 3.8 + aguaMascota(perro), 0.001, 'agua diaria');
+  cerca(r.litrosDia, aguaPersona(hombre, 'normal') + aguaMascota(perro), 0.001, 'agua diaria');
 });
 
 test('un modo más severo nunca da menos días', () => {
@@ -134,7 +173,7 @@ test('un modo más severo nunca da menos días', () => {
 
 test('faltante para el objetivo en modo normal', () => {
   const f = calcularFaltante([hombre], [], despensa, 7, HOY);
-  cerca(f.faltanLitros, 7 * 3.8 + 5 - 30, 0.001, 'litros');
+  cerca(f.faltanLitros, 7 * aguaPersona(hombre, 'normal') + 5 - 30, 0.001, 'litros');
   assert.equal(f.cumplido, false);
   const sobrado = calcularFaltante([hombre], [], despensa, 0, HOY);
   assert.equal(sobrado.cumplido, true);
@@ -175,7 +214,7 @@ test('manual: usa las raciones fijadas y, si faltan, las del modo normal', () =>
   assert.equal(aguaPersona(hombre, 'manual', {}, manual), 2);
   // La mujer no tiene ración fijada: come y bebe como en normal
   cerca(kcalPersona(mujer, 'manual', manual), kcalBase(mujer), 0.001, 'kcal sin fijar');
-  assert.equal(aguaPersona(mujer, 'manual', {}, manual), 3.8);
+  cerca(aguaPersona(mujer, 'manual', {}, manual), aguaPersona(mujer, 'normal'), 1e-9, 'agua sin fijar');
 });
 
 test('manual: los días salen de las raciones fijadas, también las de las mascotas', () => {

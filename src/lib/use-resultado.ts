@@ -1,8 +1,16 @@
 import { useMemo } from 'react';
 
-import { calcular, type Modo, type ModoAuto } from './calculo';
+import { calcular, type Actividad, type Escenario, type Modo, type ModoAuto } from './calculo';
 import { tx } from './i18n';
-import { horasSinLuz, useAguante } from './store';
+import { escenarioEfectivo, horasSinLuz, useAguante } from './store';
+
+/** El escenario con el que se calcula ahora, con la actividad que toque (ver `escenarioEfectivo`). */
+export function useEscenario(): Escenario {
+  const escenario = useAguante((s) => s.escenario);
+  const emergencia = useAguante((s) => s.emergencia);
+  const actividad = useAguante((s) => s.actividad);
+  return useMemo(() => escenarioEfectivo({ escenario, emergencia, actividad }), [escenario, emergencia, actividad]);
+}
 
 /** Balance de la casa con el modo y el escenario guardados (o un modo dado). */
 export function useResultado(modoForzado?: Modo, horas?: number) {
@@ -10,7 +18,7 @@ export function useResultado(modoForzado?: Modo, horas?: number) {
   const mascotas = useAguante((s) => s.mascotas);
   const productos = useAguante((s) => s.productos);
   const modoGuardado = useAguante((s) => s.modo);
-  const escenario = useAguante((s) => s.escenario);
+  const escenario = useEscenario();
   const manual = useAguante((s) => s.manual);
   const emergencia = useAguante((s) => s.emergencia);
   const modo = modoForzado ?? modoGuardado;
@@ -30,6 +38,13 @@ export const ETIQUETA_MODO: Record<Modo, string> = {
   extremo: tx('Extremo'),
   manual: tx('Manual'),
 };
+
+export const ETIQUETA_ACTIVIDAD: Record<Actividad, string> = {
+  sedentaria: tx('Sedentaria'),
+  normal: tx('Normal'),
+};
+
+export const OPCIONES_ACTIVIDAD = (['sedentaria', 'normal'] as const).map((a) => ({ valor: a, etiqueta: ETIQUETA_ACTIVIDAD[a] }));
 
 export const MODOS_AUTO: ModoAuto[] = ['normal', 'ligero', 'severo', 'extremo'];
 

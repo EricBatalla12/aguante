@@ -12,11 +12,13 @@ import * as SystemUI from 'expo-system-ui';
 import { useEffect, useSyncExternalStore } from 'react';
 
 import { DialogoConfirmar } from '@/components/dialogo';
+import { CapaTutorial } from '@/components/tutorial';
 import { fijarLengua, lenguaDelSistema, t } from '@/lib/i18n';
 import { cancelarAvisos, reprogramarAvisos } from '@/lib/notificaciones';
 import { arrancarSincro } from '@/lib/sincro';
 import { useAguante } from '@/lib/store';
 import { ProveedorTema, useC, useLetra, useOscuro } from '@/lib/tema';
+import { debeSalirSolo, empezarTutorial, useTutorial } from '@/lib/tutorial';
 
 SplashScreen.preventAutoHideAsync();
 
@@ -74,6 +76,11 @@ function Navegacion() {
     (avisos ? reprogramarAvisos(productos, kitPropio) : cancelarAvisos()).catch(() => {});
   }, [avisos, productos, kitPropio]);
 
+  // La primera vez, con la app vacía, sale el tutorial (se puede omitir)
+  useEffect(() => {
+    if (useTutorial.getState().paso === null && debeSalirSolo(useAguante.getState())) empezarTutorial('/', false);
+  }, []);
+
   // Fondo de la ventana: evita un fogonazo blanco al navegar en modo oscuro
   useEffect(() => {
     SystemUI.setBackgroundColorAsync(C.fondo).catch(() => {});
@@ -115,6 +122,7 @@ function Navegacion() {
         <Stack.Screen name="trueque" options={{ title: t('Trueque con vecinos') }} />
         <Stack.Screen name="emergencia" options={{ headerShown: false }} />
       </Stack>
+      <CapaTutorial />
     </ThemeProvider>
   );
 }
