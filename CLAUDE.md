@@ -138,7 +138,8 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `supabase/esquema.sql` (comprobado: el servidor ya tiene `cambiar_codigo` y
   `echar_de_casa`; sin sesión responden «permission denied», no «no existe»).
   Falta que Eric lo pruebe en el móvil.
-- **Del 18/11/2026, sin commit ni publicar** (detalle en `docs/pendiente.md`,
+- **Del 18/11/2026, en git y publicado** (commit `5086022`, actualización
+  `36296207`, web desplegada; detalle en `docs/pendiente.md`,
   «Hecho el 18/11/2026»): agua = beber (EFSA o 1 mL/kcal) + higiene por modo,
   actividad sedentaria/normal (día a día y emergencia), tutorial guiado y
   Ayuda con preguntas frecuentes en Ajustes. Tests, `tsc`, lint y export de
@@ -147,9 +148,10 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   tutorial (medido con `measureInWindow`) caiga justo encima de lo que señala.
   `expo-doctor` falla por parches nuevos de Expo (`expo-web-browser` 58.1 y
   otros); ya fallaba antes y no se ha tocado: actualizar uno nativo pide APK.
-- Última actualización publicada: grupo `533b7fe4` (kit en listas, plan de
-  compra, calendario y casa compartida), canal `preview`, runtime 1.0.0. La
-  anterior: `5a049262` (entrar con Google).
+- Última actualización publicada: grupo `36296207` (agua beber + higiene,
+  actividad, tutorial y preguntas), canal `preview`, runtime 1.0.0. Las
+  anteriores: `533b7fe4` (kit en listas, plan de compra, calendario y casa
+  compartida) y `5a049262` (entrar con Google).
 - APK versionCode 3: https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
 - El modo automático bloquea a veces `git commit` si Eric no lo ha pedido en
   ese mismo mensaje: no rodearlo, preguntar.

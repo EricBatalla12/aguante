@@ -147,7 +147,8 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
 ## Hecho el 18/11/2026
 
 Probado en la versión web (Metro 8082, 375×812), **no en el móvil**. Tests
-(75), `tsc`, lint y export de Android limpios. Sin publicar.
+(75), `tsc`, lint y export de Android limpios. Publicado el mismo día
+(actualización `36296207`).
 
 - **Agua = beber + higiene.** Beber: lo mayor entre la EFSA y 1 mL por kcal
   (NRC 1989), ×2 con calor; higiene por modo: normal 1,5 L, ligero 0,5 L,
