@@ -1,5 +1,5 @@
-// Avisos oficiales: la provincia elegida en este móvil, lo último que se
-// descargó y cuándo. Va en su propio almacén (`aguante-avisos`): no entra en
+// Avisos oficiales: la provincia elegida en este móvil, lo que se ha ido
+// descargando (con un mes de historial, para la pestaña Actualidad) y cuándo. Va en su propio almacén (`aguante-avisos`): no entra en
 // las copias ni se comparte con la casa, porque cada móvil puede estar en un
 // sitio y los avisos caducan solos.
 //
@@ -15,13 +15,21 @@ import { almacen } from './almacen';
 import {
   GDACS_RSS,
   IGN_RSS,
+  NOTICIAS_AEMET_RSS,
+  juntarDesastres,
+  juntarMeteo,
+  juntarNoticias,
+  juntarTerremotos,
+  latin9,
   leerAemet,
   leerGdacs,
   leerIgn,
+  leerNoticiasAemet,
   provinciaPorIne,
   urlAemet,
   type AvisoMet,
   type Desastre,
+  type Noticia,
   type Terremoto,
 } from './avisos';
 
@@ -30,9 +38,10 @@ const ESPERA_MAX_MS = 15_000;
 
 type EstadoAvisos = {
   provincia?: string; // código INE
-  meteo: AvisoMet[]; // los de la comunidad entera; se filtra al pintar
+  meteo: AvisoMet[]; // los de la comunidad entera y los ya acabados de la provincia; se filtra al pintar
   terremotos: Terremoto[];
-  desastres: Desastre[];
+  desastres: Desastre[]; // los cerrados llevan `cerrado`
+  noticias: Noticia[]; // noticias de AEMET
   actualizado?: number; // ms de la última descarga que fue bien
   fallo: boolean; // la última descarga no se pudo hacer
   cargando: boolean;
@@ -45,6 +54,7 @@ export const useAvisos = create<EstadoAvisos>()(
       meteo: [],
       terremotos: [],
       desastres: [],
+      noticias: [],
       fallo: false,
       cargando: false,
       setProvincia: (provincia) => {
@@ -62,28 +72,31 @@ export const useAvisos = create<EstadoAvisos>()(
         meteo: s.meteo,
         terremotos: s.terremotos,
         desastres: s.desastres,
+        noticias: s.noticias,
         actualizado: s.actualizado,
       }),
     },
   ),
 );
 
-async function bajar(url: string): Promise<string> {
+async function bajar(url: string, enLatin9 = false): Promise<string> {
   const control = new AbortController();
   const reloj = setTimeout(() => control.abort(), ESPERA_MAX_MS);
   try {
     const r = await fetch(url, { signal: control.signal });
     if (!r.ok) throw new Error(`HTTP ${r.status}`);
-    return await r.text();
+    // Las noticias de AEMET vienen en ISO-8859-15: se leen los bytes tal cual
+    return enLatin9 ? latin9(new Uint8Array(await r.arrayBuffer())) : await r.text();
   } finally {
     clearTimeout(reloj);
   }
 }
 
 /**
- * Descarga las tres fuentes. Sin `forzar`, no hace nada si la última
- * descarga tiene menos de 30 minutos. Cada fuente va por su lado: si una
- * falla, se queda lo que había de ella y se apunta el fallo.
+ * Descarga las cuatro fuentes y las junta con lo que ya había. Sin `forzar`,
+ * no hace nada si la última descarga tiene menos de 30 minutos. Cada fuente
+ * va por su lado: si una falla, se queda lo que había de ella y se apunta el
+ * fallo.
  */
 export async function actualizarAvisos(forzar = false) {
   const s = useAvisos.getState();
@@ -91,16 +104,28 @@ export async function actualizarAvisos(forzar = false) {
   if (!p || s.cargando) return;
   if (!forzar && s.actualizado && Date.now() - s.actualizado < CADA_MS) return;
   useAvisos.setState({ cargando: true });
-  const [meteo, ign, gdacs] = await Promise.allSettled([bajar(urlAemet(p.ccaa)), bajar(IGN_RSS), bajar(GDACS_RSS)]);
+  const [meteo, ign, gdacs, noticias] = await Promise.allSettled([
+    bajar(urlAemet(p.ccaa)),
+    bajar(IGN_RSS),
+    bajar(GDACS_RSS),
+    bajar(NOTICIAS_AEMET_RSS, true),
+  ]);
+  // Lo de antes se lee ahora y no al empezar: la descarga tarda y puede haber cambiado
+  const antes = useAvisos.getState();
+  const ahora = Date.now();
   const cambios: Partial<EstadoAvisos> = { cargando: false };
-  if (meteo.status === 'fulfilled') cambios.meteo = leerAemet(meteo.value);
-  if (ign.status === 'fulfilled') cambios.terremotos = leerIgn(ign.value);
-  if (gdacs.status === 'fulfilled') cambios.desastres = leerGdacs(gdacs.value);
-  const todo = meteo.status === 'fulfilled' && ign.status === 'fulfilled' && gdacs.status === 'fulfilled';
+  // Si se cambió de provincia mientras bajaba, lo de AEMET es de la otra: se descarta y se vuelve a bajar
+  const otraProvincia = antes.provincia !== p.ine;
+  if (meteo.status === 'fulfilled' && !otraProvincia) cambios.meteo = juntarMeteo(antes.meteo, leerAemet(meteo.value), p, ahora);
+  if (ign.status === 'fulfilled') cambios.terremotos = juntarTerremotos(antes.terremotos, leerIgn(ign.value), ahora);
+  if (gdacs.status === 'fulfilled') cambios.desastres = juntarDesastres(antes.desastres, leerGdacs(gdacs.value), ahora);
+  if (noticias.status === 'fulfilled') cambios.noticias = juntarNoticias(antes.noticias, leerNoticiasAemet(noticias.value), ahora);
+  const todo = [meteo, ign, gdacs, noticias].every((x) => x.status === 'fulfilled');
   cambios.fallo = !todo;
   // La hora de actualización es la de AEMET, que es lo que más cambia y lo que se destaca
-  if (meteo.status === 'fulfilled') cambios.actualizado = Date.now();
+  if (meteo.status === 'fulfilled' && !otraProvincia) cambios.actualizado = Date.now();
   useAvisos.setState(cambios);
+  if (otraProvincia) await actualizarAvisos(true);
 }
 
 let arrancado = false;

@@ -16,6 +16,14 @@ import {
   PROVINCIAS,
   COMUNIDADES,
   terremotosDestacados,
+  actualidad,
+  fechaRssEs,
+  juntarDesastres,
+  juntarMeteo,
+  juntarNoticias,
+  juntarTerremotos,
+  latin9,
+  leerNoticiasAemet,
 } from '../src/lib/avisos.ts';
 
 const item = (titulo, descripcion, fichero) => `
@@ -149,4 +157,85 @@ test('GDACS: solo naranjas y rojos abiertos, primero los rojos, y marca España'
   assert.deepEqual(ds.map((d) => [d.tipo, d.nivel, d.enEspana]), [['FL', 'Red', true], ['TC', 'Orange', false]]);
   assert.ok(ds[0].url.startsWith('https://'), 'enlace por https');
   assert.ok(ds[0].url.includes('eventtype=FL&eventid=3'), 'entidades del XML decodificadas');
+});
+
+// ------------------------------------------------- Noticias e historial
+
+test('noticias de AEMET: ISO-8859-15 bien leído y fecha con el mes en español', () => {
+  // «Ã±» no: los bytes son los de Latin-9, una letra por byte; 0xA4 es el euro
+  const bytes = Uint8Array.from([0x45, 0x73, 0x70, 0x61, 0xf1, 0x61, 0x20, 0xa4]);
+  assert.equal(latin9(bytes), 'España €');
+  assert.equal(fechaRssEs('mar, 10 nov 2026 00:00 +0000'), Date.UTC(2026, 10, 10));
+  assert.equal(fechaRssEs('mié, 11 nov 2026 08:46 +0100'), Date.UTC(2026, 10, 11, 7, 46));
+  assert.equal(fechaRssEs('Wed, 11 Nov 2026 08:46 +0000'), Date.UTC(2026, 10, 11, 8, 46), 'nov vale en los dos idiomas');
+  assert.equal(fechaRssEs('basura'), null);
+  const xml = `<rss><channel><title>Noticias</title>
+    <item><title>Octubre de 2026 fue muy cálido y muy seco</title><link>https://www.aemet.es/es/noticias/2026/11/resumen_octubre2026</link><description>Su temperatura media, de 16,1 º C…</description><pubDate>mar, 10 nov 2026 00:00 +0000</pubDate><guid>https://www.aemet.es/es/noticias/2026/11/resumen_octubre2026</guid></item>
+    <item><title>Sin fecha</title><link>https://www.aemet.es/x</link></item>
+  </channel></rss>`;
+  const ns = leerNoticiasAemet(xml);
+  assert.equal(ns.length, 1);
+  assert.equal(ns[0].titulo, 'Octubre de 2026 fue muy cálido y muy seco');
+  assert.equal(ns[0].fecha, Date.UTC(2026, 10, 10));
+});
+
+test('historial de AEMET: guarda lo ya acabado de tu provincia, no lo retirado', () => {
+  const valencia = provinciaPorIne('46');
+  const viejos = leerAemet(AEMET);
+  // En la descarga nueva ya no viene nada: AEMET quita los avisos al acabar
+  const juntos = juntarMeteo(viejos, [], valencia, AHORA);
+  // El de Alicante del 16/11 ya acabó pero es de otra provincia; los de Valencia no han acabado: retirados
+  assert.equal(juntos.length, 0);
+  const despues = Date.UTC(2026, 10, 20, 12);
+  const pasados = juntarMeteo(viejos, [], valencia, despues);
+  assert.deepEqual(pasados.map((a) => a.zona).sort(), ['Interior norte de Valencia', 'Litoral sur de Valencia']);
+  // Si vuelve a venir el mismo aviso (con otro guid), no se duplica
+  const otraVez = viejos.filter((a) => a.zona === 'Litoral sur de Valencia').map((a) => ({ ...a, id: 'otro-guid' }));
+  assert.equal(juntarMeteo(pasados, otraVez, valencia, despues).length, 2);
+  // A los 30 días se olvida
+  assert.equal(juntarMeteo(pasados, [], valencia, despues + 31 * 86_400_000).length, 0);
+});
+
+test('historial de terremotos, desastres y noticias: se juntan sin duplicar y se olvidan al mes', () => {
+  const ts = leerIgn(IGN);
+  const juntos = juntarTerremotos(ts.slice(0, 2), ts, AHORA);
+  // Fuera de España (Marruecos, golfo sin matrícula) no se guarda; los dos de aquí, una vez cada uno
+  assert.deepEqual(juntos.map((t) => t.lugar).sort(), ['E TABOADA.LU', 'SW LORCA.MU']);
+  assert.equal(juntarTerremotos(juntos, [], AHORA + 31 * 86_400_000).length, 0);
+
+  const ds = leerGdacs(GDACS);
+  const sinCiclon = juntarDesastres(ds, ds.filter((d) => d.tipo !== 'TC'), AHORA);
+  assert.deepEqual(sinCiclon.map((d) => [d.tipo, !!d.cerrado]), [['FL', false], ['TC', true]]);
+
+  const n = { id: 'a', titulo: 'x', resumen: '', fecha: AHORA - 86_400_000, url: 'https://www.aemet.es/' };
+  assert.equal(juntarNoticias([n], [n], AHORA).length, 1);
+  // Las diez últimas se guardan aunque tengan más de un mes; de ahí para atrás, solo las del mes
+  const muchas = Array.from({ length: 14 }, (_, i) => ({ ...n, id: `n${i}`, fecha: AHORA - (i + 1) * 5 * 86_400_000 }));
+  assert.deepEqual(juntarNoticias(muchas, [], AHORA).map((x) => x.id), muchas.slice(0, 10).map((x) => x.id));
+  const pocas = muchas.slice(0, 3);
+  assert.equal(juntarNoticias(pocas, [], AHORA + 365 * 86_400_000).length, 3);
+});
+
+test('actualidad: lo más reciente primero y filtros por provincia, España y mundo', () => {
+  const lugo = provinciaPorIne('27');
+  const despues = Date.UTC(2026, 10, 20, 12);
+  const d = {
+    meteo: [],
+    terremotos: leerIgn(IGN),
+    desastres: leerGdacs(GDACS),
+    noticias: [{ id: 'n1', titulo: 'Noticia', resumen: '', fecha: Date.UTC(2026, 10, 17, 9), url: 'https://www.aemet.es/' }],
+  };
+  const todo = actualidad(d, lugo, despues);
+  assert.deepEqual(todo.map((e) => e.tipo), ['terremoto', 'noticia', 'desastre', 'terremoto', 'desastre']);
+  assert.ok(todo.every((e, i) => i === 0 || todo[i - 1].fecha >= e.fecha), 'por fecha');
+  assert.deepEqual(actualidad(d, lugo, despues, 'provincia').map((e) => e.id), [`t:${d.terremotos[0].id}`]);
+  // España incluye tu provincia, la noticia, el terremoto de Lorca y la inundación en España
+  assert.deepEqual(actualidad(d, lugo, despues, 'espana').map((e) => e.tipo), ['terremoto', 'noticia', 'terremoto', 'desastre']);
+  assert.deepEqual(actualidad(d, lugo, despues, 'mundo').map((e) => e.tipo), ['desastre']);
+
+  // Los avisos de AEMET salen cuando ya han acabado (los que siguen en pie van aparte)
+  const valencia = provinciaPorIne('46');
+  const meteo = { ...d, meteo: leerAemet(AEMET) };
+  assert.equal(actualidad(meteo, valencia, AHORA, 'provincia').filter((e) => e.tipo === 'tiempo').length, 0);
+  assert.equal(actualidad(meteo, valencia, despues, 'provincia').filter((e) => e.tipo === 'tiempo').length, 2);
 });

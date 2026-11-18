@@ -161,7 +161,8 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   actualización `c895fffd`): arreglos del
   tutorial (desplazar hasta lo señalado, medir en cada paso, sin dobles toques)
   y **avisos oficiales** (AEMET, IGN y GDACS; `src/lib/avisos.ts`,
-  `src/lib/avisos-estado.ts`, `src/app/avisos.tsx`). Tests (84), `tsc`, lint y
+  `src/lib/avisos-estado.ts`, entonces en `src/app/avisos.tsx`, hoy pestaña
+  Actualidad). Tests (84), `tsc`, lint y
   export de Android limpios; en web los RSS no bajan por CORS (se probó con
   datos cargados a mano y la descarga desde Node). **Ya en el móvil de Eric**
   (18/11/2026, 16:40: Ajustes enseña la actualización `01a1ef48`), pero falta
@@ -190,7 +191,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `marketing/` (apagón, escáner, de 3 a 7 días), uno cada 2–3 días, probando
   una sola cosa a la vez (el gancho). Con menos de 8–10 vídeos los números son
   ruido: decirlo así.
-- **Avisos oficiales**: hechos el 18/11/2026; lo que falta, en `docs/pendiente.md`.
+- **Avisos oficiales**: hechos el 18/11/2026 y convertidos esa tarde en la
+  pestaña **Actualidad** (`src/app/(tabs)/actualidad.tsx`, historial de 30
+  días, noticias de AEMET; solo fuentes oficiales, nada de prensa, decidido
+  con Eric). **Sin commit ni publicar** a la espera de Eric (detalle en
+  `docs/pendiente.md`, «pestaña Actualidad»). Lo que falta, en el mismo fichero.
 - Lo demás está en `docs/pendiente.md`. Eric dejó para más adelante compartir
   el resultado como imagen (necesita APK nuevo). El trueque
   entre vecinos tiene una propuesta escrita y espera a que Eric decida.

@@ -404,9 +404,10 @@ Consultado el 16/11/2026.
 
 ## Avisos oficiales
 
-Añadido el 18/11/2026 (`src/lib/avisos.ts`, `src/lib/avisos-estado.ts`,
-`src/app/avisos.tsx`). Solo fuentes oficiales; nada de prensa (derechos,
-API de pago y alarmismo). Las tres se leen por RSS desde el móvil, sin servidor
+Añadido el 18/11/2026 (`src/lib/avisos.ts`, `src/lib/avisos-estado.ts`;
+desde la tarde del 18/11/2026 es la pestaña Actualidad,
+`src/app/(tabs)/actualidad.tsx`). Solo fuentes oficiales; nada de prensa
+(derechos, API de pago y alarmismo): Eric lo confirmó el 18/11/2026. Todas se leen por RSS desde el móvil, sin servidor
 propio ni claves. Ninguna manda cabeceras CORS: en la versión web no se pueden
 descargar (en el móvil no hay CORS).
 
@@ -437,6 +438,17 @@ descargar (en el móvil no hay CORS).
   `iscurrent` distinto de false (las sequías largas vienen como no actuales).
   Licencia que trae el propio RSS: «European Union (CC BY 4.0), reuse is
   allowed, provided appropriate credit to GDACS is given».
+- **Noticias de AEMET**: <https://www.aemet.es/es/noticias.rss> (enlazado desde
+  <https://www.aemet.es/es/rss_info>). Viene en **ISO-8859-15**, no en UTF-8:
+  se baja como bytes y se lee con `latin9` (en React Native no hay
+  `TextDecoder` para esa codificación). `pubDate` con el mes en español
+  («mar, 10 nov 2026 00:00 +0000»). AEMET corta los títulos largos con «...».
+  Condiciones, en el propio RSS: «Autorizado el uso de la información y su
+  reproducción citando a AEMET como autora de la misma».
+- **Protección Civil y 112**: no se ha encontrado RSS (18/11/2026:
+  `proteccioncivil.es/rss` da 404, la sala de prensa no anuncia ninguno y el
+  RSS del Ministerio del Interior responde 403). Los 112 autonómicos son
+  distintos en cada comunidad; no se han mirado.
 - **ES-Alert**: no hay API ni RSS para terceros (no encontrado). Llega solo a
   los móviles; la pantalla lo recuerda.
 
@@ -447,4 +459,20 @@ minutos, y con «Actualizar». Cada fuente por su lado; si falla, se queda lo
 
 En Inicio se destaca un aviso **naranja o rojo** de tu provincia si está en
 curso o empieza en las próximas 48 horas **[propio]**.
+
+**Historial [propio]**: los RSS solo traen lo de ahora (AEMET quita el aviso al
+acabar, el IGN da diez días, GDACS deja de listar lo cerrado). En cada descarga
+se junta lo nuevo con lo guardado y se conserva **30 días**
+(`DIAS_HISTORIAL`): los avisos de AEMET ya acabados de la provincia (un aviso
+que desaparece antes de acabar se da por retirado y no se guarda; los
+reemitidos con otro `guid` se reconocen por zona, fenómeno, nivel y tramo), los
+terremotos de España de 3,0 o más, los desastres que se cierran (marcados
+`cerrado`) y las noticias (siempre las diez últimas aunque tengan más de un
+mes, porque AEMET publica pocas). Solo hay historial desde que el móvil tiene
+esta versión.
+
+**Pestaña Actualidad**: arriba, los avisos de AEMET en vigor o por llegar;
+debajo, «Lo que ha pasado», agrupado por días, con filtro Todo / Provincia /
+España (incluye la provincia) / Mundo (solo lo de fuera). Cada fila abre la
+fuente.
 

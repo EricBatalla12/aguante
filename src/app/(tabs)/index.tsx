@@ -277,7 +277,7 @@ export default function Inicio() {
       {destacado && (
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push('/avisos')}
+          onPress={() => router.push('/actualidad')}
           style={{
             flexDirection: 'row',
             alignItems: 'center',
@@ -334,7 +334,7 @@ export default function Inicio() {
                 : t('Sin avisos de AEMET en {provincia}', { provincia: provincia.nombre })
               : t('Tiempo, terremotos y desastres, de fuentes oficiales')
           }
-          onPress={() => router.push('/avisos')}
+          onPress={() => router.push('/actualidad')}
         />
         <FilaEnlace
           icono="lightning-bolt-outline"

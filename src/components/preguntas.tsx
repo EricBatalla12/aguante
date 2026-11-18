@@ -51,7 +51,7 @@ const PREGUNTAS: { p: string; r: string }[] = [
   },
   {
     p: tx('¿De dónde salen los avisos?'),
-    r: tx('De fuentes oficiales: AEMET (tiempo en tu provincia), el IGN (terremotos en España) y GDACS (desastres graves en el mundo). La provincia se elige en Avisos oficiales, en Inicio. No sustituyen a Protección Civil ni al 112.'),
+    r: tx('De fuentes oficiales: AEMET (tiempo en tu provincia), el IGN (terremotos en España) y GDACS (desastres graves en el mundo). Están en la pestaña Actualidad, donde se elige la provincia; se guarda lo del último mes. No sustituyen a Protección Civil ni al 112.'),
   },
   {
     p: tx('¿Son fiables las cifras?'),

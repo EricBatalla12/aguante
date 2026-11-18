@@ -91,6 +91,9 @@ Queda:
 - Guerras y conflictos: no hay fuente oficial abierta y fiable; descartado.
 - Comprobar las matrículas del IGN de Baleares y Las Palmas cuando haya un
   terremoto allí.
+- Más fuentes oficiales para Actualidad: Protección Civil no tiene RSS (ver
+  `fuentes-y-reglas.md`); quedan por mirar los 112 de cada comunidad.
+- Las noticias de AEMET solo están en español (también con la app en inglés).
 
 ## Ideas sacadas de otras apps
 
@@ -119,6 +122,29 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
   comprobar).
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
+
+## Hecho el 18/11/2026 por la tarde: pestaña Actualidad
+
+Sin módulos nativos: va por actualización. Tests (88), `tsc`, lint y export de
+Android limpios. Probado en web (Metro 8082, 375 y 320 px) con datos reales
+bajados desde Node (en web los RSS no bajan por CORS); **no en el móvil**.
+
+- Los avisos dejan de ser una pantalla aparte (`/avisos`) y pasan a ser la
+  quinta pestaña, **Actualidad**: lo que está en vigor arriba y «Lo que ha
+  pasado» del último mes debajo, por días y con filtro Todo / Provincia /
+  España / Mundo. Solo fuentes oficiales (decidido con Eric).
+- Fuente nueva: **noticias de AEMET** (RSS en ISO-8859-15, leído con
+  `latin9`).
+- Historial de 30 días guardado en el móvil (`juntarMeteo`,
+  `juntarTerremotos`, `juntarDesastres`, `juntarNoticias`, `actualidad` en
+  `avisos.ts`).
+- Paso nuevo del tutorial (ahora son ocho) y pregunta frecuente y pantalla de
+  fuentes al día.
+- Con cinco pestañas, «Preparación» se cortaba a 320 px: la etiqueta de cada
+  pestaña la pinta ahora `Texto` con `ajustar` y sin el relleno del botón.
+- Sin comprobar en Android: que `fetch().arrayBuffer()` funcione (si falla, las
+  noticias no se bajan y sale el aviso de descarga incompleta) y cómo quedan
+  las etiquetas de las pestañas.
 
 ## Hecho el 18/11/2026
 

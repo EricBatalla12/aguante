@@ -25,7 +25,7 @@ export const PASOS: Paso[] = [
   {
     ruta: '/',
     titulo: tx('Te damos la bienvenida a Aguante'),
-    texto: tx('Aguante calcula cuántos días podríais pasar en casa con la comida, el agua y la energía que tenéis, y te ayuda a preparar la reserva. Son siete pasos: puedes omitirlo cuando quieras y repetirlo en Ajustes.'),
+    texto: tx('Aguante calcula cuántos días podríais pasar en casa con la comida, el agua y la energía que tenéis, y te ayuda a preparar la reserva. Son ocho pasos: puedes omitirlo cuando quieras y repetirlo en Ajustes.'),
   },
   {
     ruta: '/hogar',
@@ -56,6 +56,11 @@ export const PASOS: Paso[] = [
     hueco: 'preparacion-objetivo',
     titulo: tx('Prepárate poco a poco'),
     texto: tx('Elige cuántos días quieres aguantar y te dice qué te falta. También tienes el kit de emergencia, la mochila y un plan para comprar poco a poco.'),
+  },
+  {
+    ruta: '/actualidad',
+    titulo: tx('Actualidad'),
+    texto: tx('Avisos de AEMET en tu provincia, terremotos, desastres graves y noticias de AEMET, solo de fuentes oficiales. Arriba, lo que está en vigor; debajo, lo que ha pasado en el último mes.'),
   },
   {
     ruta: '/ajustes',

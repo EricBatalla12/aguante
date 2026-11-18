@@ -1,6 +1,7 @@
-// Avisos oficiales: lectura de los RSS de AEMET (avisos meteorológicos), del
-// IGN (terremotos) y de GDACS (desastres en el mundo), y el filtro por la
-// provincia de cada casa.
+// Avisos oficiales: lectura de los RSS de AEMET (avisos meteorológicos y
+// noticias), del IGN (terremotos) y de GDACS (desastres en el mundo), el
+// filtro por la provincia de cada casa y el historial de la pestaña
+// Actualidad.
 //
 // Solo fuentes oficiales y nada de prensa: ver docs/fuentes-y-reglas.md,
 // «Avisos oficiales». Este fichero no importa nada: los tests lo ejecutan con
@@ -277,6 +278,7 @@ export type Desastre = {
   inicio: number;
   fin: number;
   url: string;
+  cerrado?: boolean; // ya no viene en el RSS: se guarda para el historial
 };
 
 /** Solo los naranjas y rojos que siguen abiertos: los verdes son cientos y casi nunca afectan a nadie. */
@@ -303,4 +305,155 @@ export function leerGdacs(xml: string): Desastre[] {
   }
   // Primero los rojos y, dentro de cada nivel, lo más reciente
   return out.sort((a, b) => (a.nivel === b.nivel ? b.fin - a.fin : a.nivel === 'Red' ? -1 : 1));
+}
+
+// ------------------------------------------------------- Noticias de AEMET
+
+export const NOTICIAS_AEMET_RSS = 'https://www.aemet.es/es/noticias.rss';
+export const NOTICIAS_AEMET_WEB = 'https://www.aemet.es/es/noticias';
+
+export type Noticia = {
+  id: string;
+  titulo: string; // AEMET corta los largos con «...»
+  resumen: string;
+  fecha: number; // ms
+  url: string;
+};
+
+// ISO-8859-15 es Latin-1 salvo ocho posiciones (el euro y unas letras). El RSS
+// de noticias viene así y `fetch().text()` lo leería como UTF-8: las tildes
+// saldrían rotas. En React Native no hay TextDecoder para esta codificación.
+const LATIN9: Record<number, number> = { 0xa4: 0x20ac, 0xa6: 0x160, 0xa8: 0x161, 0xb4: 0x17d, 0xb8: 0x17e, 0xbc: 0x152, 0xbd: 0x153, 0xbe: 0x178 };
+
+export function latin9(bytes: Uint8Array): string {
+  let s = '';
+  for (let i = 0; i < bytes.length; i += 8192) {
+    const trozo = Array.from(bytes.subarray(i, i + 8192), (b) => LATIN9[b] ?? b);
+    s += String.fromCharCode(...trozo);
+  }
+  return s;
+}
+
+const MESES_RSS: Record<string, number> = { ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5, jul: 6, ago: 7, sep: 8, oct: 9, nov: 10, dic: 11 };
+
+/** «mar, 10 nov 2026 00:00 +0000» (los meses en español) → ms. */
+export function fechaRssEs(s: string): number | null {
+  const m = s.match(/(\d{1,2})\s+([a-zé]{3})\w*\s+(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([+-])(\d{2}):?(\d{2})/i);
+  if (!m) return null;
+  const [, dd, mes, aa, hh, mi, ss, signo, dh, dm] = m;
+  const n = MESES_RSS[mes.toLowerCase()];
+  if (n === undefined) return null;
+  const desfase = (signo === '-' ? -1 : 1) * (Number(dh) * 60 + Number(dm));
+  return Date.UTC(Number(aa), n, Number(dd), Number(hh), Number(mi), Number(ss ?? 0)) - desfase * 60_000;
+}
+
+export function leerNoticiasAemet(xml: string): Noticia[] {
+  const out: Noticia[] = [];
+  for (const it of items(xml)) {
+    const titulo = campo(it, 'title');
+    const fecha = fechaRssEs(campo(it, 'pubDate') ?? '');
+    if (!titulo || fecha === null) continue;
+    const url = campo(it, 'link') ?? NOTICIAS_AEMET_WEB;
+    out.push({ id: campo(it, 'guid') ?? url, titulo, resumen: campo(it, 'description') ?? '', fecha, url });
+  }
+  return out;
+}
+
+// ------------------------------------------------------------- Historial
+//
+// Los RSS solo traen lo de ahora: AEMET quita un aviso al acabar, el IGN da
+// diez días y GDACS deja de listar lo que se cierra. Para poder leer lo que
+// ha pasado, en cada descarga se junta lo nuevo con lo que ya se tenía y se
+// guarda un mes. [propio]
+
+export const DIAS_HISTORIAL = 30;
+const HISTORIAL_MS = DIAS_HISTORIAL * 86_400_000;
+
+/** Un mismo aviso se vuelve a emitir con otro `guid`; esto es lo que no cambia. */
+const claveMeteo = (a: AvisoMet) => `${a.codigoZona}|${a.fenomeno}|${a.nivel}|${a.inicio}|${a.fin}`;
+
+const esDeProvincia = (codigoZona: string, p: Provincia) =>
+  codigoZona.slice(0, 2) === p.ccaa && (COMUNIDADES[p.ccaa]?.porIslas || codigoZona.slice(2, 4) === p.ine);
+
+/**
+ * Lo nuevo de AEMET (toda la comunidad) más los avisos ya acabados de la
+ * provincia que se tenían. Lo que no ha acabado y ya no viene se da por
+ * retirado (AEMET lo ha quitado o cambiado), así que no se guarda.
+ */
+export function juntarMeteo(viejos: AvisoMet[], nuevos: AvisoMet[], p: Provincia, ahora: number): AvisoMet[] {
+  const hay = new Set(nuevos.map(claveMeteo));
+  const pasados = viejos.filter((a) => a.fin <= ahora && a.fin > ahora - HISTORIAL_MS && esDeProvincia(a.codigoZona, p) && !hay.has(claveMeteo(a)));
+  return [...nuevos, ...pasados];
+}
+
+/** Terremotos: los que se pueden llegar a enseñar (en España y de 3,0 o más), del último mes. */
+export function juntarTerremotos(viejos: Terremoto[], nuevos: Terremoto[], ahora: number): Terremoto[] {
+  const porId = new Map<string, Terremoto>();
+  for (const t of [...viejos, ...nuevos]) porId.set(t.id, t);
+  return [...porId.values()].filter((t) => t.fecha > ahora - HISTORIAL_MS && t.magnitud >= MAGNITUD_PROVINCIA && matriculaDe(t.lugar) !== null);
+}
+
+/** Desastres: lo que ya no viene en el RSS queda como cerrado. */
+export function juntarDesastres(viejos: Desastre[], nuevos: Desastre[], ahora: number): Desastre[] {
+  const hay = new Set(nuevos.map((d) => d.id));
+  const cerrados = viejos.filter((d) => !hay.has(d.id)).map((d) => ({ ...d, cerrado: true }));
+  return [...nuevos, ...cerrados].filter((d) => (d.fin || d.inicio) > ahora - HISTORIAL_MS);
+}
+
+/** Noticias: las del último mes y, como salen pocas, siempre las diez últimas aunque sean más viejas. */
+export const NOTICIAS_MINIMO = 10;
+
+export function juntarNoticias(viejas: Noticia[], nuevas: Noticia[], ahora: number): Noticia[] {
+  const porId = new Map<string, Noticia>();
+  for (const n of [...viejas, ...nuevas]) porId.set(n.id, n);
+  return [...porId.values()].sort((a, b) => b.fecha - a.fecha).filter((n, i) => i < NOTICIAS_MINIMO || n.fecha > ahora - HISTORIAL_MS);
+}
+
+// ------------------------------------------------------------- Actualidad
+
+export type Ambito = 'provincia' | 'espana' | 'mundo';
+export type FiltroAmbito = 'todo' | Ambito;
+
+export type Entrada =
+  | { tipo: 'tiempo'; id: string; fecha: number; ambito: Ambito; aviso: AvisoMet }
+  | { tipo: 'terremoto'; id: string; fecha: number; ambito: Ambito; terremoto: Terremoto }
+  | { tipo: 'desastre'; id: string; fecha: number; ambito: Ambito; desastre: Desastre }
+  | { tipo: 'noticia'; id: string; fecha: number; ambito: Ambito; noticia: Noticia };
+
+/** Lo que cabe en cada filtro: «España» incluye tu provincia; «Mundo» es solo lo de fuera. */
+export function entraEnFiltro(ambito: Ambito, filtro: FiltroAmbito): boolean {
+  if (filtro === 'todo') return true;
+  if (filtro === 'espana') return ambito !== 'mundo';
+  return ambito === filtro;
+}
+
+/**
+ * Lo que ha pasado, lo más reciente primero: los avisos de AEMET ya acabados
+ * en tu provincia (los que siguen en pie van aparte, arriba), los terremotos
+ * destacados, los desastres de GDACS y las noticias de AEMET.
+ */
+export function actualidad(
+  d: { meteo: AvisoMet[]; terremotos: Terremoto[]; desastres: Desastre[]; noticias: Noticia[] },
+  p: Provincia | undefined,
+  ahora: number,
+  filtro: FiltroAmbito = 'todo',
+): Entrada[] {
+  const out: Entrada[] = [];
+  if (p) {
+    for (const a of d.meteo) {
+      if (a.fin <= ahora && esDeProvincia(a.codigoZona, p)) out.push({ tipo: 'tiempo', id: `m:${claveMeteo(a)}`, fecha: a.inicio, ambito: 'provincia', aviso: a });
+    }
+  }
+  for (const t of terremotosDestacados(d.terremotos, p)) {
+    const mat = matriculaDe(t.lugar);
+    const aqui = !!p && !!mat && p.matricula.includes(mat);
+    out.push({ tipo: 'terremoto', id: `t:${t.id}`, fecha: t.fecha, ambito: aqui ? 'provincia' : 'espana', terremoto: t });
+  }
+  for (const x of d.desastres) out.push({ tipo: 'desastre', id: `d:${x.id}`, fecha: x.inicio, ambito: x.enEspana ? 'espana' : 'mundo', desastre: x });
+  for (const n of d.noticias) out.push({ tipo: 'noticia', id: `n:${n.id}`, fecha: n.fecha, ambito: 'espana', noticia: n });
+  // Sin duplicados (un aviso repetido en dos descargas) y por fecha
+  const vistos = new Set<string>();
+  return out
+    .filter((e) => entraEnFiltro(e.ambito, filtro) && e.fecha <= ahora && !vistos.has(e.id) && vistos.add(e.id))
+    .sort((a, b) => b.fecha - a.fecha);
 }
