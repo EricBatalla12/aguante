@@ -167,9 +167,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   datos cargados a mano y la descarga desde Node). **Ya en el móvil de Eric**
   (18/11/2026, 16:40: Ajustes enseña la actualización `01a1ef48`), pero falta
   que pruebe el tutorial nuevo y la pantalla de avisos con su provincia.
-- Última actualización publicada: grupo `078c8705` (en la app, `01a1ef9f`;
-  pestaña Actualidad), canal `preview`, runtime 1.0.0, el 18/11/2026. Sin
-  confirmar que le haya llegado al móvil de Eric. Las anteriores: `c895fffd`
+- Última actualización publicada: grupo `107efbb6` (en la app, `01a1efb8`;
+  Actualidad con AESAN, AEMPS, Copernicus y filtro por tipo), canal
+  `preview`, runtime 1.0.0, el 18/11/2026. Sin confirmar que le haya llegado
+  al móvil de Eric. Las anteriores: `078c8705` (en la app `01a1ef9f`; pestaña
+  Actualidad), `c895fffd`
   (en la app `01a1ef48`; avisos oficiales y tutorial sin tirones),
   `36296207` (agua beber + higiene, actividad, tutorial y preguntas), `533b7fe4` (kit en listas, plan de compra, calendario y casa
   compartida) y `5a049262` (entrar con Google).
@@ -197,8 +199,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   días, noticias de AEMET; solo fuentes oficiales, nada de prensa, decidido
   con Eric). En git (commit `9857f7b`) y **publicado** el 18/11/2026
   (grupo `078c8705`; en la app, `01a1ef9f`, ojo: se parece al anterior
-  `01a1ef48`). Falta que Eric lo pruebe en el móvil (detalle en
-  `docs/pendiente.md`, «pestaña Actualidad»). Lo que falta, en el mismo fichero.
+  `01a1ef48`). Esa misma tarde, a petición de Eric, más fuentes (AESAN,
+  AEMPS y Copernicus; la nuclear no) y filtro por tipo: commit `27e797d`,
+  publicado (grupo `107efbb6`; en la app, `01a1efb8`). Falta que Eric lo
+  pruebe en el móvil (detalle en `docs/pendiente.md`, «más fuentes en
+  Actualidad» y «pestaña Actualidad»). Lo que falta, en el mismo fichero.
 - Lo demás está en `docs/pendiente.md`. Eric dejó para más adelante compartir
   el resultado como imagen (necesita APK nuevo). El trueque
   entre vecinos tiene una propuesta escrita y espera a que Eric decida.

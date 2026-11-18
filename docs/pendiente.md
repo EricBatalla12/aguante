@@ -130,8 +130,8 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
 ## Hecho el 18/11/2026 por la tarde: más fuentes en Actualidad
 
 Tras pedirlo Eric («todas las que funcionen menos la nuclear» y un filtro por
-tipo). Sin publicar al escribir esto; probado en web con datos reales bajados
-desde Node, **no en el móvil**.
+tipo). Publicado el mismo día (actualización `107efbb6`); probado en web con
+datos reales bajados desde Node, **no en el móvil**.
 
 - Fuentes nuevas: **AESAN** (alertas alimentarias, leídas de su página porque
   no tiene RSS), **AEMPS** (alertas de medicamentos) y **Copernicus EMS**
