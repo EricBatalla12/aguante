@@ -150,15 +150,16 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   tutorial (medido con `measureInWindow`) caiga justo encima de lo que señala.
   `expo-doctor` falla por parches nuevos de Expo (`expo-web-browser` 58.1 y
   otros); ya fallaba antes y no se ha tocado: actualizar uno nativo pide APK.
-- **Del 18/11/2026 por la tarde, sin commit ni publicar**: arreglos del
+- **Del 18/11/2026 por la tarde, en git y publicado** (commit `3e5226d`,
+  actualización `c895fffd`): arreglos del
   tutorial (desplazar hasta lo señalado, medir en cada paso, sin dobles toques)
   y **avisos oficiales** (AEMET, IGN y GDACS; `src/lib/avisos.ts`,
   `src/lib/avisos-estado.ts`, `src/app/avisos.tsx`). Tests (84), `tsc`, lint y
   export de Android limpios; en web los RSS no bajan por CORS (se probó con
   datos cargados a mano y la descarga desde Node). No probado en el móvil.
-- Última actualización publicada: grupo `36296207` (agua beber + higiene,
-  actividad, tutorial y preguntas), canal `preview`, runtime 1.0.0. Las
-  anteriores: `533b7fe4` (kit en listas, plan de compra, calendario y casa
+- Última actualización publicada: grupo `c895fffd` (avisos oficiales y
+  tutorial sin tirones), canal `preview`, runtime 1.0.0. Las anteriores:
+  `36296207` (agua beber + higiene, actividad, tutorial y preguntas), `533b7fe4` (kit en listas, plan de compra, calendario y casa
   compartida) y `5a049262` (entrar con Google).
 - APK versionCode 3: https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
 - El modo automático bloquea a veces `git commit` si Eric no lo ha pedido en
