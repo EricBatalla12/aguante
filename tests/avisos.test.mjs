@@ -17,13 +17,18 @@ import {
   COMUNIDADES,
   terremotosDestacados,
   actualidad,
-  fechaRssEs,
+  fechaRss,
   juntarDesastres,
   juntarMeteo,
   juntarNoticias,
   juntarTerremotos,
   latin9,
   leerNoticiasAemet,
+  fechaSinHora,
+  juntarActivaciones,
+  leerAemps,
+  leerAesan,
+  leerCopernicus,
 } from '../src/lib/avisos.ts';
 
 const item = (titulo, descripcion, fichero) => `
@@ -165,10 +170,10 @@ test('noticias de AEMET: ISO-8859-15 bien leído y fecha con el mes en español'
   // «Ã±» no: los bytes son los de Latin-9, una letra por byte; 0xA4 es el euro
   const bytes = Uint8Array.from([0x45, 0x73, 0x70, 0x61, 0xf1, 0x61, 0x20, 0xa4]);
   assert.equal(latin9(bytes), 'España €');
-  assert.equal(fechaRssEs('mar, 10 nov 2026 00:00 +0000'), Date.UTC(2026, 10, 10));
-  assert.equal(fechaRssEs('mié, 11 nov 2026 08:46 +0100'), Date.UTC(2026, 10, 11, 7, 46));
-  assert.equal(fechaRssEs('Wed, 11 Nov 2026 08:46 +0000'), Date.UTC(2026, 10, 11, 8, 46), 'nov vale en los dos idiomas');
-  assert.equal(fechaRssEs('basura'), null);
+  assert.equal(fechaRss('mar, 10 nov 2026 00:00 +0000'), Date.UTC(2026, 10, 10));
+  assert.equal(fechaRss('mié, 11 nov 2026 08:46 +0100'), Date.UTC(2026, 10, 11, 7, 46));
+  assert.equal(fechaRss('Wed, 11 Nov 2026 08:46 +0000'), Date.UTC(2026, 10, 11, 8, 46), 'nov vale en los dos idiomas');
+  assert.equal(fechaRss('basura'), null);
   const xml = `<rss><channel><title>Noticias</title>
     <item><title>Octubre de 2026 fue muy cálido y muy seco</title><link>https://www.aemet.es/es/noticias/2026/11/resumen_octubre2026</link><description>Su temperatura media, de 16,1 º C…</description><pubDate>mar, 10 nov 2026 00:00 +0000</pubDate><guid>https://www.aemet.es/es/noticias/2026/11/resumen_octubre2026</guid></item>
     <item><title>Sin fecha</title><link>https://www.aemet.es/x</link></item>
@@ -238,4 +243,84 @@ test('actualidad: lo más reciente primero y filtros por provincia, España y mu
   const meteo = { ...d, meteo: leerAemet(AEMET) };
   assert.equal(actualidad(meteo, valencia, AHORA, 'provincia').filter((e) => e.tipo === 'tiempo').length, 0);
   assert.equal(actualidad(meteo, valencia, despues, 'provincia').filter((e) => e.tipo === 'tiempo').length, 2);
+});
+
+// ------------------------------------------ AESAN, AEMPS, Copernicus y tipos
+
+// Copia del formato de https://www.aesan.gob.es/alertas/buscador-alertas (18/11/2026)
+const AESAN = `<div class="aesan-section__row">
+  <a class="seeMoreCard seeMoreCard--m" href="/alertas/2026_83" title="Retirada de la alerta por presencia de sulfitos (Ref. ES2026/681)<br/>">
+    <div class="seeMoreCard-heading"><div class="seeMoreCard-heading__icon material-symbols-outlined" aria-hidden="true"> cookie </div>
+    <span class="seeMoreCard-heading__value">13 Noviembre 2026</span></div>
+    <p class="seeMoreCard__text">Retirada de la alerta por presencia de sulfitos no declarados en gamba &amp; langostino (Ref. ES2026/681)<br/></p>
+    <span class="seeMoreCard__link" >Ver más</span></a>
+  <a class="seeMoreCard seeMoreCard--m" href="/alertas/2026_81" title="Listeria">
+    <div class="seeMoreCard-heading"><span class="seeMoreCard-heading__value">10 Noviembre 2026</span></div>
+    <p class="seeMoreCard__text">Alerta por posible presencia de Listeria monocytogenes en productos lácteos</p></a>
+  <a class="seeMoreCard seeMoreCard--m" href="/alertas/buscador-alertas" title="Otra cosa"><p class="seeMoreCard__text">No es una alerta</p></a>
+</div>`;
+
+test('AESAN: lee las tarjetas de alertas (fecha sin hora, texto limpio) y falla si cambia la página', () => {
+  const as = leerAesan(AESAN);
+  assert.equal(as.length, 2);
+  assert.equal(as[0].titulo, 'Retirada de la alerta por presencia de sulfitos no declarados en gamba & langostino (Ref. ES2026/681)');
+  assert.equal(as[0].url, 'https://www.aesan.gob.es/alertas/2026_83');
+  assert.equal(as[0].fecha, Date.UTC(2026, 10, 13, 12));
+  assert.equal(fechaSinHora('4 de marzo de 2026'), Date.UTC(2026, 2, 4, 12));
+  assert.throws(() => leerAesan('<html>página nueva</html>'));
+});
+
+test('AEMPS: lee el RSS de alertas con la fecha en inglés', () => {
+  const xml = `<rss><channel><item><title>ORAMORPH 2 MG/ML SOLUCION ORAL , 1 frasco de 100 ml (NR: 62039, CN: 821934)</title>
+    <link>https://www.aemps.gob.es/informa/oramorph/</link><pubDate>Mon, 01 Jun 2026 09:40:34 +0000</pubDate>
+    <guid isPermaLink="false">https://www.aemps.gob.es/?p=1</guid></item></channel></rss>`;
+  const ms = leerAemps(xml);
+  assert.equal(ms.length, 1);
+  assert.equal(ms[0].fecha, Date.UTC(2026, 5, 1, 9, 40, 34));
+  assert.equal(ms[0].id, 'https://www.aemps.gob.es/?p=1');
+  assert.equal(fechaRss('Wed, 18 Nov 2026 06:07:42 GMT'), Date.UTC(2026, 10, 18, 6, 7, 42));
+});
+
+const COPERNICUS = {
+  count: 3,
+  results: [
+    { code: 'EMSR936', countries: ['Ecuador'], eventTime: '2026-11-12T23:00:00', name: 'Flood in Ecuador', closed: false, gdacsId: 'FL1104167' },
+    { code: 'EMSR930', countries: ['Spain'], eventTime: '2026-10-19T03:10:00', name: 'Flood in Alicante-Valencia Regions, Spain', closed: true, gdacsId: null },
+    { code: 'EMSR900', countries: ['Chile'], name: 'Sin fecha' },
+  ],
+};
+
+test('Copernicus: lee las activaciones (hora UTC), marca España y enlaza la ficha', () => {
+  const cs = leerCopernicus(COPERNICUS);
+  assert.deepEqual(cs.map((c) => [c.id, c.enEspana, c.cerrada]), [['EMSR936', false, false], ['EMSR930', true, true]]);
+  assert.equal(cs[0].fecha, Date.UTC(2026, 10, 12, 23));
+  assert.equal(cs[0].url, 'https://mapping.emergency.copernicus.eu/activations/EMSR936/');
+  assert.throws(() => leerCopernicus({ code: 'Activation code parameter is mandatory' }));
+  // Activa pocas: las diez últimas se guardan aunque tengan más de un mes
+  assert.equal(juntarActivaciones(cs, [], Date.UTC(2027, 5, 1)).length, 2);
+});
+
+test('actualidad: filtro por tipo, y lo que Copernicus comparte con GDACS sale una vez', () => {
+  const ahora = Date.UTC(2026, 10, 20, 12);
+  const cs = leerCopernicus(COPERNICUS);
+  const gdacs = [{ id: 'FL1104167', tipo: 'FL', nivel: 'Orange', paises: 'Ecuador', enEspana: false, inicio: Date.UTC(2026, 10, 12), fin: 0, url: 'https://www.gdacs.org/' }];
+  const d = {
+    meteo: [],
+    terremotos: leerIgn(IGN),
+    desastres: gdacs,
+    noticias: [{ id: 'n1', titulo: 'Noticia', resumen: '', fecha: Date.UTC(2026, 10, 17, 9), url: 'https://www.aemet.es/' }],
+    activaciones: cs,
+    alimentos: leerAesan(AESAN),
+    medicamentos: [{ id: 'm1', titulo: 'ORAMORPH', resumen: '', fecha: Date.UTC(2026, 5, 1), url: 'https://www.aemps.gob.es/' }],
+  };
+  const lugo = provinciaPorIne('27');
+  const tipos = (t, f = 'todo') => actualidad(d, lugo, ahora, f, t).map((e) => e.tipo);
+  assert.deepEqual(tipos('desastres'), ['desastre', 'copernicus'], 'el de Ecuador una vez (GDACS) y el de España de Copernicus');
+  assert.deepEqual(tipos('alimentos'), ['alimento', 'alimento']);
+  assert.deepEqual(tipos('medicamentos'), ['medicamento']);
+  assert.deepEqual(tipos('noticias'), ['noticia']);
+  assert.deepEqual(tipos('terremotos'), ['terremoto', 'terremoto']);
+  // Los dos filtros a la vez: desastres solo de España
+  assert.deepEqual(tipos('desastres', 'espana'), ['copernicus']);
+  assert.equal(tipos('todos').length, 8);
 });

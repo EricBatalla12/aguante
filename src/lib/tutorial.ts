@@ -60,7 +60,7 @@ export const PASOS: Paso[] = [
   {
     ruta: '/actualidad',
     titulo: tx('Actualidad'),
-    texto: tx('Avisos de AEMET en tu provincia, terremotos, desastres graves y noticias de AEMET, solo de fuentes oficiales. Arriba, lo que está en vigor; debajo, lo que ha pasado en el último mes.'),
+    texto: tx('Avisos de AEMET en tu provincia, terremotos, desastres graves, alertas de alimentos y medicamentos retirados y noticias, solo de fuentes oficiales. Arriba, lo que está en vigor; debajo, lo que ha pasado en el último mes, con filtros por zona y por tipo.'),
   },
   {
     ruta: '/ajustes',

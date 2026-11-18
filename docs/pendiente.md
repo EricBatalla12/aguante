@@ -92,8 +92,12 @@ Queda:
 - Comprobar las matrículas del IGN de Baleares y Las Palmas cuando haya un
   terremoto allí.
 - Más fuentes oficiales para Actualidad: Protección Civil no tiene RSS (ver
-  `fuentes-y-reglas.md`); quedan por mirar los 112 de cada comunidad.
-- Las noticias de AEMET solo están en español (también con la app en inglés).
+  `fuentes-y-reglas.md`); quedan por mirar los 112 de cada comunidad. La DGT
+  daba 502: volver a probarla (y ver cuánto pesa su XML para un móvil).
+- Las noticias y alertas solo están en español (también con la app en inglés);
+  Copernicus, en inglés.
+- Avisar si un producto de la despensa coincide con una alerta de AESAN: las
+  alertas no traen código de barras, solo texto (marca y lote en la ficha).
 
 ## Ideas sacadas de otras apps
 
@@ -122,6 +126,20 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
   comprobar).
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
+
+## Hecho el 18/11/2026 por la tarde: más fuentes en Actualidad
+
+Tras pedirlo Eric («todas las que funcionen menos la nuclear» y un filtro por
+tipo). Sin publicar al escribir esto; probado en web con datos reales bajados
+desde Node, **no en el móvil**.
+
+- Fuentes nuevas: **AESAN** (alertas alimentarias, leídas de su página porque
+  no tiene RSS), **AEMPS** (alertas de medicamentos) y **Copernicus EMS**
+  (activaciones de emergencia de la UE). Descartadas y por qué, en
+  `fuentes-y-reglas.md`.
+- Filtro por tipo (Tiempo, Terremotos, Desastres, Alimentos, Medicamentos,
+  Noticias) además del de zona.
+- Si falla alguna fuente, el aviso dice cuál.
 
 ## Hecho el 18/11/2026 por la tarde: pestaña Actualidad
 

@@ -1,7 +1,7 @@
-// Avisos oficiales: lectura de los RSS de AEMET (avisos meteorológicos y
-// noticias), del IGN (terremotos) y de GDACS (desastres en el mundo), el
-// filtro por la provincia de cada casa y el historial de la pestaña
-// Actualidad.
+// Avisos oficiales: lectura de AEMET (avisos meteorológicos y noticias), del
+// IGN (terremotos), de GDACS y Copernicus (desastres en el mundo), de AESAN
+// (alertas alimentarias) y de la AEMPS (alertas de medicamentos); el filtro
+// por la provincia de cada casa y el historial de la pestaña Actualidad.
 //
 // Solo fuentes oficiales y nada de prensa: ver docs/fuentes-y-reglas.md,
 // «Avisos oficiales». Este fichero no importa nada: los tests lo ejecutan con
@@ -334,27 +334,137 @@ export function latin9(bytes: Uint8Array): string {
   return s;
 }
 
-const MESES_RSS: Record<string, number> = { ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5, jul: 6, ago: 7, sep: 8, oct: 9, nov: 10, dic: 11 };
-
-/** «mar, 10 nov 2026 00:00 +0000» (los meses en español) → ms. */
-export function fechaRssEs(s: string): number | null {
-  const m = s.match(/(\d{1,2})\s+([a-zé]{3})\w*\s+(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*([+-])(\d{2}):?(\d{2})/i);
-  if (!m) return null;
-  const [, dd, mes, aa, hh, mi, ss, signo, dh, dm] = m;
-  const n = MESES_RSS[mes.toLowerCase()];
-  if (n === undefined) return null;
-  const desfase = (signo === '-' ? -1 : 1) * (Number(dh) * 60 + Number(dm));
-  return Date.UTC(Number(aa), n, Number(dd), Number(hh), Number(mi), Number(ss ?? 0)) - desfase * 60_000;
-}
-
 export function leerNoticiasAemet(xml: string): Noticia[] {
   const out: Noticia[] = [];
   for (const it of items(xml)) {
     const titulo = campo(it, 'title');
-    const fecha = fechaRssEs(campo(it, 'pubDate') ?? '');
+    const fecha = fechaRss(campo(it, 'pubDate') ?? ''); // el mes viene en español
     if (!titulo || fecha === null) continue;
     const url = campo(it, 'link') ?? NOTICIAS_AEMET_WEB;
     out.push({ id: campo(it, 'guid') ?? url, titulo, resumen: campo(it, 'description') ?? '', fecha, url });
+  }
+  return out;
+}
+
+
+// ------------------------------------------------------------- Fechas
+
+const MESES_ES: Record<string, number> = { ene: 0, feb: 1, mar: 2, abr: 3, may: 4, jun: 5, jul: 6, ago: 7, sep: 8, oct: 9, nov: 10, dic: 11 };
+const MESES_EN: Record<string, number> = { jan: 0, feb: 1, mar: 2, apr: 3, may: 4, jun: 5, jul: 6, aug: 7, sep: 8, oct: 9, nov: 10, dec: 11 };
+const mesDe = (m: string) => {
+  const c = m.slice(0, 3).toLowerCase();
+  return MESES_ES[c] ?? MESES_EN[c];
+};
+
+/**
+ * Fecha de RSS con el mes en español o en inglés y la zona como desfase o
+ * GMT: «mar, 10 nov 2026 00:00 +0000», «Fri, 17 Jul 2026 10:30:00 +0000» o
+ * «Wed, 18 Nov 2026 06:07:42 GMT» → ms. No se usa `Date.parse`, que no lee
+ * igual estos formatos en todos los motores.
+ */
+export function fechaRss(s: string): number | null {
+  const m = s.match(/(\d{1,2})\s+([a-zé]{3,})\.?\s+(\d{4})\s+(\d{1,2}):(\d{2})(?::(\d{2}))?\s*(?:([+-])(\d{2}):?(\d{2})|GMT|UTC|Z)/i);
+  if (!m) return null;
+  const [, dd, mes, aa, hh, mi, ss, signo, dh, dm] = m;
+  const n = mesDe(mes);
+  if (n === undefined) return null;
+  const desfase = signo ? (signo === '-' ? -1 : 1) * (Number(dh) * 60 + Number(dm)) : 0;
+  return Date.UTC(Number(aa), n, Number(dd), Number(hh), Number(mi), Number(ss ?? 0)) - desfase * 60_000;
+}
+
+/** «13 Noviembre 2026» (AESAN, sin hora) → mediodía UTC de ese día, para que no cambie de día en ningún huso. */
+export function fechaSinHora(s: string): number | null {
+  const m = s.match(/(\d{1,2})\s+(?:de\s+)?([a-zé]+)\s+(?:de\s+)?(\d{4})/i);
+  if (!m) return null;
+  const n = mesDe(m[2]);
+  return n === undefined ? null : Date.UTC(Number(m[3]), n, Number(m[1]), 12);
+}
+
+const sinEtiquetas = (s: string) => texto(s.replace(/<br\s*\/?>/gi, ' ').replace(/<[^>]+>/g, '')).replace(/\s+/g, ' ').trim();
+
+// ---------------------------------------------- AESAN: alertas alimentarias
+//
+// No tiene RSS (buscado el 18/11/2026). Se leen las tarjetas de su buscador,
+// que trae las 20 últimas: enlace, fecha y texto. Si cambian la página, sale
+// una lista vacía y la descarga cuenta como fallida.
+
+export const AESAN_ALERTAS = 'https://www.aesan.gob.es/alertas/buscador-alertas';
+export const AESAN_WEB = 'https://www.aesan.gob.es/alertas';
+
+export function leerAesan(html: string): Noticia[] {
+  const out: Noticia[] = [];
+  const tarjetas = html.match(/<a\s[^>]*class="seeMoreCard[^"]*"[^>]*>[\s\S]*?<\/a>/g) ?? [];
+  for (const a of tarjetas) {
+    const href = a.match(/href="([^"]+)"/)?.[1];
+    const fecha = fechaSinHora(sinEtiquetas(a.match(/seeMoreCard-heading__value[^>]*>([\s\S]*?)</)?.[1] ?? ''));
+    const titulo = sinEtiquetas(a.match(/<p[^>]*seeMoreCard__text[^>]*>([\s\S]*?)<\/p>/)?.[1] ?? '');
+    if (!href || !/\/alertas\/\d{4}_/.test(href) || fecha === null || !titulo) continue;
+    const url = href.startsWith('http') ? href : `https://www.aesan.gob.es${href}`;
+    out.push({ id: url, titulo, resumen: '', fecha, url });
+  }
+  if (out.length === 0) throw new Error('AESAN: no se encuentran las alertas en la página');
+  return out;
+}
+
+// ------------------------------------------- AEMPS: alertas de medicamentos
+
+/** La categoría «Alertas» de su web (WordPress): defectos de calidad y retiradas de lotes, de personas y animales. */
+export const AEMPS_RSS = 'https://www.aemps.gob.es/category/alertas/feed/';
+export const AEMPS_WEB = 'https://www.aemps.gob.es/comunicacion/alertas/';
+
+export function leerAemps(xml: string): Noticia[] {
+  const out: Noticia[] = [];
+  for (const it of items(xml)) {
+    const titulo = campo(it, 'title');
+    const fecha = fechaRss(campo(it, 'pubDate') ?? '');
+    if (!titulo || fecha === null) continue;
+    const url = campo(it, 'link') ?? AEMPS_WEB;
+    out.push({ id: campo(it, 'guid') ?? url, titulo, resumen: '', fecha, url });
+  }
+  return out;
+}
+
+// ------------------------------------- Copernicus: activaciones de emergencia
+//
+// El servicio de gestión de emergencias de la UE hace mapas por satélite
+// cuando un país lo pide. Su panel público tiene una API en JSON.
+
+export const COPERNICUS_API = 'https://rapidmapping.emergency.copernicus.eu/backend/dashboard-api/public-activations-info/?limit=20';
+export const COPERNICUS_WEB = 'https://mapping.emergency.copernicus.eu/activations/';
+
+export type Activacion = {
+  id: string; // «EMSR936»
+  nombre: string; // en inglés: «Flood in Ecuador»
+  paises: string[];
+  enEspana: boolean;
+  fecha: number; // cuándo pasó (eventTime), en UTC
+  cerrada: boolean;
+  gdacsId?: string; // si también está en GDACS, para no repetirlo
+  url: string;
+};
+
+/** «2026-11-12T23:00:00» sin zona → UTC. */
+const fechaIso = (s: unknown) => (typeof s === 'string' ? Date.parse(/[zZ]|[+-]\d{2}:?\d{2}$/.test(s) ? s : `${s}Z`) : NaN);
+
+export function leerCopernicus(json: unknown): Activacion[] {
+  const r = (json as { results?: unknown })?.results;
+  if (!Array.isArray(r)) throw new Error('Copernicus: respuesta inesperada');
+  const out: Activacion[] = [];
+  for (const x of r as Record<string, unknown>[]) {
+    const id = typeof x.code === 'string' ? x.code : null;
+    const fecha = fechaIso(x.eventTime ?? x.activationTime);
+    if (!id || Number.isNaN(fecha)) continue;
+    const paises = Array.isArray(x.countries) ? x.countries.filter((p): p is string => typeof p === 'string') : [];
+    out.push({
+      id,
+      nombre: typeof x.name === 'string' ? x.name : id,
+      paises,
+      enEspana: paises.some((p) => /^spain$/i.test(p)),
+      fecha,
+      cerrada: x.closed === true,
+      gdacsId: typeof x.gdacsId === 'string' && x.gdacsId ? x.gdacsId : undefined,
+      url: `${COPERNICUS_WEB}${id}/`,
+    });
   }
   return out;
 }
@@ -400,13 +510,21 @@ export function juntarDesastres(viejos: Desastre[], nuevos: Desastre[], ahora: n
   return [...nuevos, ...cerrados].filter((d) => (d.fin || d.inicio) > ahora - HISTORIAL_MS);
 }
 
-/** Noticias: las del último mes y, como salen pocas, siempre las diez últimas aunque sean más viejas. */
+/** Noticias y alertas: las del último mes y, como salen pocas, siempre las diez últimas aunque sean más viejas. */
 export const NOTICIAS_MINIMO = 10;
 
+/** También para las alertas de AESAN y de la AEMPS, que salen pocas. */
 export function juntarNoticias(viejas: Noticia[], nuevas: Noticia[], ahora: number): Noticia[] {
   const porId = new Map<string, Noticia>();
   for (const n of [...viejas, ...nuevas]) porId.set(n.id, n);
   return [...porId.values()].sort((a, b) => b.fecha - a.fecha).filter((n, i) => i < NOTICIAS_MINIMO || n.fecha > ahora - HISTORIAL_MS);
+}
+
+/** Copernicus: se junta por código (la API ya dice si está cerrada) y, como activa pocas, se guardan siempre las diez últimas. */
+export function juntarActivaciones(viejas: Activacion[], nuevas: Activacion[], ahora: number): Activacion[] {
+  const porId = new Map<string, Activacion>();
+  for (const a of [...viejas, ...nuevas]) porId.set(a.id, a);
+  return [...porId.values()].sort((a, b) => b.fecha - a.fecha).filter((a, i) => i < NOTICIAS_MINIMO || a.fecha > ahora - HISTORIAL_MS);
 }
 
 // ------------------------------------------------------------- Actualidad
@@ -414,11 +532,38 @@ export function juntarNoticias(viejas: Noticia[], nuevas: Noticia[], ahora: numb
 export type Ambito = 'provincia' | 'espana' | 'mundo';
 export type FiltroAmbito = 'todo' | Ambito;
 
+type Comun = { id: string; fecha: number; ambito: Ambito };
 export type Entrada =
-  | { tipo: 'tiempo'; id: string; fecha: number; ambito: Ambito; aviso: AvisoMet }
-  | { tipo: 'terremoto'; id: string; fecha: number; ambito: Ambito; terremoto: Terremoto }
-  | { tipo: 'desastre'; id: string; fecha: number; ambito: Ambito; desastre: Desastre }
-  | { tipo: 'noticia'; id: string; fecha: number; ambito: Ambito; noticia: Noticia };
+  | (Comun & { tipo: 'tiempo'; aviso: AvisoMet })
+  | (Comun & { tipo: 'terremoto'; terremoto: Terremoto })
+  | (Comun & { tipo: 'desastre'; desastre: Desastre })
+  | (Comun & { tipo: 'copernicus'; activacion: Activacion })
+  | (Comun & { tipo: 'alimento'; alerta: Noticia })
+  | (Comun & { tipo: 'medicamento'; alerta: Noticia })
+  | (Comun & { tipo: 'noticia'; noticia: Noticia });
+
+/** El filtro por tipo: GDACS y Copernicus van juntos como desastres. */
+export type FiltroTipo = 'todos' | 'tiempo' | 'terremotos' | 'desastres' | 'alimentos' | 'medicamentos' | 'noticias';
+
+const TIPO_FILTRO: Record<Entrada['tipo'], FiltroTipo> = {
+  tiempo: 'tiempo',
+  terremoto: 'terremotos',
+  desastre: 'desastres',
+  copernicus: 'desastres',
+  alimento: 'alimentos',
+  medicamento: 'medicamentos',
+  noticia: 'noticias',
+};
+
+export type DatosActualidad = {
+  meteo: AvisoMet[];
+  terremotos: Terremoto[];
+  desastres: Desastre[];
+  noticias: Noticia[];
+  activaciones?: Activacion[];
+  alimentos?: Noticia[];
+  medicamentos?: Noticia[];
+};
 
 /** Lo que cabe en cada filtro: «España» incluye tu provincia; «Mundo» es solo lo de fuera. */
 export function entraEnFiltro(ambito: Ambito, filtro: FiltroAmbito): boolean {
@@ -430,14 +575,10 @@ export function entraEnFiltro(ambito: Ambito, filtro: FiltroAmbito): boolean {
 /**
  * Lo que ha pasado, lo más reciente primero: los avisos de AEMET ya acabados
  * en tu provincia (los que siguen en pie van aparte, arriba), los terremotos
- * destacados, los desastres de GDACS y las noticias de AEMET.
+ * destacados, los desastres de GDACS y Copernicus, las alertas de AESAN y la
+ * AEMPS y las noticias de AEMET.
  */
-export function actualidad(
-  d: { meteo: AvisoMet[]; terremotos: Terremoto[]; desastres: Desastre[]; noticias: Noticia[] },
-  p: Provincia | undefined,
-  ahora: number,
-  filtro: FiltroAmbito = 'todo',
-): Entrada[] {
+export function actualidad(d: DatosActualidad, p: Provincia | undefined, ahora: number, filtro: FiltroAmbito = 'todo', tipo: FiltroTipo = 'todos'): Entrada[] {
   const out: Entrada[] = [];
   if (p) {
     for (const a of d.meteo) {
@@ -450,10 +591,18 @@ export function actualidad(
     out.push({ tipo: 'terremoto', id: `t:${t.id}`, fecha: t.fecha, ambito: aqui ? 'provincia' : 'espana', terremoto: t });
   }
   for (const x of d.desastres) out.push({ tipo: 'desastre', id: `d:${x.id}`, fecha: x.inicio, ambito: x.enEspana ? 'espana' : 'mundo', desastre: x });
+  // Lo que Copernicus comparte con GDACS sale una sola vez, como desastre de GDACS
+  const enGdacs = new Set(d.desastres.map((x) => x.id));
+  for (const a of d.activaciones ?? []) {
+    if (a.gdacsId && enGdacs.has(a.gdacsId)) continue;
+    out.push({ tipo: 'copernicus', id: `c:${a.id}`, fecha: a.fecha, ambito: a.enEspana ? 'espana' : 'mundo', activacion: a });
+  }
+  for (const n of d.alimentos ?? []) out.push({ tipo: 'alimento', id: `a:${n.id}`, fecha: n.fecha, ambito: 'espana', alerta: n });
+  for (const n of d.medicamentos ?? []) out.push({ tipo: 'medicamento', id: `f:${n.id}`, fecha: n.fecha, ambito: 'espana', alerta: n });
   for (const n of d.noticias) out.push({ tipo: 'noticia', id: `n:${n.id}`, fecha: n.fecha, ambito: 'espana', noticia: n });
   // Sin duplicados (un aviso repetido en dos descargas) y por fecha
   const vistos = new Set<string>();
   return out
-    .filter((e) => entraEnFiltro(e.ambito, filtro) && e.fecha <= ahora && !vistos.has(e.id) && vistos.add(e.id))
+    .filter((e) => entraEnFiltro(e.ambito, filtro) && (tipo === 'todos' || TIPO_FILTRO[e.tipo] === tipo) && e.fecha <= ahora && !vistos.has(e.id) && vistos.add(e.id))
     .sort((a, b) => b.fecha - a.fecha);
 }

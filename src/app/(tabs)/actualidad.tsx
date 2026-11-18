@@ -1,15 +1,19 @@
 // Pestaña Actualidad: lo que pasa ahora y lo que ha pasado en el último mes,
 // solo de fuentes oficiales: avisos de AEMET (tiempo) en tu provincia y sus
-// noticias, terremotos del IGN y desastres graves en el mundo (GDACS). Se
-// citan como piden sus condiciones (ver docs/fuentes-y-reglas.md, «Avisos
-// oficiales»). Nada de prensa.
+// noticias, terremotos del IGN, desastres graves (GDACS y Copernicus) y
+// alertas de alimentos (AESAN) y medicamentos (AEMPS). Se citan como piden
+// sus condiciones (ver docs/fuentes-y-reglas.md, «Avisos oficiales»). Nada de
+// prensa.
 
 import { useEffect, useMemo, useState, type ReactNode } from 'react';
-import { Linking, Pressable, View } from 'react-native';
+import { Linking, Pressable, ScrollView, View } from 'react-native';
 
-import { Aviso, Boton, Icono, Pantalla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
+import { Aviso, Boton, Icono, Pantalla, Segmentado, Seccion, Tarjeta, Texto, Titulo, type NombreIcono } from '@/components/ui';
 import {
   AEMET_WEB,
+  AEMPS_WEB,
+  AESAN_WEB,
+  COPERNICUS_WEB,
   COMUNIDADES,
   DIAS_HISTORIAL,
   GDACS_WEB,
@@ -21,10 +25,12 @@ import {
   actualidad,
   avisosDeProvincia,
   provinciaPorIne,
+  type Activacion,
   type AvisoMet,
   type Desastre,
   type Entrada,
   type FiltroAmbito,
+  type FiltroTipo,
   type Noticia,
   type Terremoto,
 } from '@/lib/avisos';
@@ -51,6 +57,16 @@ const FILTROS: { valor: FiltroAmbito; etiqueta: string }[] = [
   { valor: 'mundo', etiqueta: tx('Mundo') },
 ];
 
+const TIPOS: { valor: FiltroTipo; etiqueta: string }[] = [
+  { valor: 'todos', etiqueta: tx('Todos') },
+  { valor: 'tiempo', etiqueta: tx('Tiempo') },
+  { valor: 'terremotos', etiqueta: tx('Terremotos') },
+  { valor: 'desastres', etiqueta: tx('Desastres') },
+  { valor: 'alimentos', etiqueta: tx('Alimentos') },
+  { valor: 'medicamentos', etiqueta: tx('Medicamentos') },
+  { valor: 'noticias', etiqueta: tx('Noticias') },
+];
+
 const abrir = (url: string) => Linking.openURL(url).catch(() => {});
 
 /** Día de calendario en la hora del móvil, para agrupar el listado. */
@@ -66,11 +82,16 @@ export default function Actualidad() {
   const terremotos = useAvisos((s) => s.terremotos);
   const desastres = useAvisos((s) => s.desastres);
   const noticias = useAvisos((s) => s.noticias);
+  const activaciones = useAvisos((s) => s.activaciones);
+  const alimentos = useAvisos((s) => s.alimentos);
+  const medicamentos = useAvisos((s) => s.medicamentos);
+  const fallidas = useAvisos((s) => s.fallidas);
   const actualizado = useAvisos((s) => s.actualizado);
   const fallo = useAvisos((s) => s.fallo);
   const cargando = useAvisos((s) => s.cargando);
   const [eligiendo, setEligiendo] = useState(false);
   const [filtro, setFiltro] = useState<FiltroAmbito>('todo');
+  const [tipo, setTipo] = useState<FiltroTipo>('todos');
   const p = provinciaPorIne(ine);
   // Reloj de minuto en minuto: un aviso pasa de «por llegar» a «en curso» y, al acabar, al historial
   const [ahora, setAhora] = useState(() => Date.now());
@@ -82,8 +103,8 @@ export default function Actualidad() {
   }, []);
 
   const entradas = useMemo(
-    () => actualidad({ meteo, terremotos, desastres, noticias }, p, ahora, filtro),
-    [meteo, terremotos, desastres, noticias, p, ahora, filtro],
+    () => actualidad({ meteo, terremotos, desastres, noticias, activaciones, alimentos, medicamentos }, p, ahora, filtro, tipo),
+    [meteo, terremotos, desastres, noticias, activaciones, alimentos, medicamentos, p, ahora, filtro, tipo],
   );
   // Agrupadas por día: «Hoy», «Ayer» o la fecha
   const dias = useMemo(() => {
@@ -107,7 +128,7 @@ export default function Actualidad() {
     <Pantalla>
       <Titulo>{t('Actualidad')}</Titulo>
       <Texto color={C.texto2}>
-        {t('Avisos y noticias de fuentes oficiales para {provincia}. Aguante no sustituye a Protección Civil ni al 112: ante una emergencia, sigue sus indicaciones. Las alertas ES-Alert te llegan solas al móvil.', { provincia: p.nombre })}
+        {t('Avisos, alertas y noticias de fuentes oficiales para {provincia}. Aguante no sustituye a Protección Civil ni al 112: ante una emergencia, sigue sus indicaciones. Las alertas ES-Alert te llegan solas al móvil.', { provincia: p.nombre })}
       </Texto>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
@@ -119,7 +140,14 @@ export default function Actualidad() {
         </Boton>
       </View>
       {fallo && !cargando && (
-        <Aviso tono="ambar" texto={t('No se ha podido descargar todo (¿sin conexión?). Se enseña lo último que se descargó.')} />
+        <Aviso
+          tono="ambar"
+          texto={
+            fallidas.length > 0
+              ? t('No se ha podido descargar {fuentes} (¿sin conexión?). Se enseña lo último que se descargó.', { fuentes: fallidas.join(', ') })
+              : t('No se ha podido descargar todo (¿sin conexión?). Se enseña lo último que se descargó.')
+          }
+        />
       )}
 
       <Seccion>{t('Ahora en tu zona (AEMET)')}</Seccion>
@@ -139,6 +167,7 @@ export default function Actualidad() {
 
       <Seccion>{t('Lo que ha pasado')}</Seccion>
       <Segmentado opciones={FILTROS} valor={filtro} onChange={setFiltro} />
+      <Fichas enFila opciones={TIPOS.map((o) => ({ valor: o.valor, etiqueta: t(o.etiqueta) }))} valor={tipo} onChange={(v) => setTipo(v as FiltroTipo)} />
       {dias.length === 0 ? (
         <Tarjeta>
           <Texto color={C.texto2}>
@@ -172,6 +201,9 @@ export default function Actualidad() {
       <Fuente texto={t('AEMET. Información elaborada por la Agencia Estatal de Meteorología.')} url={AEMET_WEB} />
       <Fuente texto={t('Instituto Geográfico Nacional (IGN), CC BY 4.0.')} url={IGN_WEB} />
       <Fuente texto={t('GDACS, sistema de alertas de desastres de la ONU y la Comisión Europea (CC BY 4.0).')} url={GDACS_WEB} />
+      <Fuente texto={t('Copernicus, servicio de gestión de emergencias de la Unión Europea.')} url={COPERNICUS_WEB} />
+      <Fuente texto={t('AESAN, Agencia Española de Seguridad Alimentaria y Nutrición: red de alerta alimentaria.')} url={AESAN_WEB} />
+      <Fuente texto={t('AEMPS, Agencia Española de Medicamentos y Productos Sanitarios: alertas de medicamentos.')} url={AEMPS_WEB} />
 
       <Boton variante="secundario" icono="map-marker-outline" onPress={() => setEligiendo(true)}>
         {t('Cambiar de provincia')}
@@ -184,17 +216,20 @@ function FilaEntrada({ e }: { e: Entrada }) {
   if (e.tipo === 'tiempo') return <FilaTiempo a={e.aviso} />;
   if (e.tipo === 'terremoto') return <FilaTerremoto tm={e.terremoto} />;
   if (e.tipo === 'desastre') return <FilaDesastre d={e.desastre} />;
+  if (e.tipo === 'copernicus') return <FilaCopernicus a={e.activacion} />;
+  if (e.tipo === 'alimento') return <FilaAlerta n={e.alerta} icono="food-off-outline" pie={t('Alerta alimentaria · AESAN')} />;
+  if (e.tipo === 'medicamento') return <FilaAlerta n={e.alerta} icono="pill" pie={t('Alerta de medicamento · AEMPS')} />;
   return <FilaNoticia n={e.noticia} />;
 }
 
 /** Una fila del listado: lo de la izquierda, el texto y la fuente debajo. */
-function Fila({ izquierda, titulo, detalle, pie, url }: { izquierda: ReactNode; titulo: string; detalle?: string; pie: string; url: string }) {
+function Fila({ izquierda, titulo, detalle, pie, url, lineas = 2 }: { izquierda: ReactNode; titulo: string; detalle?: string; pie: string; url: string; lineas?: number }) {
   const C = useC();
   return (
     <Pressable accessibilityRole="link" onPress={() => abrir(url)} style={{ flexDirection: 'row', gap: 12, alignItems: 'center' }}>
       <View style={{ width: 40, alignItems: 'center' }}>{izquierda}</View>
       <View style={{ flex: 1, gap: 2 }}>
-        <Texto peso="600" lineas={2}>
+        <Texto peso="600" lineas={lineas}>
           {titulo}
         </Texto>
         {!!detalle && (
@@ -255,6 +290,24 @@ function FilaDesastre({ d }: { d: Desastre }) {
       url={d.url}
     />
   );
+}
+
+function FilaCopernicus({ a }: { a: Activacion }) {
+  const C = useC();
+  return (
+    <Fila
+      izquierda={<Icono name="satellite-variant" color={C.tinta} size={24} />}
+      titulo={a.nombre}
+      detalle={a.paises.join(', ')}
+      pie={a.cerrada ? t('Cerrada · Copernicus') : t('Abierta · Copernicus')}
+      url={a.url}
+    />
+  );
+}
+
+function FilaAlerta({ n, icono, pie }: { n: Noticia; icono: NombreIcono; pie: string }) {
+  const C = useC();
+  return <Fila izquierda={<Icono name={icono} color={C.tinta} size={24} />} titulo={n.titulo} pie={pie} url={n.url} lineas={4} />;
 }
 
 function FilaNoticia({ n }: { n: Noticia }) {
@@ -355,10 +408,21 @@ function ElegirProvincia({ alElegir, actual }: { alElegir: () => void; actual?: 
   );
 }
 
-function Fichas({ opciones, valor, onChange }: { opciones: { valor: string; etiqueta: string }[]; valor: string | null; onChange: (v: string) => void }) {
+/** Fichas para elegir una opción. `enFila`: una sola fila que se desliza de lado (el filtro por tipo). */
+function Fichas({
+  opciones,
+  valor,
+  onChange,
+  enFila,
+}: {
+  opciones: { valor: string; etiqueta: string }[];
+  valor: string | null;
+  onChange: (v: string) => void;
+  enFila?: boolean;
+}) {
   const C = useC();
-  return (
-    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+  const fichas = (
+    <View style={{ flexDirection: 'row', flexWrap: enFila ? 'nowrap' : 'wrap', gap: 8 }}>
       {opciones.map((o) => {
         const activa = o.valor === valor;
         return (
@@ -382,5 +446,12 @@ function Fichas({ opciones, valor, onChange }: { opciones: { valor: string; etiq
         );
       })}
     </View>
+  );
+  return enFila ? (
+    <ScrollView horizontal showsHorizontalScrollIndicator={false} accessibilityRole="radiogroup">
+      {fichas}
+    </ScrollView>
+  ) : (
+    fichas
   );
 }

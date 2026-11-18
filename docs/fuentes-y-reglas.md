@@ -445,6 +445,35 @@ descargar (en el móvil no hay CORS).
   («mar, 10 nov 2026 00:00 +0000»). AEMET corta los títulos largos con «...».
   Condiciones, en el propio RSS: «Autorizado el uso de la información y su
   reproducción citando a AEMET como autora de la misma».
+- **AESAN**, red de alerta alimentaria (alimentos retirados por listeria,
+  alérgenos sin declarar…). **No tiene RSS** (buscado el 18/11/2026): se lee la
+  página del buscador, <https://www.aesan.gob.es/alertas/buscador-alertas>, que
+  trae las 20 últimas como tarjetas (`seeMoreCard`) con enlace, fecha sin hora
+  («13 Noviembre 2026») y texto. Si cambian la página, `leerAesan` da error y
+  la app dice que AESAN no se pudo descargar. **Condiciones** (aviso legal,
+  leído el 18/11/2026, <https://www.aesan.gob.es/aviso-legal>): reutilización
+  permitida, también comercial, sin desnaturalizar el contenido, citando la
+  fuente y la fecha de la última actualización.
+- **AEMPS**, alertas de medicamentos (defectos de calidad y retiradas de lotes,
+  de personas y veterinarios): RSS de la categoría «Alertas» de su web,
+  <https://www.aemps.gob.es/category/alertas/feed/>. El RSS general
+  (`/feed/`) es casi todo noticias institucionales. Salen pocas (la última, de
+  julio de 2026). **Condiciones** (aviso legal, leído el 18/11/2026): «Se
+  autoriza la reproducción total o parcial de los contenidos de la web, siempre
+  que se cite expresamente su origen», con la fecha de actualización.
+- **Copernicus EMS** (servicio de gestión de emergencias de la UE),
+  activaciones de cartografía rápida: API pública en JSON,
+  <https://rapidmapping.emergency.copernicus.eu/backend/dashboard-api/public-activations-info/?limit=20>
+  (código, países, `eventTime` sin zona, que se toma como UTC, `closed` y
+  `gdacsId`). La ficha de cada una está en
+  `https://mapping.emergency.copernicus.eu/activations/<código>/`. Lo que
+  también está en GDACS (mismo `gdacsId`) sale una sola vez, como GDACS.
+  **Condiciones: sin comprobar** (su página no se lee sin JavaScript y la de
+  copernicus.eu está archivada); se cita como fuente.
+- **Descartadas** el 18/11/2026: la DGT (el DATEX2 de incidencias,
+  `infocar.dgt.es/datex2/…`, respondió 502 tres veces), Meteoalarm (funciona,
+  pero en España repite lo de AEMET), el IGN de volcanes y Sanidad (no tienen
+  feed) y el CSN (nuclear; Eric no lo quiere).
 - **Protección Civil y 112**: no se ha encontrado RSS (18/11/2026:
   `proteccioncivil.es/rss` da 404, la sala de prensa no anuncia ninguno y el
   RSS del Ministerio del Interior responde 403). Los 112 autonómicos son
@@ -472,7 +501,11 @@ mes, porque AEMET publica pocas). Solo hay historial desde que el móvil tiene
 esta versión.
 
 **Pestaña Actualidad**: arriba, los avisos de AEMET en vigor o por llegar;
-debajo, «Lo que ha pasado», agrupado por días, con filtro Todo / Provincia /
-España (incluye la provincia) / Mundo (solo lo de fuera). Cada fila abre la
-fuente.
+debajo, «Lo que ha pasado», agrupado por días, con dos filtros: zona (Todo /
+Provincia / España, que incluye la provincia / Mundo, solo lo de fuera) y tipo
+(Tiempo, Terremotos, Desastres —GDACS y Copernicus—, Alimentos, Medicamentos y
+Noticias). Las alertas de AESAN y AEMPS cuentan como de España. Cada fila abre
+la fuente. Si falla una fuente, el aviso dice cuál. Las activaciones de
+Copernicus y las alertas, como salen pocas, guardan siempre las diez últimas
+(como las noticias).
 
