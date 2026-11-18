@@ -54,6 +54,13 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   Ajustes, canal, runtime, última comprobación, errores y «Buscar
   actualización»). Lanzamientos por actualización: `npx eas-cli
   update:insights <grupo>`.
+- **Ojo con el número que enseña la app**: abajo en Ajustes sale el ID de la
+  actualización **de Android** (8 primeras cifras de «Android update ID» al
+  publicar), no el del grupo. Al pedirle a Eric que compruebe una
+  actualización, darle ese número. Ejemplo: grupo `c895fffd` → en la app
+  `01a1ef48`. La actualización se baja al abrir y se aplica en el siguiente
+  arranque (o con «Reiniciar ahora»). Da igual dónde esté el PC: el móvil la
+  baja de los servidores de Expo.
 
 ## Convenciones del código
 
@@ -156,9 +163,12 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   y **avisos oficiales** (AEMET, IGN y GDACS; `src/lib/avisos.ts`,
   `src/lib/avisos-estado.ts`, `src/app/avisos.tsx`). Tests (84), `tsc`, lint y
   export de Android limpios; en web los RSS no bajan por CORS (se probó con
-  datos cargados a mano y la descarga desde Node). No probado en el móvil.
-- Última actualización publicada: grupo `c895fffd` (avisos oficiales y
-  tutorial sin tirones), canal `preview`, runtime 1.0.0. Las anteriores:
+  datos cargados a mano y la descarga desde Node). **Ya en el móvil de Eric**
+  (18/11/2026, 16:40: Ajustes enseña la actualización `01a1ef48`), pero falta
+  que pruebe el tutorial nuevo y la pantalla de avisos con su provincia.
+- Última actualización publicada: grupo `c895fffd` (en la app, `01a1ef48`;
+  avisos oficiales y tutorial sin tirones), canal `preview`, runtime 1.0.0.
+  La tiene el móvil de Eric. Las anteriores:
   `36296207` (agua beber + higiene, actividad, tutorial y preguntas), `533b7fe4` (kit en listas, plan de compra, calendario y casa
   compartida) y `5a049262` (entrar con Google).
 - APK versionCode 3: https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
