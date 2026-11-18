@@ -81,40 +81,16 @@ de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
 - Compartir el resultado como imagen (hoy se comparte como texto): necesita
   módulos nativos y APK nuevo; Eric lo ha dejado para más adelante.
 
-## Noticias de guerra o posibles desastres
+## Avisos oficiales: lo que falta
 
-Idea de Eric (15/11/2026). Primera viabilidad contada a Eric el 18/11/2026;
-falta que decida si se sigue. Conclusión: viable como **«Avisos» oficiales**,
-no como noticias de prensa.
+Hecho el 18/11/2026 (ver «Hecho el 18/11/2026» y `fuentes-y-reglas.md`).
+Queda:
 
-- **AEMET** (avisos meteorológicos): RSS público por comunidad autónoma
-  (`/documentos_d/eltiempo/prediccion/avisos/rss/CAP_AFAC6x_RSS.xml`,
-  comprobado que responde); cada aviso es un `.tar.gz` con ficheros CAP. La API
-  OpenData (`/api/avisos_cap/ultimoelaborado/area/{area}`) pide clave gratuita.
-  Condiciones de reutilización: sin leer (enlazan a `aemet.es/es/nota_legal`).
-- **GDACS** (ONU y Comisión Europea, JRC): terremotos, inundaciones, ciclones,
-  volcanes e incendios del mundo con nivel verde/naranja/rojo. RSS
-  `https://www.gdacs.org/xml/rss.xml` comprobado (242 avisos el 18/11/2026).
-  Gratis citando «Global Disaster Alert and Coordination System, GDACS»; las
-  condiciones completas (PDF de marzo de 2025) sin leer.
-- **ES-Alert**: no hay API ni RSS para terceros (no encontrado). Ya llega solo a
-  los móviles.
-- **IGN** (terremotos): página de últimos terremotos; feed reutilizable sin
-  confirmar.
-- **Prensa / guerras**: descartado (derechos, API de pago, alarmismo).
-- **Google Play**: si hay «noticias», declaración de News en la consola; norma de
-  eventos sensibles (se permite lo que avisa o informa). Llamarlo «Avisos» y con
-  fuentes oficiales.
-- **Cómo**: función de Supabase que recoja los avisos cada X minutos y guarde
-  los de España; la app los lee al abrirse y enseña una tarjeta en Inicio solo
-  con aviso naranja o rojo en tu comunidad, unido a la reserva («aviso rojo por
-  lluvias mañana: os quedan 3 días de agua»). Va por actualización;
-  notificaciones con la app cerrada necesitarían APK y servidor de envíos.
-- Ojo: ya hay una app oficial de Protección Civil con avisos de AEMET,
-  terremotos e incendios (según prensa y la ONCE, sin comprobar en la web
-  oficial).
-- Siguiente paso si se sigue: leer las condiciones de AEMET y GDACS y probar a
-  descomprimir los CAP de AEMET.
+- Avisar con notificación aunque la app esté cerrada: necesita tarea en segundo
+  plano (módulo nativo, APK nuevo) o un servidor que mande avisos.
+- Guerras y conflictos: no hay fuente oficial abierta y fiable; descartado.
+- Comprobar las matrículas del IGN de Baleares y Las Palmas cuando haya un
+  terremoto allí.
 
 ## Ideas sacadas de otras apps
 
@@ -167,6 +143,16 @@ Probado en la versión web (Metro 8082, 375×812), **no en el móvil**. Tests
   desplegables (`src/components/preguntas.tsx`).
 - La calculadora de la web (`web/js/lib/calculo.js`, `npm run sitio`), la guía
   del agua y la portada, al día.
+- **Tutorial, segunda vuelta** (tras probarlo Eric en el móvil): si lo que se
+  señala está fuera de la pantalla (los botones de Hogar con 4 personas), la
+  pantalla se desplaza hasta él (`useDesplazar` de `Pantalla`); cada paso se
+  vuelve a medir; tras cambiar de paso se ignoran los toques 450 ms; la tarjeta
+  se queda abajo salvo que tape lo señalado.
+- **Avisos oficiales**: AEMET en tu provincia, terremotos del IGN y desastres
+  de GDACS, en `/avisos` (enlace en Inicio) y una tarjeta en Inicio con el
+  aviso naranja o rojo de las próximas 48 horas. Probado en web con datos
+  reales cargados a mano (en web no se descargan por CORS) y la descarga real
+  desde Node; **no en el móvil**.
 
 ## Hecho el 16/11/2026
 

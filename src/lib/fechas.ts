@@ -105,3 +105,12 @@ export function textoDia(fecha: Date): string {
   const mes = MESES()[fecha.getMonth()];
   return lengua === 'en' ? `${dia} ${fecha.getDate()} ${mes}` : `${dia} ${fecha.getDate()} de ${mes}`;
 }
+
+/** «mié 19 nov, 05:59», en la hora del móvil: para los avisos oficiales. */
+export function textoMomento(ms: number): string {
+  const f = new Date(ms);
+  const dia = TEXTOS[lengua].semana[f.getDay()].slice(0, 3);
+  const mes = TEXTOS[lengua].cortos[f.getMonth()];
+  const hora = `${String(f.getHours()).padStart(2, '0')}:${String(f.getMinutes()).padStart(2, '0')}`;
+  return `${dia} ${f.getDate()} ${mes}, ${hora}`;
+}

@@ -67,6 +67,7 @@ export const PASOS: Paso[] = [
 
 type EstadoTutorial = {
   paso: number | null; // null: no hay tutorial en marcha
+  bloqueadoHasta: number; // tras cambiar de paso, un momento sin aceptar toques
   origen: Href; // adónde se vuelve al omitirlo
   huecos: Record<string, Rect>;
   ponerHueco: (id: string, r: Rect) => void;
@@ -74,15 +75,28 @@ type EstadoTutorial = {
 
 export const useTutorial = create<EstadoTutorial>()((set) => ({
   paso: null,
+  bloqueadoHasta: 0,
   origen: '/',
   huecos: {},
   ponerHueco: (id, r) => set((s) => ({ huecos: { ...s.huecos, [id]: r } })),
 }));
 
+// Lo que tarda en colocarse un paso: mientras, se ignoran los toques para que
+// un doble toque no se salte uno
+const PAUSA_MS = 450;
+
+/** Va a un paso. Se olvida la medida vieja de su hueco: se vuelve a medir allí. */
 function irA(paso: number) {
-  useTutorial.setState({ paso });
+  const id = PASOS[paso].hueco;
+  useTutorial.setState((s) => {
+    const huecos = { ...s.huecos };
+    if (id) delete huecos[id];
+    return { paso, huecos, bloqueadoHasta: Date.now() + PAUSA_MS };
+  });
   router.navigate(PASOS[paso].ruta);
 }
+
+const bloqueado = () => Date.now() < useTutorial.getState().bloqueadoHasta;
 
 /**
  * Empieza desde el primer paso. `origen` es la pantalla a la que se vuelve si
@@ -97,14 +111,14 @@ export function empezarTutorial(origen: Href = '/', navegar = true) {
 
 export function pasoSiguiente() {
   const { paso } = useTutorial.getState();
-  if (paso === null) return;
+  if (paso === null || bloqueado()) return;
   if (paso + 1 >= PASOS.length) return terminarTutorial(false);
   irA(paso + 1);
 }
 
 export function pasoAnterior() {
   const { paso } = useTutorial.getState();
-  if (paso !== null && paso > 0) irA(paso - 1);
+  if (paso !== null && paso > 0 && !bloqueado()) irA(paso - 1);
 }
 
 /** Cierra el tutorial y lo da por visto. Al omitirlo se vuelve a donde se empezó. */

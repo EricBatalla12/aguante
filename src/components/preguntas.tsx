@@ -50,6 +50,10 @@ const PREGUNTAS: { p: string; r: string }[] = [
     r: tx('En tu móvil. Si usas la casa compartida, también en el servidor de la casa, solo para quienes estén en ella. Puedes guardar una copia en Ajustes › Tus datos.'),
   },
   {
+    p: tx('¿De dónde salen los avisos?'),
+    r: tx('De fuentes oficiales: AEMET (tiempo en tu provincia), el IGN (terremotos en España) y GDACS (desastres graves en el mundo). La provincia se elige en Avisos oficiales, en Inicio. No sustituyen a Protección Civil ni al 112.'),
+  },
+  {
     p: tx('¿Son fiables las cifras?'),
     r: tx('Son una estimación con fuentes públicas (FAO, EFSA, Ready.gov, Sphere). Cada cifra y su fuente está en Ajustes › Fuentes y método. No sustituyen el consejo médico.'),
   },

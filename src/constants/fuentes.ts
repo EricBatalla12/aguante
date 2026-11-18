@@ -166,4 +166,22 @@ export const BLOQUES: Bloque[] = [
       { nombre: tx('Ready.gov: kit para el coche'), url: 'https://www.ready.gov/car' },
     ],
   },
+  {
+    titulo: tx('Avisos oficiales'),
+    icono: 'alert-circle-outline',
+    puntos: [
+      { texto: tx('Solo fuentes oficiales y nada de prensa: AEMET para el tiempo, el IGN para los terremotos de España y GDACS (ONU y Comisión Europea) para los desastres graves del mundo.') },
+      { texto: tx('De AEMET se enseñan los avisos amarillos, naranjas y rojos de tu provincia que siguen en pie o están por llegar. En Inicio se destaca uno naranja o rojo si empieza en las próximas 48 horas.') },
+      { texto: tx('Terremotos: los de magnitud 3,0 o más en tu provincia y de 4,0 o más en el resto de España, de los últimos 10 días.'), propio: true },
+      { texto: tx('GDACS: solo los avisos naranjas y rojos que siguen abiertos.') },
+      { texto: tx('Se descargan al abrir la app, como mucho cada 30 minutos. Sin conexión se enseña lo último que se bajó, con su hora.'), propio: true },
+      { texto: tx('No sustituye a Protección Civil ni al 112. Las alertas ES-Alert llegan solas al móvil, sin ninguna app.') },
+    ],
+    enlaces: [
+      { nombre: tx('AEMET: avisos meteorológicos'), url: 'https://www.aemet.es/es/eltiempo/prediccion/avisos' },
+      { nombre: tx('AEMET: nota legal y condiciones de reutilización'), url: 'https://www.aemet.es/es/nota_legal' },
+      { nombre: tx('IGN: últimos terremotos'), url: 'https://www.ign.es/web/ign/portal/ultimos-terremotos' },
+      { nombre: tx('GDACS: sistema mundial de alertas de desastres'), url: 'https://www.gdacs.org/' },
+    ],
+  },
 ];

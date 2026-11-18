@@ -15,6 +15,7 @@ import { DialogoConfirmar } from '@/components/dialogo';
 import { CapaTutorial } from '@/components/tutorial';
 import { fijarLengua, lenguaDelSistema, t } from '@/lib/i18n';
 import { cancelarAvisos, reprogramarAvisos } from '@/lib/notificaciones';
+import { arrancarAvisos } from '@/lib/avisos-estado';
 import { arrancarSincro } from '@/lib/sincro';
 import { useAguante } from '@/lib/store';
 import { ProveedorTema, useC, useLetra, useOscuro } from '@/lib/tema';
@@ -46,6 +47,11 @@ export default function RootLayout() {
   useEffect(() => {
     if (datos) arrancarSincro().catch(() => {});
   }, [datos]);
+
+  // Avisos oficiales: al abrir y al volver a la app, si hay provincia elegida
+  useEffect(() => {
+    arrancarAvisos();
+  }, []);
 
   const idioma = useAguante((s) => s.idioma);
   const lengua = idioma === 'sistema' ? lenguaDelSistema() : idioma;
@@ -120,6 +126,7 @@ function Navegacion() {
         <Stack.Screen name="energia/fuente/[id]" options={{ title: t('Fuente de energía') }} />
         <Stack.Screen name="energia/aparato/[id]" options={{ title: t('Aparato') }} />
         <Stack.Screen name="trueque" options={{ title: t('Trueque con vecinos') }} />
+        <Stack.Screen name="avisos" options={{ title: t('Avisos oficiales') }} />
         <Stack.Screen name="emergencia" options={{ headerShown: false }} />
       </Stack>
       <CapaTutorial />

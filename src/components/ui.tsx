@@ -7,7 +7,7 @@
 
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { useRef, useState, type ComponentProps, type ComponentRef, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useRef, useState, type ComponentProps, type ComponentRef, type ReactNode } from 'react';
 import {
   Platform,
   Pressable,
@@ -16,6 +16,7 @@ import {
   Text,
   TextInput,
   View,
+  type HostInstance,
   type StyleProp,
   type TextProps,
   type TextStyle,
@@ -38,13 +39,48 @@ export function Icono({ name, size = 20, color }: { name: NombreIcono; size?: nu
   return <MaterialCommunityIcons name={name} size={size} color={color ?? C.tinta} />;
 }
 
+/**
+ * Para el tutorial: desplaza la pantalla hasta que una vista se vea entera en
+ * su mitad de arriba (así la tarjeta del tutorial, abajo, no la tapa).
+ */
+type Desplazar = (vista: HostInstance) => Promise<void>;
+const ContextoDesplazar = createContext<Desplazar | null>(null);
+export const useDesplazar = () => useContext(ContextoDesplazar);
+
 /** Pantalla con scroll y márgenes de 16 px. */
 export function Pantalla({ children }: { children: ReactNode }) {
   const C = useC();
   const margenes = useSafeAreaInsets();
+  const scroll = useRef<ComponentRef<typeof ScrollView>>(null);
+  const marco = useRef<HostInstance>(null);
+  // Lo desplazado se apunta al hacer scroll y solo se lee al desplazar, nunca al pintar
+  const desplazado = useRef(0);
+  const desplazar = useCallback<Desplazar>(
+    (vista) =>
+      new Promise((listo) => {
+        const s = scroll.current;
+        const m = marco.current;
+        if (!s || !m) return listo();
+        m.measureInWindow((_mx, my, _ma, mh) =>
+          vista.measureInWindow((_x, y, _ancho, alto) => {
+            if (y >= my && y + alto <= my + mh * 0.55) return listo();
+            s.scrollTo({ y: Math.max(0, desplazado.current + (y - my) - 16), animated: false });
+            setTimeout(listo, 80);
+          }),
+        );
+      }),
+    [],
+  );
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: C.fondo }} edges={['top']}>
+      <View ref={marco} collapsable={false} style={{ flex: 1 }}>
+      <ContextoDesplazar.Provider value={desplazar}>
       <ScrollView
+        ref={scroll}
+        onScroll={(e) => {
+          desplazado.current = e.nativeEvent.contentOffset.y;
+        }}
+        scrollEventThrottle={32}
         contentContainerStyle={{
           padding: 16,
           paddingBottom: 32 + margenes.bottom,
@@ -58,6 +94,8 @@ export function Pantalla({ children }: { children: ReactNode }) {
         automaticallyAdjustKeyboardInsets>
         {children}
       </ScrollView>
+      </ContextoDesplazar.Provider>
+      </View>
     </SafeAreaView>
   );
 }

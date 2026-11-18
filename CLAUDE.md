@@ -84,7 +84,9 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   la emergencia en curso o la de Ajustes), no `s.escenario` a pelo.
   `setEscenario` reparte la actividad a su sitio.
 - **Tutorial**: los pasos están en `PASOS` de `src/lib/tutorial.ts`; lo que
-  señala cada paso se envuelve con `<Hueco id>` en su pantalla. Si cambia una
+  señala cada paso se envuelve con `<Hueco id>` en su pantalla, que tiene que
+  ser una `Pantalla` (de ella sale `useDesplazar`, que lleva el scroll hasta lo
+  señalado). Si cambia una
   pantalla o una regla, revisar sus textos y las preguntas de
   `src/components/preguntas.tsx`.
 - **No usar Prettier**: el proyecto no lo tiene configurado y reformatea los
@@ -148,6 +150,12 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   tutorial (medido con `measureInWindow`) caiga justo encima de lo que señala.
   `expo-doctor` falla por parches nuevos de Expo (`expo-web-browser` 58.1 y
   otros); ya fallaba antes y no se ha tocado: actualizar uno nativo pide APK.
+- **Del 18/11/2026 por la tarde, sin commit ni publicar**: arreglos del
+  tutorial (desplazar hasta lo señalado, medir en cada paso, sin dobles toques)
+  y **avisos oficiales** (AEMET, IGN y GDACS; `src/lib/avisos.ts`,
+  `src/lib/avisos-estado.ts`, `src/app/avisos.tsx`). Tests (84), `tsc`, lint y
+  export de Android limpios; en web los RSS no bajan por CORS (se probó con
+  datos cargados a mano y la descarga desde Node). No probado en el móvil.
 - Última actualización publicada: grupo `36296207` (agua beber + higiene,
   actividad, tutorial y preguntas), canal `preview`, runtime 1.0.0. Las
   anteriores: `533b7fe4` (kit en listas, plan de compra, calendario y casa
@@ -171,8 +179,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `marketing/` (apagón, escáner, de 3 a 7 días), uno cada 2–3 días, probando
   una sola cosa a la vez (el gancho). Con menos de 8–10 vídeos los números son
   ruido: decirlo así.
-- **Avisos oficiales (antes «noticias»)**: viabilidad contada el 18/11/2026 en
-  `docs/pendiente.md`; espera a que Eric decida.
+- **Avisos oficiales**: hechos el 18/11/2026; lo que falta, en `docs/pendiente.md`.
 - Lo demás está en `docs/pendiente.md`. Eric dejó para más adelante compartir
   el resultado como imagen (necesita APK nuevo). El trueque
   entre vecinos tiene una propuesta escrita y espera a que Eric decida.

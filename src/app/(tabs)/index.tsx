@@ -19,9 +19,12 @@ import {
   type NombreIcono,
 } from '@/components/ui';
 import { Hueco } from '@/components/tutorial';
+import { coloresNivel, textoFenomeno, textoNivel } from '@/components/avisos';
+import { avisoDestacado, avisosDeProvincia, provinciaPorIne } from '@/lib/avisos';
+import { useAvisos } from '@/lib/avisos-estado';
 import { diasHasta, estadoCaducidad, formatoNumero } from '@/lib/calculo';
 import { calcularEnergia } from '@/lib/energia';
-import { textoDia } from '@/lib/fechas';
+import { textoDia, textoMomento } from '@/lib/fechas';
 import { usePro } from '@/lib/sincro';
 import { useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
@@ -47,6 +50,8 @@ export default function Inicio() {
   const emergencia = useAguante((s) => s.emergencia);
   const energia = useAguante((s) => s.energia);
   const pro = usePro();
+  const ineAvisos = useAvisos((s) => s.provincia);
+  const meteo = useAvisos((s) => s.meteo);
   const e = calcularEnergia(energia.fuentes, energia.aparatos, energia.zona, energia.epoca);
   const hayEnergia = energia.fuentes.length > 0 || energia.aparatos.length > 0;
   const kcalPerdidas = r.perdidos.reduce((s, p) => s + p.kcal, 0);
@@ -61,6 +66,10 @@ export default function Inicio() {
   };
 
   const hoy = new Date();
+  // Avisos de AEMET en la provincia elegida: se destaca uno naranja o rojo de las próximas 48 horas
+  const provincia = provinciaPorIne(ineAvisos);
+  const avisosAqui = provincia ? avisosDeProvincia(meteo, provincia, hoy.getTime()) : [];
+  const destacado = avisoDestacado(avisosAqui, hoy.getTime());
   const urgente = productos
     .filter((p) => p.cantidad > 0 && estadoCaducidad(p, hoy) === 'rojo')
     .sort((a, b) => (a.caducidad ?? '').localeCompare(b.caducidad ?? ''))[0];
@@ -265,6 +274,32 @@ export default function Inicio() {
           texto={t('La comida de las mascotas da para {n} días, menos que la vuestra.', { n: formatoNumero(r.mascotas.diasComida, 1) })}
         />
       )}
+      {destacado && (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/avisos')}
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            gap: 12,
+            backgroundColor: coloresNivel(destacado.nivel, C).fondo,
+            borderRadius: 20,
+            padding: 12,
+          }}>
+          <IconoCaja name="weather-lightning-rainy" fondo={coloresNivel(destacado.nivel, C).color} color={C.blanco} />
+          <View style={{ flex: 1 }}>
+            <Texto peso="700" tam={14} color={coloresNivel(destacado.nivel, C).color}>
+              {t('{nivel} por {fenomeno}: {zona}', { nivel: textoNivel(destacado.nivel), fenomeno: textoFenomeno(destacado.fenomeno).toLowerCase(), zona: destacado.zona })}
+            </Texto>
+            <Texto tam={13} color={C.texto2}>
+              {destacado.inicio <= hoy.getTime()
+                ? t('En curso, hasta {fin}. Fuente: AEMET', { fin: textoMomento(destacado.fin) })
+                : t('Desde {inicio}. Fuente: AEMET', { inicio: textoMomento(destacado.inicio) })}
+            </Texto>
+          </View>
+          <Icono name="chevron-right" color={C.suave} />
+        </Pressable>
+      )}
       {urgente && urgente.caducidad && (
         <Pressable
           accessibilityRole="button"
@@ -290,6 +325,18 @@ export default function Inicio() {
       <Tarjeta style={{ paddingVertical: 6 }}>
         <FilaEnlace
           primera
+          icono="alert-circle-outline"
+          titulo={t('Avisos oficiales')}
+          detalle={
+            provincia
+              ? avisosAqui.length > 0
+                ? tn(avisosAqui.length, '{n} aviso de AEMET en {provincia}', '{n} avisos de AEMET en {provincia}', { provincia: provincia.nombre })
+                : t('Sin avisos de AEMET en {provincia}', { provincia: provincia.nombre })
+              : t('Tiempo, terremotos y desastres, de fuentes oficiales')
+          }
+          onPress={() => router.push('/avisos')}
+        />
+        <FilaEnlace
           icono="lightning-bolt-outline"
           titulo={t('Energía propia')}
           detalle={

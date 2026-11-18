@@ -401,3 +401,50 @@ Consultado el 16/11/2026.
 - La estimación es orientativa y no sustituye el consejo médico.
 - Si hay un bebé, que necesita leche materna o de fórmula.
 - Que el agua para beber no se raciona: si se acaba, hay que buscar más.
+
+## Avisos oficiales
+
+Añadido el 18/11/2026 (`src/lib/avisos.ts`, `src/lib/avisos-estado.ts`,
+`src/app/avisos.tsx`). Solo fuentes oficiales; nada de prensa (derechos,
+API de pago y alarmismo). Las tres se leen por RSS desde el móvil, sin servidor
+propio ni claves. Ninguna manda cabeceras CORS: en la versión web no se pueden
+descargar (en el móvil no hay CORS).
+
+- **AEMET**, avisos meteorológicos (Meteoalerta). Un RSS por comunidad:
+  `https://www.aemet.es/documentos_d/eltiempo/prediccion/avisos/rss/CAP_AFAC{61…79}_RSS.xml`.
+  Cada `<item>` lleva «Aviso. Nivel {amarillo|naranja|rojo}. {Fenómeno}. {Zona}»,
+  el tramo «de HH:MM DD-MM-AAAA CET (UTC+1) a …» y, en el `guid`, el código de
+  zona `AFAZ` + 6 cifras: comunidad AEMET (2), provincia INE (2) y zona (2). En
+  Baleares (53, 54, 55) y Canarias las zonas van por islas: allí se enseña toda
+  la comunidad. Se salta el «Estado completo» (un `.tar.gz` con los CAP).
+  **Condiciones** (nota legal, leída el 18/11/2026,
+  <https://www.aemet.es/es/nota_legal>): reutilización permitida, también
+  comercial, citando «Fuente: AEMET» o «Información elaborada por la Agencia
+  Estatal de Meteorología», con la fecha de actualización, sin cambiar el
+  sentido y sin dar a entender que AEMET respalda la app.
+- **IGN**, terremotos de España de los últimos 10 días:
+  <https://www.ign.es/ign/RssTools/sismologia.xml>. La hora del RSS es UTC
+  (comprobado en la ficha del terremoto, que da «Hora UTC» y «Hora local»). El
+  lugar acaba en la matrícula de la provincia («TABOADA.LU»); lo de fuera
+  (Marruecos «.MAC», Argelia «.ARG», zonas de mar sin sufijo) no se enseña. Las
+  matrículas de Baleares (IB/PM) y Las Palmas (GC/LP) no están comprobadas.
+  Licencia CC BY 4.0 (ficha del catálogo en IDEE/datos.gob.es; el PDF de
+  condiciones del IGN no se leyó).
+  **[propio]**: se enseñan los de magnitud ≥ 3,0 en tu provincia y ≥ 4,0 en el
+  resto de España.
+- **GDACS** (ONU, OCHA, y Comisión Europea, JRC), desastres del mundo:
+  <https://www.gdacs.org/xml/rss.xml>. Solo `alertlevel` Orange o Red con
+  `iscurrent` distinto de false (las sequías largas vienen como no actuales).
+  Licencia que trae el propio RSS: «European Union (CC BY 4.0), reuse is
+  allowed, provided appropriate credit to GDACS is given».
+- **ES-Alert**: no hay API ni RSS para terceros (no encontrado). Llega solo a
+  los móviles; la pantalla lo recuerda.
+
+Descarga **[propio]**: al abrir la app y al volver a ella, como mucho cada 30
+minutos, y con «Actualizar». Cada fuente por su lado; si falla, se queda lo
+último guardado y se avisa. La provincia y la caché van en `aguante-avisos`
+(del móvil: no van en copias ni se comparten).
+
+En Inicio se destaca un aviso **naranja o rojo** de tu provincia si está en
+curso o empieza en las próximas 48 horas **[propio]**.
+
