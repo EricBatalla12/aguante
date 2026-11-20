@@ -116,6 +116,48 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
 
+## Hecho el 20/11/2026: plan de compra mejorado
+
+Pantalla propia, `src/app/compra.tsx` (se entra desde Preparación); el
+cálculo, en `src/lib/compra.ts` (puro, con tests en `tests/compra.test.mjs`),
+y lo que comparte con Preparación, en `src/lib/use-compra.ts`. Las cifras y
+su fuente, en `fuentes-y-reglas.md` («Plan de compra»). Sin módulos nativos
+ni SQL: va por actualización.
+
+- Lista por categorías: reponer lo que caduca, agua, comida lista para
+  comer, comida para cocinar (solo si el escenario deja cocinar; su agua de
+  cocer se suma a las garrafas), mascotas y lo que falta del kit.
+- Dos sentidos: «Gasto al mes» (cuándo se llega a los días del objetivo y
+  cuándo acaba todo) y «Para una fecha» (lo mínimo que hay que apartar al
+  mes para acabar a tiempo).
+- Prioridad automática: reponer ese mes, luego lo que menos días da (agua o
+  comida; antes lo que no hay que cocinar), luego mascotas y kit.
+- «Comprado»: cuántas, precio y caducidad; pasa a la despensa (o marca el
+  kit) y apunta el gasto. «He comprado otra cosa» apunta el gasto y abre el
+  escáner. Barra de lo gastado este mes, lo comprado (se puede quitar del
+  gasto) y gasto acumulado.
+- Recordatorio el día de compra (notificación local, los tres próximos
+  meses, se reprograman al abrir la app) y compartir la lista del mes.
+- Se recuerda el último precio de cada cosa. Los dos precios del plan
+  antiguo (garrafa y bote) pasan a la lista nueva: el store sube a la
+  versión 4 para migrarlos.
+- Preparación enseña la misma lista que el plan (antes decía otra cantidad
+  de agua porque no contaba el agua de cocer).
+- **Casa compartida, decidido**: el plan es de cada móvil (presupuesto,
+  precios y gasto). Lo que compra cualquiera entra en la despensa o el kit,
+  que sí se comparten, y sale de la lista de todos. Repartir «quién compra
+  qué» pediría un tipo nuevo en el SQL (y que Eric volviera a ejecutar
+  `esquema.sql`); para coordinarse está «Compartir la lista».
+
+Comprobado: 103 tests, `tsc`, lint y export de Android limpios; en la
+versión web, con una casa de prueba, el reparto, el modo fecha, comprar agua
+y kit, quitar un gasto, la migración de precios y que no se corte nada a
+320 px. **Sin probar en el móvil**: la notificación del día de compra y el
+menú de compartir (en la web no hay ninguno de los dos).
+
+Queda: que encender el recordatorio, si los avisos estaban apagados, enciende
+también los de caducidad (comparten el permiso y el interruptor de Ajustes).
+
 ## Hecho el 18/11/2026 por la tarde: más fuentes en Actualidad
 
 Tras pedirlo Eric («todas las que funcionen menos la nuclear» y un filtro por
@@ -197,7 +239,8 @@ la versión web y con tests; no probado en el móvil.
 - Lo que añade cada casa al kit puede llevar caducidad (medicinas, pilas…):
   sale en «Rotar pronto», avisa como los productos y se edita en `kit/[id]`.
 - Plan de compra por meses en Preparación, con el presupuesto y los precios
-  que pone cada uno (`planCompra` en `calculo.ts`).
+  que pone cada uno (era `planCompra` en `calculo.ts`; rehecho el
+  20/11/2026, ver arriba).
 - Aviso de caducidad en Google Calendar desde un producto o un elemento del
   kit (`src/lib/calendario.ts`).
 - Casa: cambiar el código, sacar a alguien y compartir la emergencia en curso.

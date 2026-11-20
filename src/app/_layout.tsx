@@ -77,10 +77,11 @@ function Navegacion() {
   const productos = useAguante((s) => s.productos);
   const kitPropio = useAguante((s) => s.kitPropio);
   const avisos = useAguante((s) => s.avisos);
+  const diaCompra = useAguante((s) => s.compra.diaRecordatorio);
 
   useEffect(() => {
-    (avisos ? reprogramarAvisos(productos, kitPropio) : cancelarAvisos()).catch(() => {});
-  }, [avisos, productos, kitPropio]);
+    (avisos ? reprogramarAvisos(productos, kitPropio, diaCompra) : cancelarAvisos()).catch(() => {});
+  }, [avisos, productos, kitPropio, diaCompra]);
 
   // La primera vez, con la app vacía, sale el tutorial (se puede omitir)
   useEffect(() => {
@@ -113,6 +114,7 @@ function Navegacion() {
         <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
         <Stack.Screen name="anadir" options={{ title: t('Añadir producto'), presentation: 'modal' }} />
         <Stack.Screen name="gastar" options={{ title: t('Gastar producto'), presentation: 'modal' }} />
+        <Stack.Screen name="compra" options={{ title: t('Plan de compra') }} />
         <Stack.Screen name="producto/[id]" options={{ title: t('Producto') }} />
         <Stack.Screen name="kit/[id]" options={{ title: t('Kit de emergencia') }} />
         <Stack.Screen name="persona/[id]" options={{ title: t('Persona') }} />

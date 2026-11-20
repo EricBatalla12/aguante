@@ -9,7 +9,7 @@ export type Punto = { texto: string; propio?: boolean };
 export type Enlace = { nombre: string; url: string };
 export type Bloque = { titulo: string; icono: NombreIcono; puntos: Punto[]; enlaces: Enlace[] };
 
-export const FECHA_CONSULTA = tx('18 de noviembre de 2026');
+export const FECHA_CONSULTA = tx('20 de noviembre de 2026');
 
 export const BLOQUES: Bloque[] = [
   {
@@ -164,6 +164,20 @@ export const BLOQUES: Bloque[] = [
     enlaces: [
       { nombre: tx('Ready.gov: arma un kit'), url: 'https://www.ready.gov/kit' },
       { nombre: tx('Ready.gov: kit para el coche'), url: 'https://www.ready.gov/car' },
+    ],
+  },
+  {
+    titulo: tx('Plan de compra'),
+    icono: 'cart-outline',
+    puntos: [
+      { texto: tx('Los precios y el presupuesto los pones tú: no hay una fuente fiable de precios medios y cambian con la tienda.') },
+      { texto: tx('La comida se cuenta en botes de 400 g de garbanzos cocidos (556 kcal) y paquetes de 1 kg de arroz (3.650 kcal), con las kcal de USDA FoodData Central. Vale cualquier comida que dé lo mismo.') },
+      { texto: tx('Cocer 1 kg de arroz gasta unos 2,56 L de agua, que se suman al agua: 2 tazas de agua por taza de arroz (Universidad de Maryland) y 185 g por taza (USDA).') },
+      { texto: tx('Los 3 primeros días del objetivo, comida que no hay que cocinar; el resto, para cocinar. Sin cocina, toda lista para comer.'), propio: true },
+      { texto: tx('Cada mes se compra primero lo que hay que reponer, luego lo que menos días os da (agua o comida), luego las mascotas y al final el kit.'), propio: true },
+    ],
+    enlaces: [
+      { nombre: tx('University of Maryland Extension: cooking rice'), url: 'https://extension.umd.edu/resource/cooking-rice' },
     ],
   },
   {

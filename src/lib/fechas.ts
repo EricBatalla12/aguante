@@ -99,6 +99,14 @@ export function textoFechaLarga(iso: string, sinDia?: boolean): string {
   return sinDia ? `a finales de ${mes} de ${a}` : `el ${d} de ${mes} de ${a}`;
 }
 
+/** «diciembre de 2026» (mes de 1 a 12), para los meses del plan de compra. Sin el año si es `anioActual`. */
+export function textoMes(anio: number, mes: number, anioActual?: number): string {
+  const nombre = MESES()[mes - 1];
+  const conMayuscula = nombre[0].toUpperCase() + nombre.slice(1);
+  if (anio === anioActual) return conMayuscula;
+  return lengua === 'en' ? `${conMayuscula} ${anio}` : `${conMayuscula} de ${anio}`;
+}
+
 /** «jueves 19 de noviembre», para decir hasta qué día llega la reserva. */
 export function textoDia(fecha: Date): string {
   const dia = TEXTOS[lengua].semana[fecha.getDay()];

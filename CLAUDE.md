@@ -18,7 +18,8 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - Web: si Eric no tiene su Metro en el 8081, arrancar con el panel de
   navegador la configuración `aguante-web` de `/home/eric/Proyectos/.claude/launch.json`
   (Metro en el **8082**). Datos de prueba: escribir `localStorage['aguante']`
-  como `{state, version: 3}` y recargar. El panel a veces no se pinta: las
+  como `{state, version: 4}` y recargar (con una versión anterior, pasa por
+  la migración). El panel a veces no se pinta: las
   animaciones solo avanzan al hacer una captura; los textos cortados se miden
   con JS (`scrollWidth > clientWidth` con overflow no visible, en iframes de
   320 px). Parar el servidor al acabar.
@@ -76,13 +77,14 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   fijos. Confirmaciones con `confirmar({ titulo, nombre, mensaje, accion,
   icono, imagen, tono, alAceptar })` de `src/lib/confirmar.ts`, que abre el
   diálogo propio (`src/components/dialogo.tsx`).
-- **Cálculo puro**: `src/lib/calculo.ts`, `src/lib/energia.ts` y
-  `src/lib/fechas.ts` no importan nada (los tests corren con `node --test` sin
+- **Cálculo puro**: `src/lib/calculo.ts`, `src/lib/energia.ts`,
+  `src/lib/compra.ts` y `src/lib/fechas.ts` no importan nada (los tests corren con `node --test` sin
   compilar). Si cambia una cifra, cambiarla también en
   `docs/fuentes-y-reglas.md` y en `src/constants/fuentes.ts` (pantalla de
   fuentes). No meter cifras de memoria: buscar la fuente y marcar «criterio
   propio» lo que no la tenga.
-- **Estado**: `src/lib/store.ts` (zustand persistido, `version: 3`). Un campo
+- **Estado**: `src/lib/store.ts` (zustand persistido, `version: 4`; subir la
+  versión hace que `migrate` pase los datos guardados por `normalizar`). Un campo
   nuevo va en `Datos`, `INICIAL`, `soloDatos` y, si hace falta, en `normalizar`
   (migración y copias importadas). Lo que es solo del móvil y no va en copias
   (como `tutorialVisto`) va en `Estado`, fuera de `Datos`.
@@ -176,10 +178,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   datos cargados a mano y la descarga desde Node). **Ya en el móvil de Eric**
   (18/11/2026, 16:40: Ajustes enseña la actualización `01a1ef48`), pero falta
   que pruebe el tutorial nuevo y la pantalla de avisos con su provincia.
-- Última actualización publicada: grupo `107efbb6` (en la app, `01a1efb8`;
-  Actualidad con AESAN, AEMPS, Copernicus y filtro por tipo), canal
-  `preview`, runtime 1.0.0, el 18/11/2026. Sin confirmar que le haya llegado
-  al móvil de Eric. Las anteriores: `078c8705` (en la app `01a1ef9f`; pestaña
+- Última actualización publicada: grupo `baa21b36` (en la app, `01a1f97a`;
+  sin el trueque, commit `fd1965f`), canal `preview`, runtime 1.0.0, el
+  20/11/2026. Sin confirmar que le haya llegado al móvil de Eric. Las
+  anteriores: `107efbb6` (en la app `01a1efb8`; Actualidad con AESAN, AEMPS,
+  Copernicus y filtro por tipo), `078c8705` (en la app `01a1ef9f`; pestaña
   Actualidad), `c895fffd`
   (en la app `01a1ef48`; avisos oficiales y tutorial sin tirones),
   `36296207` (agua beber + higiene, actividad, tutorial y preguntas), `533b7fe4` (kit en listas, plan de compra, calendario y casa
@@ -197,16 +200,15 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 
 ### Aprobado por Eric el 20/11/2026 («me parece todo correcto»), por este orden
 
-Estado al aprobarlo: el trueque está **quitado en el código pero sin commit
-ni publicar** (pantalla, enlace de Inicio, campo `trueque` del store,
-`calcularExcedente` y su test; docs al día; 91 tests, `tsc` y lint limpios).
-Tampoco tienen commit los tres vídeos de funciones (`marketing/video-numero`,
-`video-verbos`, `video-zoom`, sus MP4 y `marketing/video-funciones/datos/`) ni
-esta nota. Pedir a Eric el commit (y publicar lo del trueque por EAS Update).
+El 20/11/2026, con el visto bueno de Eric: el trueque quitado, en git
+(`da50467`) y publicado (grupo `baa21b36`, en la app `01a1f97a`); los tres
+vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
 
-1. **Plan de compra mejorado** (`src/components/plan-compra.tsx`,
-   `planCompra` en `src/lib/calculo.ts`; hoy solo reparte garrafas y botes de
-   garbanzos según el presupuesto):
+1. **Plan de compra mejorado: HECHO el 20/11/2026, sin commit ni publicar**
+   (detalle, lo comprobado y lo que queda en `docs/pendiente.md`, «Hecho el
+   20/11/2026»). Pantalla `src/app/compra.tsx`, cálculo en `src/lib/compra.ts`,
+   lo común con Preparación en `src/lib/use-compra.ts`; el store pasa a la
+   versión 4. Lo que se pidió:
    - Lista de compra real por categorías: agua, comida sin cocinar, comida que
      se cocina (solo si el escenario permite cocinar), pienso de mascotas y lo
      que falta del kit (elementos sin marcar de `DE_SERIE`: linterna, radio,
@@ -219,8 +221,8 @@ esta nota. Pedir a Eric el commit (y publicar lo del trueque por EAS Update).
      progreso por mes y gasto acumulado.
    - Reposiciones: sumar lo que caducará en los meses del plan.
    - Recordatorio el día de compra (como los avisos de caducidad) y lista para
-     compartir (Share). Con casa compartida, quién compra qué (pensar si va en
-     `Compartido`/SQL o es de cada móvil, como hoy `compra`).
+     compartir (Share). Con casa compartida, quién compra qué: decidido que
+     el plan es de cada móvil (ver `docs/pendiente.md`).
    - Los precios los pone el usuario (no hay fuente fiable de precios medios:
      no inventarlos); recordar el último precio de cada cosa.
 2. **Funciones nuevas** (todas aprobadas):
@@ -278,7 +280,7 @@ esta nota. Pedir a Eric el commit (y publicar lo del trueque por EAS Update).
   Actualidad» y «pestaña Actualidad»). Lo que falta, en el mismo fichero.
 - Lo demás está en `docs/pendiente.md`. Eric dejó para más adelante compartir
   el resultado como imagen (necesita APK nuevo). El trueque se quitó el
-  20/11/2026 (sin publicar aún; ver arriba).
+  20/11/2026 y ya está publicado (ver arriba).
 
 ## Pendiente fuera del código
 

@@ -68,8 +68,28 @@ type Datos = {
   compra: Compra; // presupuesto y precios del plan de compra: de cada móvil, no se comparte
 };
 
-/** Presupuesto al mes y precios que pone cada uno para el plan de compra (en euros). */
-export type Compra = { presupuesto?: number; precioGarrafa?: number; precioBote?: number };
+/**
+ * Plan de compra, de cada móvil (no se comparte con la casa): lo que compra
+ * cualquiera va a la despensa o al kit, que sí se comparten, y sale de la
+ * lista de todos. Los precios los pone cada uno (en euros).
+ */
+export type Compra = {
+  /** Cómo se planifica: con lo que se puede gastar al mes o para llegar en una fecha. */
+  sentido?: 'presupuesto' | 'fecha';
+  presupuesto?: number;
+  fecha?: string; // AAAA-MM-DD
+  /** Último precio de cada cosa, por su clave (ver src/lib/compra.ts). */
+  precios?: Record<string, number>;
+  hechas?: CompraHecha[];
+  /** Día del mes (1–28) del recordatorio; sin él, no hay. */
+  diaRecordatorio?: number;
+  // Antiguos, del primer plan de compra: pasan a `precios` al normalizar
+  precioGarrafa?: number;
+  precioBote?: number;
+};
+
+/** Algo que se ha comprado siguiendo el plan: para el gasto de cada mes. */
+export type CompraHecha = { id: string; clave: string; nombre: string; unidades: number; coste: number; fecha: string };
 
 type Estado = Datos & {
   // Del móvil: no va en las copias ni se comparte
@@ -91,7 +111,10 @@ type Estado = Datos & {
   alternarKit: (id: string) => void;
   anadirKit: (e: Omit<ElementoKit, 'id'>) => void;
   guardarKit: (e: ElementoKit) => void;
-  setCompra: (c: Compra) => void;
+  setCompra: (c: Partial<Compra>) => void;
+  setPrecio: (clave: string, precio: number | undefined) => void;
+  apuntarCompra: (h: Omit<CompraHecha, 'id'>) => void;
+  quitarCompra: (id: string) => void;
   borrarKit: (id: string) => void;
   setTema: (t: Tema) => void;
   setAvisos: (v: boolean) => void;
@@ -256,7 +279,25 @@ export const useAguante = create<Estado>()(
       alternarKit: (id) => set((s) => ({ kit: { ...s.kit, [id]: !s.kit[id] } })),
       anadirKit: (e) => set((s) => ({ kitPropio: [...s.kitPropio, { ...e, id: `propio-${nuevoId()}` }] })),
       guardarKit: (e) => set((s) => ({ kitPropio: upsert(s.kitPropio, e) })),
-      setCompra: (compra) => set({ compra }),
+      setCompra: (c) => set((s) => ({ compra: { ...s.compra, ...c } })),
+      setPrecio: (clave, precio) =>
+        set((s) => {
+          const precios = { ...s.compra.precios };
+          if (precio !== undefined && Number.isFinite(precio) && precio > 0) precios[clave] = precio;
+          else delete precios[clave];
+          return { compra: { ...s.compra, precios } };
+        }),
+      // Apunta el gasto y se queda con el precio por unidad para la próxima vez.
+      // Se guardan las 300 últimas: de sobra para ver el gasto de cada mes.
+      apuntarCompra: (h) =>
+        set((s) => {
+          const precios = { ...s.compra.precios };
+          if (h.unidades > 0 && h.coste > 0) precios[h.clave] = Math.round((h.coste / h.unidades) * 100) / 100;
+          const hechas = [...(s.compra.hechas ?? []), { ...h, id: nuevoId() }].slice(-300);
+          return { compra: { ...s.compra, precios, hechas } };
+        }),
+      quitarCompra: (id) =>
+        set((s) => ({ compra: { ...s.compra, hechas: (s.compra.hechas ?? []).filter((h) => h.id !== id) } })),
       borrarKit: (id) => set((s) => ({ kitPropio: s.kitPropio.filter((k) => k.id !== id), kit: sin(s.kit, id) })),
       setTema: (tema) => set({ tema }),
       setAvisos: (avisos) => set({ avisos }),
@@ -368,10 +409,11 @@ export const useAguante = create<Estado>()(
     }),
     {
       name: 'aguante',
-      version: 3,
+      version: 4,
       storage: createJSONStorage(() => almacen),
       // v1 no tenía el registro de lo comido; v2 no tenía energía, idioma ni
-      // dónde se guarda cada producto.
+      // dónde se guarda cada producto; v3 guardaba solo dos precios en el plan
+      // de compra (garrafa y bote).
       migrate: (guardado) => normalizar({ ...INICIAL, ...(guardado as Partial<Datos>) }) as Estado,
     },
   ),
@@ -389,7 +431,17 @@ function normalizar(d: Datos): Datos {
       p.conservacion || !p.necesitaFrio ? p : { ...p, conservacion: 'nevera' as const, necesitaFrio: undefined },
     ),
     emergencia: normalizarEmergencia(d.emergencia ?? null),
+    compra: normalizarCompra(d.compra ?? {}),
   };
+}
+
+/** Los precios del primer plan de compra (garrafa y bote) pasan a la lista de precios. */
+function normalizarCompra(c: Compra): Compra {
+  const { precioGarrafa, precioBote, ...resto } = c;
+  const precios = { ...resto.precios };
+  if (precioGarrafa && precios.agua === undefined) precios.agua = precioGarrafa;
+  if (precioBote && precios.lista === undefined) precios.lista = precioBote;
+  return { ...resto, precios, hechas: Array.isArray(resto.hechas) ? resto.hechas : [] };
 }
 
 function normalizarEmergencia(e: Emergencia | null): Emergencia | null {

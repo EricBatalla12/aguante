@@ -384,9 +384,36 @@ Consultado el 16/11/2026.
   (https://commission.europa.eu/topics/preparedness_en). Es un objetivo de la
   estrategia, no una recomendación a los hogares: la app ya no dice que «la UE
   recomienda».
-- **Plan de compra** **[propio]**: el bote de referencia son 400 g de
-  garbanzos cocidos escurridos con las kcal de USDA de `genericos.ts`
-  (556 kcal). Los precios y el presupuesto los pone cada uno.
+- **Plan de compra** (`src/lib/compra.ts`, rehecho el 20/11/2026). Los
+  precios y el presupuesto los pone cada uno: no hay una fuente fiable de
+  precios medios. Lo que falta se cuenta en unidades de referencia:
+  - Agua: garrafas de 5 L.
+  - Comida lista para comer: bote de 400 g de garbanzos cocidos escurridos,
+    556 kcal (USDA FDC 173800, en `genericos.ts`).
+  - Comida para cocinar: paquete de 1 kg de arroz blanco crudo, 3.650 kcal
+    (USDA FDC 169756). Cocerlo gasta ≈ 2,56 L de agua, que se suman a las
+    garrafas: «cook 1 cup of rice in 2 cups of water» (University of
+    Maryland Extension, *Cooking rice*,
+    https://extension.umd.edu/resource/cooking-rice, consultado el
+    20/11/2026) y 185 g por taza de ese arroz (USDA FDC 169756, porción
+    «1 cup», por la API de FoodData Central). La taza de EE. UU. son
+    236,588 mL: 2 × 236,588 / 185 = 2,56 L/kg. La misma página dice que
+    la proporción buena es la del paquete.
+  - Mascotas: un lote, sin unidad, porque las kcal del pienso cambian
+    mucho de una marca a otra.
+  - Kit: lo que falta de las listas de casa y botiquín, sin documentos y
+    efectivo, medicación con receta, gafas ni el «botiquín» de casa (ya
+    está desglosado en la lista del botiquín).
+  - **[propio]** Los 3 primeros días del objetivo (las 72 horas de la
+    Comisión Europea) se cubren con comida que no hay que cocinar, contando
+    la que ya hay; el resto, con comida para cocinar. Si el escenario es
+    «sin cocina», toda es lista para comer.
+  - **[propio]** Orden de compra: primero lo que hay que reponer ese mes;
+    luego agua o comida, lo que menos días dé en ese momento (y en la
+    comida, antes lo que no hay que cocinar); después mascotas y kit. Si lo
+    que toca no cabe en lo que queda del mes, entra lo siguiente que quepa.
+  - **[propio]** Se repone lo que caduca dentro del plan (al menos en los 3
+    próximos meses, como «Rotar pronto»), en el mes en que caduca.
 
 ## Avisos que la app tiene que mostrar
 

@@ -8,6 +8,7 @@ import * as Notifications from 'expo-notifications';
 import { Platform } from 'react-native';
 
 import { diasHasta, type Producto } from './calculo';
+import { proximosRecordatorios } from './compra';
 import type { ElementoKit } from '../constants/kit';
 import { t } from '@/lib/i18n';
 
@@ -45,8 +46,13 @@ export async function cancelarAvisos(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
-/** Avisa de los productos de la despensa y de lo del kit con caducidad (medicinas, pilas…). */
-export async function reprogramarAvisos(productos: Producto[], kit: ElementoKit[] = []): Promise<void> {
+/**
+ * Avisa de los productos de la despensa y de lo del kit con caducidad
+ * (medicinas, pilas…) y, si se ha elegido, del día de compra de cada mes. Del
+ * día de compra se programan los tres próximos: como esto se reprograma cada
+ * vez que se abre la app o cambia la despensa, siempre quedan por delante.
+ */
+export async function reprogramarAvisos(productos: Producto[], kit: ElementoKit[] = [], diaCompra?: number): Promise<void> {
   if (Platform.OS === 'web') return;
   const permiso = await Notifications.getPermissionsAsync();
   if (!permiso.granted) return;
@@ -74,5 +80,15 @@ export async function reprogramarAvisos(productos: Producto[], kit: ElementoKit[
         trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
       });
     }
+  }
+  if (!diaCompra) return;
+  for (const date of proximosRecordatorios(diaCompra, new Date())) {
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: t('Hoy toca la compra de la reserva'),
+        body: t('Mira en el plan de compra de Aguante qué toca este mes.'),
+      },
+      trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date },
+    });
   }
 }

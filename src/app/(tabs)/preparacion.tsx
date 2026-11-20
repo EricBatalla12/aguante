@@ -1,11 +1,12 @@
 import { router } from 'expo-router';
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { Pressable, View } from 'react-native';
 
-import { PlanCompra } from '@/components/plan-compra';
 import { Hueco } from '@/components/tutorial';
-import { Barra, Boton, Campo, CampoFecha, Icono, Pantalla, Pastilla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
-import { aguaBeber, aguaMascota, calcularFaltante, estadoCaducidad, formatoNumero } from '@/lib/calculo';
+import { Barra, Boton, Campo, CampoFecha, FilaEnlace, Icono, Pantalla, type NombreIcono, Pastilla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
+import { aguaBeber, aguaMascota, estadoCaducidad, formatoNumero } from '@/lib/calculo';
+import { LITROS_COCER_PAQUETE, MESES_REPONER } from '@/lib/compra';
+import { describir, useDatosCompra } from '@/lib/use-compra';
 import { componerFecha, FECHA_VACIA } from '@/lib/fechas';
 import { coloresCaducidad, textoCaducidad } from '@/lib/formato';
 import { useAguante } from '@/lib/store';
@@ -42,10 +43,7 @@ export default function Preparacion() {
   const beberDia =
     personas.reduce((s, p) => s + aguaBeber(p, { actividad }), 0) + mascotas.reduce((s, m) => s + aguaMascota(m), 0);
 
-  const falta = useMemo(
-    () => calcularFaltante(personas, mascotas, productos, objetivo, new Date(), actividad),
-    [personas, mascotas, productos, objetivo, actividad],
-  );
+  const { lista: listaCompra, falta, diasHoy } = useDatosCompra();
   const hoy = new Date();
   // Lo que caduca pronto: productos de la despensa y lo del kit con fecha (medicinas, pilas…)
   const pronto = (c?: string) => ['rojo', 'ambar', 'caducado'].includes(estadoCaducidad({ caducidad: c }, hoy));
@@ -58,30 +56,44 @@ export default function Preparacion() {
       .map((k) => ({ id: k.id, nombre: k.que, caducidad: k.caducidad, ruta: `/kit/${k.id}` as const, kit: true })),
   ].sort((a, b) => (a.caducidad ?? '').localeCompare(b.caducidad ?? ''));
   const hechos = elementosKit.filter((k) => kit[k.id]).length;
-  const diasHoy = Math.min(normal.diasAgua, normal.diasComida);
 
-  const lista: { que: string; por: string; icono: 'water-outline' | 'food-variant' | 'paw' }[] = [];
-  if (falta.faltanLitros > 0) {
-    lista.push({
-      icono: 'water-outline',
-      que: t('{n} garrafas de agua de 5 L', { n: Math.ceil(falta.faltanLitros / 5) }),
-      por: t('Faltan {l} L, contando el agua para cocinar', { l: formatoNumero(falta.faltanLitros, 1) }),
-    });
-  }
-  if (falta.faltanKcal > 0) {
-    lista.push({
-      icono: 'food-variant',
-      que: normal.limita === 'agua' ? t('Comida lista para comer') : t('Comida de larga duración'),
-      por: t('Faltan ≈ {kcal} kcal', { kcal: formatoNumero(Math.ceil(falta.faltanKcal / 100) * 100) }),
-    });
-  }
-  if (falta.faltanKcalMascotas > 0) {
-    lista.push({
-      icono: 'paw',
-      que: t('Comida para las mascotas'),
-      por: t('Faltan ≈ {kcal} kcal', { kcal: formatoNumero(Math.ceil(falta.faltanKcalMascotas / 100) * 100) }),
-    });
-  }
+  // La misma lista que el plan de compra, sin el kit ni las reposiciones (tienen su sitio aquí abajo)
+  const articulos = listaCompra(MESES_REPONER);
+  const paquetes = articulos.find((a) => a.categoria === 'cocinar')?.unidades ?? 0;
+  const lista = articulos.flatMap((a): { que: string; por: string; icono: NombreIcono }[] => {
+    switch (a.categoria) {
+      case 'agua':
+        return [
+          {
+            icono: 'water-outline',
+            que: describir(a),
+            por: t('Faltan {l} L, contando el agua para cocinar', {
+              l: formatoNumero(falta.faltanLitros + paquetes * LITROS_COCER_PAQUETE, 1),
+            }),
+          },
+        ];
+      case 'lista':
+        return [
+          {
+            icono: 'food-variant',
+            que: describir(a),
+            por: paquetes > 0 ? t('Para los 3 primeros días, sin tener que cocinar') : t('O cualquier comida que no haya que cocinar'),
+          },
+        ];
+      case 'cocinar':
+        return [{ icono: 'pot-steam-outline', que: describir(a), por: t('Para el resto de días. O pasta, o legumbre seca') }];
+      case 'mascotas':
+        return [
+          {
+            icono: 'paw',
+            que: t('Comida para las mascotas'),
+            por: t('Faltan ≈ {kcal} kcal', { kcal: formatoNumero(Math.ceil(falta.faltanKcalMascotas / 100) * 100) }),
+          },
+        ];
+      default:
+        return [];
+    }
+  });
 
   return (
     <Pantalla>
@@ -133,20 +145,14 @@ export default function Preparacion() {
                     </View>
                   </View>
                 ))}
-                {normal.limita === 'agua' && falta.faltanKcal > 0 && (
-                  <Texto tam={12} color={C.suave} style={{ paddingTop: 6 }}>
-                    {t('Como os limita el agua, mejor comida que no haya que cocinar: conservas, legumbre cocida, galletas.')}
-                  </Texto>
-                )}
-                {(falta.faltanLitros > 0 || falta.faltanKcal > 0) && (
-                  <PlanCompra
-                    faltanLitros={falta.faltanLitros}
-                    faltanKcal={falta.faltanKcal}
-                    faltaPienso={falta.faltanKcalMascotas > 0}
-                  />
-                )}
               </View>
             )}
+            <FilaEnlace
+              icono="cart-outline"
+              titulo={t('Plan de compra')}
+              detalle={t('Lo que falta, con precios, repartido en meses según lo que puedas gastar o para una fecha.')}
+              onPress={() => router.push('/compra')}
+            />
           </>
         )}
       </Tarjeta>
