@@ -20,7 +20,46 @@ export type ProductoTienda = {
   litros?: number;
   kcal100g?: number;
   imagen?: string;
+  /** Solo de las tiendas con precios cargados (tabla `precios_tienda`): el de la tienda online, su enlace y de cuándo es. */
+  precio?: number;
+  enlace?: string;
+  fecha?: string;
 };
+
+/** Una fila de `precios_tienda` (Supabase), como producto de la tienda. Null si no sirve. */
+export function deFilaPrecio(f: {
+  tienda: string;
+  id: string;
+  ean?: string | null;
+  nombre: string;
+  marca?: string | null;
+  tipo: string;
+  gramos?: number | string | null;
+  litros?: number | string | null;
+  kcal100g?: number | string | null;
+  precio: number | string;
+  enlace?: string | null;
+  actualizado?: string;
+}): ProductoTienda | null {
+  if (f.tipo !== 'agua' && f.tipo !== 'lista' && f.tipo !== 'cocinar') return null;
+  const num = (x: unknown) => (x === null || x === undefined || x === '' ? undefined : Number(x));
+  const precio = num(f.precio);
+  if (!(precio && precio > 0)) return null;
+  return {
+    // Sin código de barras (pasa con alguna agua) se usa el de la tienda: no se reconocerá al escanear
+    codigo: f.ean || `${f.tienda}-${f.id}`,
+    nombre: f.nombre,
+    marca: f.marca || undefined,
+    tipo: f.tipo,
+    tiendas: [f.tienda],
+    gramos: num(f.gramos),
+    litros: num(f.litros),
+    kcal100g: num(f.kcal100g),
+    precio,
+    enlace: f.enlace || undefined,
+    fecha: f.actualizado?.slice(0, 10),
+  };
+}
 
 /** La categoría de Open Food Facts que se busca para cada tipo. */
 export const CATEGORIA_OFF: Record<TipoTienda, string> = {
@@ -138,4 +177,32 @@ export function juntarCatalogos(listas: ProductoTienda[][]): ProductoTienda[] {
     }
   }
   return [...porCodigo.values()];
+}
+
+/**
+ * Las cadenas de los supermercados cercanos, de una respuesta de Overpass
+ * (OpenStreetMap): por la marca (`brand`) o, si no la tiene, por el nombre.
+ * Las conocidas (`cadenas`) salen con su nombre de siempre; de más a menos
+ * tiendas. Las que no tienen ni marca ni nombre se saltan.
+ */
+export function cadenasDeOsm(
+  json: unknown,
+  cadenas: { clave: string; nombre: string }[],
+): { clave: string; nombre: string; tiendas: number }[] {
+  const elementos = (json as { elements?: { tags?: Record<string, string> }[] })?.elements;
+  if (!Array.isArray(elementos)) return [];
+  const cuenta = new Map<string, { clave: string; nombre: string; tiendas: number }>();
+  for (const e of elementos) {
+    const nombre = (e.tags?.brand || e.tags?.name || '').trim();
+    if (!nombre) continue;
+    const clave = etiquetaTienda(nombre);
+    if (!clave) continue;
+    // «Mercadona Ruzafa», «Supermercados Dia»: se reconoce la cadena dentro del nombre
+    const conocida = cadenas.find((c) => clave === c.clave || clave.split('-').includes(c.clave) || clave.startsWith(`${c.clave}-`));
+    const final = conocida ?? { clave, nombre };
+    const ya = cuenta.get(final.clave);
+    if (ya) ya.tiendas++;
+    else cuenta.set(final.clave, { clave: final.clave, nombre: final.nombre, tiendas: 1 });
+  }
+  return [...cuenta.values()].sort((a, b) => b.tiendas - a.tiendas || a.nombre.localeCompare(b.nombre));
 }

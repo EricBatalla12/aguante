@@ -176,6 +176,7 @@ export const BLOQUES: Bloque[] = [
       { texto: tx('Los 3 primeros días del objetivo, comida que no hay que cocinar; el resto, para cocinar. Sin cocina, toda lista para comer.'), propio: true },
       { texto: tx('Cada mes se compra primero lo que hay que reponer, luego lo que menos días os da (agua o comida), luego las mascotas y al final el kit.'), propio: true },
       { texto: tx('Los productos de tus tiendas salen de Open Food Facts: lo que la gente ha escaneado en cada cadena, con las kcal y el peso de su ficha. No sabe si hay existencias ni el precio.') },
+      { texto: tx('En Mercadona, los productos y precios son los de su tienda online, copiados una vez a la semana; las kcal, de Open Food Facts por el código de barras. El precio puede variar según la zona.') },
       { texto: tx('De ahí se proponen conservas con 80 kcal/100 g o más, arroz crudo y agua sin gas de 1,5 L o más: primero lo que más energía da y sin repetir.'), propio: true },
     ],
     enlaces: [

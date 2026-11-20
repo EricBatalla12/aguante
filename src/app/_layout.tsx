@@ -15,6 +15,11 @@ import { DialogoConfirmar } from '@/components/dialogo';
 import { CapaTutorial } from '@/components/tutorial';
 import { fijarLengua, lenguaDelSistema, t } from '@/lib/i18n';
 import { cancelarAvisos, reprogramarAvisos } from '@/lib/notificaciones';
+// Define la tarea en segundo plano: tiene que cargarse al arrancar
+import { registrarSegundoPlano } from '@/lib/segundo-plano';
+import { actualizarWidget } from '@/lib/widget';
+import { vigilarErrores } from '@/lib/errores';
+import { useResultado } from '@/lib/use-resultado';
 import { arrancarAvisos } from '@/lib/avisos-estado';
 import { arrancarSincro } from '@/lib/sincro';
 import { useAguante } from '@/lib/store';
@@ -79,6 +84,17 @@ function Navegacion() {
   const avisos = useAguante((s) => s.avisos);
   const diaCompra = useAguante((s) => s.compra.diaRecordatorio);
   const notificar = useAguante((s) => s.notificar);
+
+  // El widget de la pantalla de inicio sigue al cálculo de Inicio
+  const resultado = useResultado();
+  useEffect(() => {
+    actualizarWidget(resultado);
+  }, [resultado]);
+
+  useEffect(() => {
+    registrarSegundoPlano().catch(() => {});
+    vigilarErrores();
+  }, []);
 
   // Cada tipo de aviso se puede apagar en Ajustes: lo apagado no se programa
   useEffect(() => {

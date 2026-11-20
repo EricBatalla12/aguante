@@ -16,11 +16,12 @@ import {
   mesReal,
   porReponer,
   presupuestoParaMeses,
+  preciosConTienda,
   proponer,
   proximosRecordatorios,
   repartir,
 } from '../src/lib/compra.ts';
-import { cantidadDe, etiquetaTienda, juntarCatalogos, leerCatalogo } from '../src/lib/catalogo.ts';
+import { cadenasDeOsm, cantidadDe, deFilaPrecio, etiquetaTienda, juntarCatalogos, leerCatalogo } from '../src/lib/catalogo.ts';
 import { readFileSync } from 'node:fs';
 import { GENERICOS } from '../src/constants/genericos.ts';
 import { diaAviso, enlaceCalendario } from '../src/lib/calendario.ts';
@@ -361,6 +362,49 @@ test('lo escaneado se reconoce: el mismo producto, o lo genérico de su tipo', (
   assert.deepEqual(lineaDe({ codigo: '0111', categoria: 'comida' }, lista), { clave: 'prod:111', exacto: true });
   assert.deepEqual(lineaDe({ codigo: '999', categoria: 'agua' }, lista), { clave: 'agua', exacto: false });
   assert.equal(lineaDe({ codigo: '999', categoria: 'mascota' }, lista), null);
+});
+
+test('una fila de precios de la tienda se lee como producto, con su precio', () => {
+  const p = deFilaPrecio({ tienda: 'mercadona', id: '5044', ean: '8480000050441', nombre: 'Arroz redondo', marca: 'Hacendado', tipo: 'cocinar', gramos: '1000', kcal100g: '344', precio: '1.15', enlace: 'https://tienda.mercadona.es/product/5044', actualizado: '2026-11-23T05:30:00Z' });
+  assert.deepEqual(
+    { codigo: p.codigo, gramos: p.gramos, kcal100g: p.kcal100g, precio: p.precio, fecha: p.fecha, tiendas: p.tiendas },
+    { codigo: '8480000050441', gramos: 1000, kcal100g: 344, precio: 1.15, fecha: '2026-11-23', tiendas: ['mercadona'] },
+  );
+  // Sin código de barras, el de la tienda; sin precio o con un tipo raro, nada
+  assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'Agua', tipo: 'agua', litros: 8, precio: 1 }).codigo, 'mercadona-7');
+  assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'X', tipo: 'otro', precio: 1 }), null);
+  assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'X', tipo: 'lista', precio: 0 }), null);
+});
+
+test('el precio que pone cada uno manda sobre el de la tienda', () => {
+  const elegidos = [{ ...atun, precio: 1.2 }, { ...fabada, precio: 2 }];
+  assert.deepEqual(preciosConTienda({ 'prod:111': 0.99 }, elegidos), { 'prod:111': 0.99, 'prod:222': 2 });
+});
+
+test('con precios de la tienda se propone lo que más da por euro', () => {
+  const caro = { codigo: '1', tipo: 'lista', nombre: 'Bonito', tiendas: ['m'], gramos: 100, kcal100g: 300, precio: 3 }; // 100 kcal/€
+  const barato = { codigo: '2', tipo: 'lista', nombre: 'Garbanzos', tiendas: ['m'], gramos: 400, kcal100g: 120, precio: 0.8 }; // 600 kcal/€
+  const p = proponer([caro, barato], {}, { agua: 1, lista: 1, cocinar: 1 });
+  assert.equal(p[0].codigo, '2');
+  assert.equal(p[0].precio, 0.8);
+});
+
+test('las cadenas cercanas salen de OpenStreetMap, de más a menos tiendas', () => {
+  // Supermercados a 1,5 km del centro de Alicante (Overpass, 20/11/2026)
+  const osm = JSON.parse(readFileSync(new URL('./datos/osm-alicante.json', import.meta.url), 'utf8'));
+  const cadenas = [
+    { clave: 'mercadona', nombre: 'Mercadona' },
+    { clave: 'carrefour', nombre: 'Carrefour' },
+    { clave: 'spar', nombre: 'Spar' },
+  ];
+  const c = cadenasDeOsm(osm, cadenas);
+  assert.deepEqual(c[0], { clave: 'mercadona', nombre: 'Mercadona', tiendas: 7 });
+  // «Carrefour City» cuenta como Carrefour
+  assert.ok(c.some((x) => x.clave === 'carrefour'));
+  assert.ok(!c.some((x) => x.clave === 'carrefour-city'));
+  // Las que no se conocen salen con su nombre
+  assert.ok(c.some((x) => x.nombre === 'masymas'));
+  assert.deepEqual(cadenasDeOsm({ elements: [{ tags: {} }] }, cadenas), []);
 });
 
 // ------------------------------------------------------------- Calendario

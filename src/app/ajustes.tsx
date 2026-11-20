@@ -156,6 +156,12 @@ export default function Ajustes() {
               ayuda={t('Medicinas, pilas y lo que hayas apuntado con fecha en el kit.')}
             />
             <Interruptor
+              etiqueta={t('Avisos naranjas y rojos de AEMET')}
+              valor={notificar.aemet}
+              onChange={(v) => setNotificar({ aemet: v })}
+              ayuda={t('Los de tu provincia (la de Actualidad), aunque no abras la app. El móvil decide cuándo mirar, más o menos cada hora. Si cierras la app a la fuerza, puede que no avise hasta que la abras: no sustituye a ES-Alert.')}
+            />
+            <Interruptor
               etiqueta={t('Día de compra')}
               valor={!!diaCompra}
               onChange={(v) => setCompra({ diaRecordatorio: v ? Math.min(28, new Date().getDate()) : undefined })}
@@ -177,6 +183,16 @@ export default function Ajustes() {
             }
           />
         )}
+      </Tarjeta>
+
+      <Seccion>{t('Privacidad')}</Seccion>
+      <Tarjeta>
+        <Interruptor
+          etiqueta={t('Mandar los fallos de la app')}
+          valor={notificar.errores}
+          onChange={(v) => setNotificar({ errores: v })}
+          ayuda={t('Si la app falla, se manda qué ha fallado y la versión, sin ningún dato tuyo, para poder arreglarlo.')}
+        />
       </Tarjeta>
 
       <Seccion>{t('Cómo se calcula')}</Seccion>

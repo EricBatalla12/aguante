@@ -57,12 +57,15 @@ type EstadoAvisos = {
   fallo: boolean; // la última descarga no se pudo hacer entera
   fallidas: string[]; // qué fuentes fallaron, para decirlo en pantalla
   cargando: boolean;
+  /** Avisos de AEMET ya notificados con la app cerrada (sus id), para no repetirlos. */
+  avisados: string[];
   setProvincia: (ine: string) => void;
 };
 
 export const useAvisos = create<EstadoAvisos>()(
   persist(
     (set) => ({
+      avisados: [],
       meteo: [],
       terremotos: [],
       desastres: [],
@@ -93,6 +96,7 @@ export const useAvisos = create<EstadoAvisos>()(
         alimentos: s.alimentos,
         medicamentos: s.medicamentos,
         actualizado: s.actualizado,
+        avisados: s.avisados,
       }),
     },
   ),

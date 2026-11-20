@@ -51,6 +51,26 @@ Código: `src/lib/compartido.ts` (puro, con tests en `tests/compartido.test.mjs`
 `src/lib/sincro.ts` (motor de sincronización), `src/lib/supabase.ts` (cliente)
 y `src/app/cuenta.tsx` (pantalla). Servidor: `supabase/esquema.sql`.
 
+## Precios de las tiendas y errores (20/11/2026)
+
+En `supabase/esquema.sql`, al final:
+
+- `precios_tienda`: productos y precios publicados por las cadenas (de momento
+  Mercadona). Cualquiera puede leerla, también sin cuenta. Solo escribe
+  `cargar_precios(token, tienda, filas)`, que comprueba la huella sha256 del
+  token en `privado.claves`. El token está solo en el secreto `PRECIOS_TOKEN`
+  de GitHub; lo usa `scripts/precios-tiendas.mjs` desde
+  `.github/workflows/precios.yml` (lunes 05:23 UTC).
+- `errores`: lo que falla en los móviles (`src/lib/errores.ts`). Nadie la
+  puede leer desde la app; se mira en el Table Editor. Se escribe con
+  `apuntar_error(p)` (también sin cuenta), con tope de 500 por hora, y se
+  borra lo de más de 90 días.
+
+Probado en un Postgres 17 local (Docker): re-ejecutable, token malo
+rechazado, carga y actualización conservando código de barras y kcal, lo que
+desaparece queda como no publicado, sin sesión se lee pero no se escribe. **No
+ejecutado aún en el proyecto de Supabase.**
+
 ## Entrar con Google
 
 Hecho en la app el 15/11/2026 sin módulo nativo nuevo (llega con EAS Update):

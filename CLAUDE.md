@@ -44,6 +44,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   abajo, se ve qué actualización tiene.
 - Hace falta APK nuevo **y subir `version` en app.json** si se añade o
   actualiza un módulo nativo, o se cambian permisos o plugins.
+- **Desde el 20/11/2026 `app.json` está en la versión 1.1.0** (widget,
+  segundo plano, ubicación y parches de Expo), **sin compilar todavía**. Lo
+  que se publique ahora va al runtime 1.1.0 y **no llega al APK 1.0.0** que
+  tiene Eric; no publicar nada para 1.0.0 desde este código (usa módulos
+  nativos que ese APK no tiene).
 - Publicar una actualización o lanzar una compilación es algo que se ve fuera
   del PC: confirmarlo con Eric antes.
 
@@ -235,6 +240,10 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
    online de Mercadona se miró y se descartó (`docs/pendiente.md`). Lo que
    falta para publicar en Play, por orden: `docs/pendiente.md`, «Para subir a
    Google Play».
+   Más tarde, el 20/11/2026, **sin commit, sin compilar y sin publicar**: precios
+   de Mercadona (copia semanal) y lo que pide APK nuevo (widget, avisos de
+   AEMET con la app cerrada, tiendas cerca, registro de errores); detalle en
+   `docs/pendiente.md`, «APK 1.1.0».
    También el 20/11/2026, a petición de Eric y publicado (grupo `b6534754`,
    en la app `01a1f990`): elegir en Ajustes de qué notifica la app y el aviso
    de «app no oficial» en Actualidad (ver
@@ -300,6 +309,20 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
   20/11/2026 y ya está publicado (ver arriba).
 
 ## Pendiente fuera del código
+
+- **Para los precios de Mercadona** (20/11/2026), en este orden:
+  1. Ejecutar `supabase/esquema.sql` entero en el SQL Editor (añade
+     `precios_tienda`, `privado.claves`, `cargar_precios`, `errores` y
+     `apuntar_error`).
+  2. Crear el token: en fish, desde el repo, este comando lo guarda como
+     secreto `PRECIOS_TOKEN` de GitHub sin enseñarlo y escribe el SQL con su
+     huella, que hay que ejecutar en el SQL Editor:
+     `set token (openssl rand -hex 32); printf %s $token | gh secret set PRECIOS_TOKEN --repo EricBatalla12/aguante; and echo "insert into privado.claves (nombre, huella) values ('precios', '"(printf %s $token | sha256sum | cut -d' ' -f1)"') on conflict (nombre) do update set huella = excluded.huella;"; set -e token`
+  3. Lanzar la tarea a mano la primera vez (pestaña Actions, «Precios de las
+     tiendas», Run workflow) y mirar que acaba bien.
+- **Compilar e instalar el APK 1.1.0** y probar en el móvil el widget, los
+  avisos de AEMET con la app cerrada, «Buscar las que tengo cerca» y lo de
+  antes que solo está probado en web.
 
 - **Verificación en dos pasos** en las cuentas de Expo (`eric_161`), GitHub,
   Google y Supabase: con la de Expo se puede mandar código a todos los móviles

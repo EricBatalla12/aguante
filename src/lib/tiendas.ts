@@ -1,5 +1,6 @@
-// Descarga los productos de las tiendas de cada uno desde Open Food Facts y
-// los guarda 30 días en el móvil (almacén `aguante-tiendas`): no van en las
+// Descarga los productos de las tiendas de cada uno (los de la propia tienda
+// con precio si los hay en Supabase; si no, de Open Food Facts) y los guarda
+// una semana en el móvil (almacén `aguante-tiendas`): no van en las
 // copias de seguridad ni se comparten, se pueden volver a bajar.
 //
 // Se busca primero en search.openfoodfacts.org, que filtra por el nombre de
@@ -12,13 +13,18 @@
 import { create } from 'zustand';
 import { createJSONStorage, persist } from 'zustand/middleware';
 
+import * as Location from 'expo-location';
+
+import { CADENAS } from '../constants/tiendas';
 import { almacen } from './almacen';
-import { CATEGORIA_OFF, juntarCatalogos, leerCatalogo, type ProductoTienda, type TipoTienda } from './catalogo';
+import { cadenasDeOsm, CATEGORIA_OFF, deFilaPrecio, juntarCatalogos, leerCatalogo, type ProductoTienda, type TipoTienda } from './catalogo';
+import { supabase } from './supabase';
 
 const CABECERAS = { 'User-Agent': 'Aguante/1.0 (app personal de reservas de emergencia)' };
 const CAMPOS =
   'code,product_name,product_name_es,brands,product_quantity,product_quantity_unit,quantity,nutriments,categories_tags,image_front_small_url';
-const DIAS_CACHE = 30;
+// Una semana: lo que tarda en llegar la siguiente copia de precios de las tiendas
+const DIAS_CACHE = 7;
 const TIPOS: TipoTienda[] = ['lista', 'cocinar', 'agua'];
 
 type Guardado = { fecha: number; productos: ProductoTienda[] };
@@ -87,6 +93,22 @@ async function pedir(url: string, intentos: number): Promise<unknown> {
   throw new Error('sin respuesta');
 }
 
+/**
+ * Las tiendas con precios cargados (de momento, Mercadona; ver
+ * scripts/precios-tiendas.mjs): sus productos de la tienda online, con precio.
+ * Vacío si esa tienda no tiene o no hay conexión.
+ */
+async function deLaTienda(tienda: string): Promise<ProductoTienda[]> {
+  const { data, error } = await supabase
+    .from('precios_tienda')
+    .select('tienda,id,ean,nombre,marca,tipo,gramos,litros,kcal100g,precio,enlace,actualizado')
+    .eq('tienda', tienda)
+    .eq('publicado', true)
+    .limit(2000);
+  if (error || !data) return [];
+  return data.map(deFilaPrecio).filter((p): p is ProductoTienda => p !== null);
+}
+
 async function buscar(tienda: { clave: string; nombre: string }, tipo: TipoTienda): Promise<ProductoTienda[]> {
   try {
     return await buscarNuevo(tienda, tipo);
@@ -116,10 +138,13 @@ export async function catalogoDe(tiendas: { clave: string; nombre: string }[], f
       continue;
     }
     try {
-      const productos: ProductoTienda[] = [];
-      for (const tipo of TIPOS) {
-        productos.push(...(await buscar(t, tipo)));
-        await esperar(1200);
+      // Con precios de la propia tienda, esos; si no, Open Food Facts
+      const productos: ProductoTienda[] = await deLaTienda(tienda);
+      if (productos.length === 0) {
+        for (const tipo of TIPOS) {
+          productos.push(...(await buscar(t, tipo)));
+          await esperar(1200);
+        }
       }
       guardar(tienda, productos);
       listas.push(productos);
@@ -130,4 +155,54 @@ export async function catalogoDe(tiendas: { clave: string; nombre: string }[], f
     }
   }
   return { productos: juntarCatalogos(listas), fallidas, vacias };
+}
+
+// ---------------------------------------------------------------- Cerca de ti
+
+/** Radio en el que se buscan supermercados [propio]: lo que se puede ir andando o en un momento en coche. */
+const RADIO_M = 3000;
+
+export type Cerca =
+  | { estado: 'ok'; cadenas: { clave: string; nombre: string; tiendas: number }[] }
+  | { estado: 'sin-permiso' }
+  | { estado: 'error' };
+
+/**
+ * Los supermercados que hay cerca, por cadena, de OpenStreetMap (Overpass).
+ * Solo con permiso de ubicación y con la app abierta. La posición se redondea
+ * a dos decimales (un kilómetro, más o menos) antes de mandarla: para buscar
+ * a 3 km basta, y así no sale de aquí dónde vive nadie. No se guarda.
+ */
+export async function tiendasCerca(): Promise<Cerca> {
+  const permiso = await Location.requestForegroundPermissionsAsync();
+  if (!permiso.granted) return { estado: 'sin-permiso' };
+  try {
+    const pos =
+      (await Location.getLastKnownPositionAsync({ maxAge: 30 * 60_000, requiredAccuracy: 2000 })) ??
+      (await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.Low }));
+    const lat = pos.coords.latitude.toFixed(2);
+    const lon = pos.coords.longitude.toFixed(2);
+    const consulta = `[out:json][timeout:25];nwr["shop"="supermarket"](around:${RADIO_M},${lat},${lon});out tags 200;`;
+    // El servidor público de Overpass a menudo está lleno (502) y pide reintentar con espera
+    for (let intento = 0; intento < 4; intento++) {
+      const ctrl = new AbortController();
+      const tope = setTimeout(() => ctrl.abort(), 30_000);
+      try {
+        const r = await fetch('https://overpass-api.de/api/interpreter', {
+          method: 'POST',
+          headers: { ...CABECERAS, 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: `data=${encodeURIComponent(consulta)}`,
+          signal: ctrl.signal,
+        });
+        if (r.ok) return { estado: 'ok', cadenas: cadenasDeOsm(await r.json(), CADENAS) };
+        if (r.status !== 429 && r.status < 500) return { estado: 'error' };
+      } finally {
+        clearTimeout(tope);
+      }
+      await esperar(4000 * 2 ** intento);
+    }
+    return { estado: 'error' };
+  } catch {
+    return { estado: 'error' };
+  }
 }

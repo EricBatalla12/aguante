@@ -2,7 +2,7 @@
   "expo": {
     "name": "Aguante",
     "slug": "aguante",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "aguante",
@@ -24,7 +24,12 @@
       "package": "com.eric_161.aguante",
       "runtimeVersion": {
         "policy": "appVersion"
-      }
+      },
+      "blockedPermissions": [
+        "android.permission.SYSTEM_ALERT_WINDOW",
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE"
+      ]
     },
     "web": {
       "output": "single",
@@ -50,7 +55,36 @@
         }
       ],
       "expo-notifications",
-      "expo-localization"
+      "expo-localization",
+      "expo-background-task",
+      "expo-web-browser",
+      [
+        "expo-widgets",
+        {
+          "enableAndroid": true,
+          "widgets": [
+            {
+              "name": "Dias",
+              "displayName": "Aguante",
+              "description": "Los días que aguantáis con lo que tenéis en casa.",
+              "ios": null,
+              "android": {
+                "minWidth": 110,
+                "minHeight": 110,
+                "targetCellWidth": 2,
+                "targetCellHeight": 2,
+                "resizeMode": "both"
+              }
+            }
+          ]
+        }
+      ],
+      [
+        "expo-location",
+        {
+          "locationWhenInUsePermission": "Aguante usa tu ubicación aproximada para buscar los supermercados que tienes cerca."
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true,

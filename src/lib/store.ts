@@ -95,7 +95,7 @@ export type Compra = {
 };
 
 /** De qué avisa el móvil. El día de compra va en `compra.diaRecordatorio`. */
-export type Notificar = { despensa: boolean; kit: boolean };
+export type Notificar = { despensa: boolean; kit: boolean; aemet: boolean; errores: boolean };
 
 /** Algo que se ha comprado siguiendo el plan: para el gasto de cada mes. */
 export type CompraHecha = { id: string; clave: string; nombre: string; unidades: number; coste: number; fecha: string };
@@ -159,7 +159,8 @@ const INICIAL: Datos = {
   tema: 'sistema',
   idioma: 'sistema',
   avisos: false,
-  notificar: { despensa: true, kit: true },
+  // `errores` no es una notificación: es mandar los fallos de la app (ver src/lib/errores.ts)
+  notificar: { despensa: true, kit: true, aemet: true, errores: true },
   energia: { fuentes: [], aparatos: [], zona: 'centro', epoca: 'invierno' },
   compra: {},
 };

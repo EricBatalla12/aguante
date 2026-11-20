@@ -205,6 +205,17 @@ export function avisosDeProvincia(avisos: AvisoMet[], p: Provincia, ahora: numbe
     .sort((a, b) => a.inicio - b.inicio || RANGO_NIVEL[b.nivel] - RANGO_NIVEL[a.nivel]);
 }
 
+/**
+ * Para la notificación con la app cerrada: los avisos naranjas y rojos de la
+ * provincia, en curso o en las próximas 48 horas, que aún no se han avisado
+ * (`ya` son sus id).
+ */
+export function gravesSinAvisar(avisos: AvisoMet[], p: Provincia, ahora: number, ya: string[]): AvisoMet[] {
+  return avisosDeProvincia(avisos, p, ahora).filter(
+    (a) => a.nivel !== 'amarillo' && a.inicio < ahora + 48 * 3_600_000 && !ya.includes(a.id),
+  );
+}
+
 /** El aviso más grave entre los que importan: naranja o rojo, ya en curso o en las próximas 48 horas. */
 export function avisoDestacado(avisos: AvisoMet[], ahora: number): AvisoMet | null {
   const graves = avisos.filter((a) => a.nivel !== 'amarillo' && a.fin > ahora && a.inicio < ahora + 48 * 3_600_000);

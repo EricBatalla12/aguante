@@ -5,7 +5,7 @@
 
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, Share, View } from 'react-native';
+import { ActivityIndicator, Linking, Platform, Pressable, Share, View } from 'react-native';
 
 import {
   Aviso,
@@ -34,6 +34,7 @@ import {
   mesDe,
   mesReal,
   presupuestoParaMeses,
+  preciosConTienda,
   proponer,
   repartir,
   type Articulo,
@@ -50,7 +51,7 @@ import { hoyISO, nuevoId, useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { describir, useDatosCompra } from '@/lib/use-compra';
 import { etiquetaTienda, juntarCatalogos, type ProductoTienda } from '@/lib/catalogo';
-import { catalogoDe, useCatalogos } from '@/lib/tiendas';
+import { catalogoDe, tiendasCerca, useCatalogos } from '@/lib/tiendas';
 import { CADENAS } from '@/constants/tiendas';
 
 const OBJETIVOS = [
@@ -98,7 +99,8 @@ export default function PlanDeCompra() {
   const [sinPermiso, setSinPermiso] = useState(false);
 
   const sentido = compra.sentido ?? 'presupuesto';
-  const precios = useMemo(() => compra.precios ?? {}, [compra.precios]);
+  // Los de la tienda (si los hay) y, encima, los que pone cada uno
+  const precios = useMemo(() => preciosConTienda(compra.precios ?? {}, compra.elegidos ?? []), [compra.precios, compra.elegidos]);
   const hechas = useMemo(() => compra.hechas ?? [], [compra.hechas]);
 
   const { lista, dias, falta, diasHoy, hoy } = useDatosCompra();
@@ -725,7 +727,33 @@ function TusTiendas({ precios }: { precios: Record<string, number> }) {
   const setCompra = useAguante((s) => s.setCompra);
   const [otra, setOtra] = useState('');
   const [cargando, setCargando] = useState(false);
+  const [buscandoCerca, setBuscandoCerca] = useState(false);
   const [aviso, setAviso] = useState<{ tono: 'verde' | 'ambar'; texto: string } | null>(null);
+
+  // Marca las cadenas que hay cerca (sin quitar las que ya estaban)
+  const buscarCerca = async () => {
+    setBuscandoCerca(true);
+    setAviso(null);
+    try {
+      const r = await tiendasCerca();
+      if (r.estado === 'sin-permiso') {
+        setAviso({ tono: 'ambar', texto: t('Sin permiso de ubicación no podemos buscarlas. Elígelas de la lista.') });
+      } else if (r.estado === 'error') {
+        setAviso({ tono: 'ambar', texto: t('No se ha podido buscar (¿sin conexión?). Prueba otra vez o elígelas de la lista.') });
+      } else if (r.cadenas.length === 0) {
+        setAviso({ tono: 'ambar', texto: t('No hemos encontrado supermercados a menos de 3 km en OpenStreetMap. Elígelos de la lista.') });
+      } else {
+        const nuevas = r.cadenas.filter((c) => !tiendas.some((x) => x.clave === c.clave)).map((c) => ({ clave: c.clave, nombre: c.nombre }));
+        setCompra({ tiendas: [...tiendas, ...nuevas] });
+        setAviso({
+          tono: 'verde',
+          texto: t('A menos de 3 km: {tiendas}. Datos de © OpenStreetMap.', { tiendas: r.cadenas.map((c) => c.nombre).join(', ') }),
+        });
+      }
+    } finally {
+      setBuscandoCerca(false);
+    }
+  };
   const propias = tiendas.filter((x) => !CADENAS.some((c) => c.clave === x.clave));
   const opciones = [...CADENAS, ...propias];
 
@@ -797,6 +825,9 @@ function TusTiendas({ precios }: { precios: Record<string, number> }) {
           );
         })}
       </View>
+      <Boton variante="secundario" icono="map-marker-outline" deshabilitado={buscandoCerca} onPress={buscarCerca}>
+        {buscandoCerca ? t('Buscando cerca de ti…') : t('Buscar las que tengo cerca')}
+      </Boton>
       <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
         <View style={{ flex: 1 }}>
           <Campo etiqueta={t('Otra tienda')} valor={otra} onChange={setOtra} placeholder={t('Nombre de la cadena')} />
@@ -839,6 +870,24 @@ function ControlesProducto({ codigo, unidades }: { codigo: string; unidades: num
       <Texto tam={12} color={C.suave}>
         {[e.marca, textoEnvase(e), nombreTienda(e.tienda), e.unidades === undefined ? t('cantidad automática') : t('cantidad fijada por ti')].filter(Boolean).join(' · ')}
       </Texto>
+      {e.precio !== undefined && (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <Texto tam={12} color={C.texto2} style={{ flex: 1 }}>
+            {t('{tienda} lo vende a {e} en su web ({fecha}). Puede variar según la zona.', {
+              tienda: nombreTienda(e.tienda),
+              e: euros(e.precio),
+              fecha: e.fecha ? textoFecha(e.fecha) : '',
+            })}
+          </Texto>
+          {e.enlace && (
+            <Pressable accessibilityRole="link" hitSlop={8} onPress={() => Linking.openURL(e.enlace ?? '').catch(() => {})} style={{ minHeight: 44, justifyContent: 'center' }}>
+              <Texto tam={13} peso="700" color={C.tinta}>
+                {t('Ver en la tienda')}
+              </Texto>
+            </Pressable>
+          )}
+        </View>
+      )}
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
         <View style={{ flex: 1 }}>
           <Contador valor={unidades} min={1} onChange={(v) => cambiar({ unidades: v })} estirar />
@@ -885,7 +934,19 @@ function AnadirDeTiendas({ tipo, enLista }: { tipo: 'agua' | 'lista' | 'cocinar'
         ? elegidos.map((e) => (e.codigo === p.codigo ? { ...e, unidades: 1 } : e))
         : [
             ...elegidos,
-            { codigo: p.codigo, tipo, nombre: p.nombre, marca: p.marca, tienda: p.tiendas[0], gramos: p.gramos, litros: p.litros, kcal100g: p.kcal100g },
+            {
+              codigo: p.codigo,
+              tipo,
+              nombre: p.nombre,
+              marca: p.marca,
+              tienda: p.tiendas[0],
+              gramos: p.gramos,
+              litros: p.litros,
+              kcal100g: p.kcal100g,
+              precio: p.precio,
+              enlace: p.enlace,
+              fecha: p.fecha,
+            },
           ],
     });
   return (
@@ -913,6 +974,7 @@ function AnadirDeTiendas({ tipo, enLista }: { tipo: 'agua' | 'lista' | 'cocinar'
               <Texto lineas={2}>{p.nombre}</Texto>
               <Texto tam={12} color={C.suave}>
                 {[
+                  p.precio !== undefined ? euros(p.precio) : '',
                   p.marca,
                   textoEnvase(p),
                   p.kcal100g ? t('{n} kcal/100 g', { n: formatoNumero(p.kcal100g) }) : '',

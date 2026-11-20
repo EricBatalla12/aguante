@@ -434,3 +434,138 @@ begin
   end if;
 end;
 $$;
+
+-- ------------------------------------------------------------------ Precios de las tiendas
+
+-- Productos y precios publicados por las cadenas en sus tiendas online, para
+-- proponer la lista de la compra con precio. Los carga una vez a la semana
+-- scripts/precios-tiendas.mjs (GitHub Actions, .github/workflows/precios.yml).
+-- Mercadona contestó el 20/11/2026, por su chat, que se puede usar la
+-- información que publica en sus canales oficiales. Las calorías no vienen de
+-- la tienda: salen de Open Food Facts por el código de barras.
+create table if not exists public.precios_tienda (
+  tienda text not null check (char_length(tienda) between 1 and 40),
+  id text not null check (char_length(id) between 1 and 40), -- el de la tienda
+  ean text check (ean ~ '^[0-9]{8,14}$'),
+  nombre text not null check (char_length(nombre) between 1 and 200),
+  marca text check (char_length(marca) <= 80),
+  tipo text not null check (tipo in ('agua', 'lista', 'cocinar')),
+  gramos numeric check (gramos > 0),
+  litros numeric check (litros > 0),
+  kcal100g numeric check (kcal100g >= 0),
+  precio numeric not null check (precio > 0 and precio < 1000),
+  publicado boolean not null default true, -- false: ya no está en la tienda online
+  enlace text check (enlace ~ '^https://'),
+  actualizado timestamptz not null default now(),
+  primary key (tienda, id)
+);
+
+-- Son precios públicos: cualquiera los puede leer, también sin cuenta
+alter table public.precios_tienda enable row level security;
+revoke all on table public.precios_tienda from anon, authenticated;
+grant select on table public.precios_tienda to anon, authenticated;
+drop policy if exists "Precios públicos" on public.precios_tienda;
+create policy "Precios públicos" on public.precios_tienda for select to anon, authenticated using (true);
+
+-- Claves de las tareas que escriben: solo se guarda la huella (sha256) del
+-- token; el token está en los secretos de GitHub y en ningún otro sitio.
+create table if not exists privado.claves (
+  nombre text primary key,
+  huella text not null check (huella ~ '^[0-9a-f]{64}$')
+);
+
+-- Carga los productos de una tienda: sustituye los que llegan y marca como
+-- no publicados los que ya no están. Solo con el token de la tarea.
+create or replace function public.cargar_precios(p_token text, p_tienda text, p_filas jsonb)
+returns integer
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  cuantos integer;
+begin
+  if not exists (
+    select 1 from privado.claves
+    where nombre = 'precios' and huella = encode(sha256(convert_to(coalesce(p_token, ''), 'UTF8')), 'hex')
+  ) then
+    raise exception 'token_no_valido' using errcode = '42501';
+  end if;
+  if jsonb_typeof(p_filas) <> 'array' or jsonb_array_length(p_filas) = 0 or jsonb_array_length(p_filas) > 2000 then
+    raise exception 'filas_no_validas' using errcode = '22023';
+  end if;
+
+  insert into public.precios_tienda as p (tienda, id, ean, nombre, marca, tipo, gramos, litros, kcal100g, precio, publicado, enlace, actualizado)
+  select p_tienda, f ->> 'id', nullif(f ->> 'ean', ''), f ->> 'nombre', nullif(f ->> 'marca', ''), f ->> 'tipo',
+         (f ->> 'gramos')::numeric, (f ->> 'litros')::numeric, (f ->> 'kcal100g')::numeric, (f ->> 'precio')::numeric,
+         coalesce((f ->> 'publicado')::boolean, true), nullif(f ->> 'enlace', ''), now()
+  from jsonb_array_elements(p_filas) f
+  on conflict (tienda, id) do update
+    set ean = coalesce(excluded.ean, p.ean),
+        nombre = excluded.nombre,
+        marca = excluded.marca,
+        tipo = excluded.tipo,
+        gramos = excluded.gramos,
+        litros = excluded.litros,
+        kcal100g = coalesce(excluded.kcal100g, p.kcal100g),
+        precio = excluded.precio,
+        publicado = excluded.publicado,
+        enlace = excluded.enlace,
+        actualizado = now();
+  get diagnostics cuantos = row_count;
+
+  update public.precios_tienda
+  set publicado = false
+  where tienda = p_tienda
+    and id not in (select f ->> 'id' from jsonb_array_elements(p_filas) f);
+  return cuantos;
+end;
+$$;
+
+revoke all on function public.cargar_precios(text, text, jsonb) from public;
+grant execute on function public.cargar_precios(text, text, jsonb) to anon;
+
+-- ------------------------------------------------------------------ Errores de la app
+
+-- Lo que falla en los móviles (src/lib/errores.ts): el mensaje, la pila, la
+-- versión y la plataforma; nada de la persona. Nadie lo puede leer desde la
+-- app: se mira en el panel (Table Editor). Se borra lo de más de 90 días.
+create table if not exists public.errores (
+  id bigint generated always as identity primary key,
+  momento timestamptz not null default now(),
+  mensaje text not null check (char_length(mensaje) <= 500),
+  pila text check (char_length(pila) <= 4000),
+  fatal boolean not null default false,
+  version text check (char_length(version) <= 20),
+  actualizacion text check (char_length(actualizacion) <= 60),
+  plataforma text check (char_length(plataforma) <= 40)
+);
+alter table public.errores enable row level security;
+revoke all on table public.errores from anon, authenticated;
+
+create or replace function public.apuntar_error(p jsonb)
+returns void
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+  -- Tope para que nadie llene la tabla: 500 por hora entre todos
+  if (select count(*) from public.errores where momento > now() - interval '1 hour') >= 500 then
+    return;
+  end if;
+  delete from public.errores where momento < now() - interval '90 days';
+  insert into public.errores (mensaje, pila, fatal, version, actualizacion, plataforma)
+  values (
+    left(coalesce(p ->> 'mensaje', '?'), 500),
+    left(p ->> 'pila', 4000),
+    coalesce((p ->> 'fatal')::boolean, false),
+    left(p ->> 'version', 20),
+    left(p ->> 'actualizacion', 60),
+    left(p ->> 'plataforma', 40)
+  );
+end;
+$$;
+
+revoke all on function public.apuntar_error(jsonb) from public;
+grant execute on function public.apuntar_error(jsonb) to anon, authenticated;

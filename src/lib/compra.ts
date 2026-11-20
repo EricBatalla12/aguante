@@ -81,6 +81,10 @@ export type Elegido = {
   litros?: number;
   kcal100g?: number;
   unidades?: number;
+  /** El precio publicado por la tienda (si lo hay), su enlace y de cuándo es. */
+  precio?: number;
+  enlace?: string;
+  fecha?: string;
 };
 
 /** Lo que da una unidad de un producto elegido. El arroz gasta agua al cocerlo, en proporción a su peso. */
@@ -197,7 +201,7 @@ function cubrir(
  *   En el agua, la garrafa más grande (menos envases que guardar).
  */
 export function proponer(
-  catalogo: { codigo: string; tipo: 'agua' | 'lista' | 'cocinar'; nombre: string; marca?: string; tiendas: string[]; gramos?: number; litros?: number; kcal100g?: number }[],
+  catalogo: { codigo: string; tipo: 'agua' | 'lista' | 'cocinar'; nombre: string; marca?: string; tiendas: string[]; gramos?: number; litros?: number; kcal100g?: number; precio?: number; enlace?: string; fecha?: string }[],
   precios: Record<string, number> = {},
   cuantos: Record<'agua' | 'lista' | 'cocinar', number> = { agua: 1, lista: 4, cocinar: 1 },
 ): Elegido[] {
@@ -206,11 +210,24 @@ export function proponer(
     const todos = catalogo
       .filter((p) => p.tipo === tipo)
       .map((p, orden): { e: Elegido; orden: number } => ({
-        e: { codigo: p.codigo, tipo, nombre: p.nombre, marca: p.marca, tienda: p.tiendas[0], gramos: p.gramos, litros: p.litros, kcal100g: p.kcal100g },
+        e: {
+          codigo: p.codigo,
+          tipo,
+          nombre: p.nombre,
+          marca: p.marca,
+          tienda: p.tiendas[0],
+          gramos: p.gramos,
+          litros: p.litros,
+          kcal100g: p.kcal100g,
+          precio: p.precio,
+          enlace: p.enlace,
+          fecha: p.fecha,
+        },
         orden,
       }));
     const rinde = (x: Elegido) => {
-      const precio = precios[`prod:${x.codigo}`];
+      // El que ha puesto la persona manda sobre el de la tienda
+      const precio = precios[`prod:${x.codigo}`] ?? x.precio ?? 0;
       const a = aporteDe(x);
       const cantidad = tipo === 'agua' ? (a.litros ?? 0) : (a.kcal ?? 0);
       return precio > 0 ? cantidad / precio : undefined;
@@ -244,6 +261,12 @@ function familiaDe(nombre: string): string {
       .replace(/[\u0300-\u036f]/g, '')
       .match(/[a-z]+/)?.[0] ?? nombre
   );
+}
+
+/** Los precios que valen para el plan: los de la tienda, y encima los que ha puesto cada uno. */
+export function preciosConTienda(precios: Record<string, number>, elegidos: Elegido[]): Record<string, number> {
+  const deTienda = Object.fromEntries(elegidos.filter((e) => (e.precio ?? 0) > 0).map((e) => [`prod:${e.codigo}`, e.precio as number]));
+  return { ...deTienda, ...precios };
 }
 
 /** Quita los ceros de delante: un mismo código se lee con ellos o sin ellos según el lector. */

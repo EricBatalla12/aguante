@@ -188,6 +188,48 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
 
+## Hecho el 20/11/2026: APK 1.1.0 (sin compilar) y precios de Mercadona
+
+**Precios de Mercadona** (Eric preguntó por su chat y le contestaron que se
+puede usar la información publicada en sus canales oficiales; no nombran la
+API ni el `robots.txt`: guardar la captura y, mejor, pedirlo por correo).
+`scripts/precios-tiendas.mjs`, una vez a la semana desde GitHub Actions: una
+petición por sección (conservas de pescado, mejillones, legumbres, arroz y
+agua), el detalle de cada producto solo la primera vez (código de barras) y
+las kcal de Open Food Facts por ese código. Lo guarda en `precios_tienda`. La
+app, si la cadena tiene precios ahí, usa esos productos con su precio, su
+enlace («Ver en la tienda») y la fecha; el precio que ponga cada uno manda.
+Probado: el script contra Mercadona y Open Food Facts de verdad, sin escribir
+(con `--solo=118`, arroz: 8 de 15 válidos, por ejemplo arroz redondo
+Hacendado 1 kg a 1,15 €); el SQL en Postgres local. **Falta**: ejecutar el
+SQL en Supabase, crear el secreto y lanzar la tarea (CLAUDE.md, «Pendiente
+fuera del código»).
+
+**Lo que pide APK nuevo** (versión 1.1.0 en `app.json`):
+
+- **Widget** de la pantalla de inicio con los días (`expo-widgets`,
+  `src/widgets/dias.tsx`; se pone al día desde `src/lib/widget.native.ts`
+  al cambiar el cálculo y desde la tarea en segundo plano).
+- **Avisos naranjas y rojos de AEMET con la app cerrada**
+  (`expo-background-task`, `src/lib/segundo-plano.native.ts`): más o menos
+  cada hora, los de la provincia de Actualidad, una vez cada uno. Interruptor
+  en Ajustes. Según la documentación de Expo, si se cierra la app a la fuerza
+  la tarea se para hasta que se abre otra vez, y depende del fabricante.
+- **Tiendas cerca** (`expo-location` y Overpass/OpenStreetMap, 3 km, la
+  posición redondeada a ~1 km). El servidor público de Overpass a menudo está
+  lleno (502): se reintenta con espera.
+- **Registro de errores** (`src/lib/errores.ts`, tabla `errores`): solo los
+  de JavaScript y no en desarrollo. Interruptor en Ajustes › Privacidad.
+- Parches de Expo al día (`expo-doctor` pasa las 20 comprobaciones) y fuera
+  tres permisos de la plantilla que no se usan (dibujar sobre otras apps y
+  leer y escribir el almacenamiento).
+
+Comprobado: 119 tests, `tsc`, lint, `expo-doctor`, export de Android (el
+widget queda como texto en el bundle) y `expo prebuild` (receptor del widget,
+permisos y versión en el manifiesto). **No compilado ni probado en un móvil**:
+aquí no hay emulador usable (sin `/dev/kvm`) y el Java instalado (27) es más
+nuevo de lo que admite Gradle. La primera prueba real será el APK de EAS.
+
 ## Hecho el 20/11/2026: tus tiendas en el plan de compra
 
 - **Tus tiendas** (en el plan): se eligen cadenas de una lista

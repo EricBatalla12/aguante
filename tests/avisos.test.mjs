@@ -6,6 +6,7 @@ import assert from 'node:assert/strict';
 
 import {
   avisoDestacado,
+  gravesSinAvisar,
   avisosDeProvincia,
   leerAemet,
   leerGdacs,
@@ -81,6 +82,18 @@ test('AEMET: filtra por provincia y quita los que ya han pasado', () => {
 test('AEMET: en Baleares y Canarias se enseña toda la comunidad (las zonas van por islas)', () => {
   const xml = `<rss><channel>${item('Aviso. Nivel amarillo. Costeros. Menorca', 'Aviso de costeros de nivel amarillo de 06:00 19-11-2026 CET (UTC+1) a 11:59 19-11-2026 CET (UTC+1).', 'Z_CAP_C_LEMM_20261118095752_AFAZ645401COCO1911.xml')}</channel></rss>`;
   assert.equal(avisosDeProvincia(leerAemet(xml), provinciaPorIne('07'), AHORA).length, 1);
+});
+
+test('AEMET: con la app cerrada se avisa de los naranjas y rojos nuevos de la provincia, una sola vez', () => {
+  const avisos = leerAemet(AEMET);
+  const valencia = provinciaPorIne('46');
+  const graves = gravesSinAvisar(avisos, valencia, AHORA, []);
+  assert.ok(graves.length > 0);
+  assert.ok(graves.every((a) => a.nivel !== 'amarillo' && a.codigoZona.slice(2, 4) === '46'));
+  // Los ya avisados no se repiten
+  assert.deepEqual(gravesSinAvisar(avisos, valencia, AHORA, graves.map((a) => a.id)), []);
+  // Uno dentro de tres días aún no
+  assert.deepEqual(gravesSinAvisar(avisos, valencia, AHORA - 3 * 86_400_000, []), []);
 });
 
 test('AEMET: destaca el más grave de las próximas 48 horas, nunca uno amarillo', () => {

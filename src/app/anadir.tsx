@@ -5,7 +5,7 @@ import { ActivityIndicator, Platform, View } from 'react-native';
 
 import { ProductoForm } from '@/components/producto-form';
 import { Aviso, Boton, Campo, Icono, Interruptor, Pantalla, Texto } from '@/components/ui';
-import { lineaDe, MESES_REPONER } from '@/lib/compra';
+import { lineaDe, MESES_REPONER, preciosConTienda } from '@/lib/compra';
 import { aCampo, numero } from '@/lib/formato';
 import type { Producto } from '@/lib/calculo';
 import { volver } from '@/lib/navegacion';
@@ -45,7 +45,9 @@ export default function Anadir() {
   // Viene del plan de compra («He comprado otra cosa»): la línea en la que se apunta
   const lineaPlan = prueba.plan;
   const apuntarCompra = useAguante((s) => s.apuntarCompra);
-  const precios = useAguante((s) => s.compra.precios ?? SIN_PRECIOS);
+  const preciosPropios = useAguante((s) => s.compra.precios ?? SIN_PRECIOS);
+  const elegidos = useAguante((s) => s.compra.elegidos);
+  const precios = preciosConTienda(preciosPropios, elegidos ?? []);
   const articulos = useDatosCompra().lista(MESES_REPONER);
   const [apuntarElegido, setApuntar] = useState<boolean | null>(null);
   const [textoPrecio, setTextoPrecio] = useState<string | null>(null);
