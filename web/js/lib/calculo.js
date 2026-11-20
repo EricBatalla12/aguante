@@ -396,20 +396,6 @@ export function formatoNumero(n, decimales = 0) {
     const conPuntos = entera.replace(/\B(?=(\d{3})+(?!\d))/g, separadores.miles);
     return frac ? `${conPuntos}${separadores.decimal}${frac}` : conPuntos;
 }
-/**
- * Lo que sobra o falta respecto al objetivo de días, para ofrecerlo o pedirlo
- * a los vecinos. Se cuenta con el resultado del modo que se esté usando.
- */
-export function calcularExcedente(r, objetivoDias) {
-    const litrosNecesarios = objetivoDias * r.litrosDia + r.litrosCocinar;
-    const kcalNecesarias = objetivoDias * r.kcalDia;
-    return {
-        litrosSobran: Math.max(0, r.litrosTotal - litrosNecesarios),
-        kcalSobran: Math.max(0, r.kcalTotal - kcalNecesarias),
-        litrosFaltan: Math.max(0, litrosNecesarios - r.litrosTotal),
-        kcalFaltan: Math.max(0, kcalNecesarias - r.kcalTotal),
-    };
-}
 // ------------------------------------------------------------------ Gastar escaneando
 /**
  * El mismo código de barras puede leerse con ceros delante o sin ellos: un
@@ -429,53 +415,4 @@ export function productosConCodigo(productos, codigo) {
     return productos
         .filter((p) => p.codigo && sinCerosDelante(p.codigo) === buscado && p.cantidad > 0)
         .sort((a, b) => (a.caducidad ?? '9999').localeCompare(b.caducidad ?? '9999'));
-}
-/**
- * Reparte lo que falta en meses sin pasarse del presupuesto. Cada unidad va a
- * lo que menos días da en ese momento (el agua, si empatan): así cada mes sube
- * lo más posible el número de días que aguanta la casa. Los precios los pone
- * cada uno: cambian con la tienda y el año. Devuelve null si con ese
- * presupuesto no se puede comprar ni una unidad de lo que falta, o si harían
- * falta más de diez años.
- */
-export function planCompra(o) {
-    let quedanG = Math.max(0, Math.ceil(o.garrafas));
-    let quedanB = Math.max(0, Math.ceil(o.botes));
-    if (quedanG + quedanB === 0)
-        return [];
-    const vale = (precio) => Number.isFinite(precio) && precio > 0 && precio <= o.presupuesto;
-    if ((quedanG > 0 && !vale(o.precioGarrafa)) || (quedanB > 0 && !vale(o.precioBote)))
-        return null;
-    const meses = [];
-    let mes = { garrafas: 0, botes: 0, coste: 0 };
-    let agua = o.diasAgua;
-    let comida = o.diasComida;
-    const cabe = (precio) => mes.coste + precio <= o.presupuesto + 1e-9;
-    while (quedanG + quedanB > 0) {
-        if (meses.length >= 120)
-            return null;
-        const primeroAgua = quedanG > 0 && (quedanB === 0 || agua <= comida);
-        const orden = primeroAgua ? ['g', 'b'] : ['b', 'g'];
-        const elegido = orden.find((x) => (x === 'g' ? quedanG > 0 && cabe(o.precioGarrafa) : quedanB > 0 && cabe(o.precioBote)));
-        if (!elegido) {
-            meses.push(mes);
-            mes = { garrafas: 0, botes: 0, coste: 0 };
-            continue;
-        }
-        if (elegido === 'g') {
-            mes.garrafas++;
-            mes.coste += o.precioGarrafa;
-            quedanG--;
-            agua += o.diasPorGarrafa;
-        }
-        else {
-            mes.botes++;
-            mes.coste += o.precioBote;
-            quedanB--;
-            comida += o.diasPorBote;
-        }
-    }
-    if (mes.garrafas + mes.botes > 0)
-        meses.push(mes);
-    return meses.map((m) => ({ ...m, coste: Math.round(m.coste * 100) / 100 }));
 }

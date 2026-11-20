@@ -20,13 +20,28 @@
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
+<link rel="canonical" href="https://ericbatalla12.github.io/aguante/">
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Aguante",
+  "description": "Apunta las latas, conservas y el agua que tienes en casa escaneando el código de barras y Aguante te dice cuántos días aguantaríais si se va la luz o no se puede salir a comprar.",
+  "operatingSystem": "Android",
+  "applicationCategory": "LifestyleApplication",
+  "inLanguage": ["es", "en"],
+  "url": "https://ericbatalla12.github.io/aguante/",
+  "image": "https://ericbatalla12.github.io/aguante/img/icono-512.png",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "EUR" }
+}
+</script>
 </head>
 <body>
 <header class="barra"><div class="ancho ancho-portada">
   <a class="marca" href="index.html">Aguante</a>
   <nav>
     <a href="calculadora.html">Calculadora</a>
-    <a href="guias/agua.html">Guías</a>
+    <a href="guias/index.html">Guías</a>
     <a href="privacidad.html">Privacidad</a>
   </nav>
 </div></header>
@@ -71,31 +86,61 @@
 </ol>
 
 <h2>Y cuando hace falta</h2>
+<ol class="pasos sin-numero">
+  <li>
+    <img src="img/sin-luz.webp" width="540" height="1050" alt="Modo emergencia de Aguante: os quedan 7 días y qué comer primero, la nevera, el congelador y la despensa" loading="lazy">
+    <h3>Si se va la luz</h3>
+    <p>El modo emergencia apunta cuándo se fue la luz, lleva la cuenta de los días y te dice qué comer primero: la
+    nevera (unas 4 horas), el congelador (24 a 48 horas) y al final las latas.</p>
+  </li>
+  <li>
+    <img src="img/energia.webp" width="540" height="1050" alt="Energía propia en Aguante: sin luz de la red, la energía os dura 5,7 días" loading="lazy">
+    <h3>Cuánto os dura la batería</h3>
+    <p>Apunta tus baterías externas, estaciones portátiles, placas solares o generador, y lo que gastan tus aparatos.
+    Aguante te dice cuántos días os da la energía que tenéis.</p>
+  </li>
+  <li>
+    <img src="img/actualidad.webp" width="540" height="1050" alt="Actualidad en Aguante: avisos de AEMET por vientos y costeros en tu provincia" loading="lazy">
+    <h3>Avisos de tu zona</h3>
+    <p>Los avisos de AEMET de tu provincia, los terremotos del IGN y las alertas de alimentos y medicamentos, todo de
+    fuentes oficiales y en una sola pestaña.</p>
+  </li>
+</ol>
+
+<h2>Y para tenerlo todo a punto</h2>
 <div class="rejilla">
   <div class="tarjeta">
-    <h3>Si se va la luz</h3>
-    <p>El modo emergencia lleva la cuenta de los días y te dice qué comer primero: la nevera (unas 4 horas), el
-    congelador (24 a 48 horas) y al final las latas.</p>
-  </div>
-  <div class="tarjeta">
-    <h3>Lista de la compra</h3>
-    <p>Lo que os falta para 72 horas, una semana o dos, repartido en meses según lo que puedas gastar.</p>
+    <h3>Plan de compra</h3>
+    <p>Lo que os falta para 72 horas, una semana o dos, repartido en meses según lo que puedas gastar. Lo que
+    compras pasa a la despensa y la app te lo recuerda el día que elijas.</p>
   </div>
   <div class="tarjeta">
     <h3>Kit de emergencia</h3>
-    <p>Listas para casa, mochila, coche y botiquín, con la caducidad de tus medicinas y pilas.</p>
+    <p>Listas para casa, mochila, coche y botiquín, con la caducidad de tus medicinas y pilas.
+    <a href="guias/kit.html">Ver las listas</a>.</p>
+  </div>
+  <div class="tarjeta">
+    <h3>Que no caduque nada</h3>
+    <p>Te avisa dos meses y una semana antes de que caduque algo, para gastarlo en el día a día y reponerlo.</p>
   </div>
   <div class="tarjeta">
     <h3>Para toda la casa</h3>
-    <p>Con una cuenta (opcional), quienes vivís juntos compartís la despensa desde varios móviles.</p>
+    <p>Con una cuenta (opcional), quienes vivís juntos compartís la despensa, el kit y la emergencia desde varios
+    móviles.</p>
   </div>
 </div>
 
 <h2>Preguntas</h2>
 <details>
   <summary>¿Necesita internet?</summary>
-  <p>No. Todo se guarda en el móvil y funciona sin conexión. Solo el escáner y las sugerencias de productos
-  necesitan red, para buscar el producto en Open Food Facts.</p>
+  <p>No. Todo se guarda en el móvil y el cálculo, la despensa, el kit y el modo emergencia funcionan sin conexión.
+  Necesitan red el escáner (para buscar el producto en Open Food Facts), los avisos de Actualidad y compartir la casa.</p>
+</details>
+<details>
+  <summary>¿Es una app oficial?</summary>
+  <p>No. Aguante no es de ninguna administración y no sustituye a Protección Civil ni al 112: en una emergencia,
+  sigue sus indicaciones. Los avisos que enseña salen de fuentes oficiales (AEMET, IGN, AESAN, AEMPS…), y las alertas
+  ES-Alert te llegan solas al móvil, sin ninguna app.</p>
 </details>
 <details>
   <summary>¿Es gratis de verdad?</summary>
@@ -117,6 +162,14 @@
   <p>Escribes el nombre y eliges un valor típico, o copias el peso y las calorías de la etiqueta.</p>
 </details>
 
+<h2>Guías</h2>
+<div class="rejilla guias">
+  <a class="tarjeta enlace" href="guias/agua.html"><h3>Cuánta agua guardar</h3><p>Por persona y día, y de dónde sale la cifra.</p></a>
+  <a class="tarjeta enlace" href="guias/sin-luz.html"><h3>Si se va la luz</h3><p>Qué comer primero: nevera, congelador y latas.</p></a>
+  <a class="tarjeta enlace" href="guias/kit.html"><h3>Kit de emergencia</h3><p>Qué tener en casa, en la mochila y en el coche.</p></a>
+  <a class="tarjeta enlace" href="guias/rotar.html"><h3>Rotar la despensa</h3><p>Una reserva que se come y se repone.</p></a>
+</div>
+
 <h2 id="descargar">Descargar</h2>
 <div class="tarjeta">
   <p><strong>Android.</strong> Aguante todavía no está en Google Play.</p>
@@ -127,9 +180,8 @@
 <footer class="ancho ancho-portada">
   <p>Aguante es gratis, sin anuncios y funciona sin internet. Las cifras salen de FAO, EFSA, FEMA y Ready.gov:
   la app enseña cada fuente en «Fuentes y método».</p>
-  <p><a href="privacidad.html">Privacidad</a> · <a href="borrar-cuenta.html">Borrar tu cuenta</a> ·
-  <a href="guias/agua.html">Cuánta agua guardar</a> · <a href="guias/sin-luz.html">Si se va la luz</a> ·
-  <a href="guias/rotar.html">Rotar la despensa</a></p>
+  <p><a href="guias/index.html">Guías</a> · <a href="calculadora.html">Calculadora</a> ·
+  <a href="privacidad.html">Privacidad</a> · <a href="borrar-cuenta.html">Borrar tu cuenta</a></p>
 </footer>
 <script>
   // Si el sistema pide menos movimiento, el vídeo no arranca solo
