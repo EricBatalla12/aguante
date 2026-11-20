@@ -11,7 +11,10 @@
 // - El detalle de un producto (para el código de barras) solo se pide la
 //   primera vez que aparece; después se lee de Supabase.
 // - Las calorías no las da Mercadona: salen de Open Food Facts por el código
-//   de barras, también solo la primera vez.
+//   de barras. Las que ya están no se piden; las que Open Food Facts no tiene
+//   se vuelven a preguntar cada semana (a Open Food Facts, no a Mercadona).
+// - Se guardan también los productos que no valen para el plan, como no
+//   publicados: así tampoco se vuelve a pedir su detalle.
 // Entre petición y petición se espera, para no cargar a nadie.
 //
 // Uso: node scripts/precios-tiendas.mjs [--solo=156]
@@ -122,13 +125,18 @@ async function main() {
   }
 
   // Lo mismo que filtra la app (src/lib/catalogo.ts)
-  const validas = filas.filter((f) => {
+  const vale = (f) => {
     if (f.tipo === 'agua') return f.litros >= LITROS_MIN_AGUA && esAguaParaBeber(f.nombre);
     if (!(f.gramos > 0) || f.kcal100g === undefined) return false;
     if (f.tipo === 'cocinar') return f.kcal100g >= KCAL_MIN_COCINAR && f.gramos >= 250;
     return f.kcal100g >= KCAL_MIN_LISTA;
-  });
+  };
+  const validas = filas.filter(vale);
   console.log(`Válidas: ${validas.length} de ${filas.length}`);
+  // Las que no valen también se guardan, como no publicadas (la app solo lee
+  // las publicadas): así su código de barras queda guardado y la semana que
+  // viene no se vuelve a pedir su detalle a Mercadona
+  const todas = filas.map((f) => ({ ...f, publicado: f.publicado && vale(f) }));
 
   if (!TOKEN) {
     console.log('Sin PRECIOS_TOKEN: no se escribe. Ejemplo:', JSON.stringify(validas.slice(0, 3), null, 1));
@@ -138,7 +146,7 @@ async function main() {
   const r = await fetch(`${SUPABASE}/rest/v1/rpc/cargar_precios`, {
     method: 'POST',
     headers: { apikey: CLAVE_PUBLICABLE, Authorization: `Bearer ${CLAVE_PUBLICABLE}`, 'Content-Type': 'application/json' },
-    body: JSON.stringify({ p_token: TOKEN, p_tienda: 'mercadona', p_filas: validas }),
+    body: JSON.stringify({ p_token: TOKEN, p_tienda: 'mercadona', p_filas: todas }),
   });
   if (!r.ok) throw new Error(`Supabase: HTTP ${r.status} ${await r.text()}`);
   console.log(`Cargadas en Supabase: ${await r.text()}`);
