@@ -17,7 +17,6 @@ cuántos días aguantaríais con ella.
   uno).
 - Energía propia: power banks, baterías, placas y generador frente a lo que
   gasta la casa, en días.
-- Trueque con vecinos: lo que os sobra y os falta, listo para compartir.
 - Español e inglés (sigue el idioma del móvil o se elige en Ajustes).
 - Al añadir un producto, las calorías y la foto se rellenan solas: con el
   código de barras, eligiendo una sugerencia de Open Food Facts al escribir el

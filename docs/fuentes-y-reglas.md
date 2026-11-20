@@ -388,14 +388,6 @@ Consultado el 16/11/2026.
   garbanzos cocidos escurridos con las kcal de USDA de `genericos.ts`
   (556 kcal). Los precios y el presupuesto los pone cada uno.
 
-## Trueque
-
-- Lo que sobra o falta se calcula respecto al objetivo de días con el modo en
-  uso. Para ponerlo en palabras, 2.000 kcal cuentan como un día de un adulto.
-  **[propio]**
-- Se ofrece también lo que caducará antes de que dé tiempo a comerlo, pero no
-  lo que ya se ha estropeado por el calor.
-
 ## Avisos que la app tiene que mostrar
 
 - La estimación es orientativa y no sustituye el consejo médico.

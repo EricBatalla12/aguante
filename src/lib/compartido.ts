@@ -11,7 +11,7 @@
 type ConId = { id: string };
 
 /**
- * La parte del estado que se comparte. Tema, idioma, avisos, trueque y plan de
+ * La parte del estado que se comparte. Tema, idioma, avisos y plan de
  * compra son de cada móvil. La emergencia en curso se comparte entera, con su
  * escenario, como un ajuste: gana el último cambio, como en el resto.
  */

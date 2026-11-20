@@ -111,6 +111,15 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
     `marketing/aguante-apagon.mp4`.
   - `marketing/video-escaner/` (21 s, escanear una lata; hecho con las notas de abajo) →
     `marketing/aguante-escaner.mp4`.
+  - Tres vídeos con todas las funciones (18/11/2026; los tres guiones en
+    `marketing/video-funciones/STORYLINES.md`, cada uno con su `SPEC.md` y `REVIEW.md`):
+    `marketing/video-numero/` (43 s, el número sube de 0 a 7 días y se va la luz) →
+    `marketing/aguante-numero.mp4`; `marketing/video-verbos/` (27,6 s, seis verbos al ritmo) →
+    `marketing/aguante-verbos.mp4`; `marketing/video-zoom/` (38 s, zoom sin fin dentro del 7) →
+    `marketing/aguante-zoom.mp4`. Las capturas salen de `marketing/video-funciones/datos/`:
+    `casa.mjs` (casa de ejemplo; los días los calcula la app) y `capturar.mjs` (Chrome sin ventana
+    contra el Metro del 8082; la casa compartida con una sesión simulada y las respuestas de
+    Supabase contestadas desde el script).
   - **Capturas del escáner**: en la web la cámara no se abre; en desarrollo, `/anadir?escanear=1` abre el
     escáner y `/anadir?codigo=…` busca un código (`src/app/anadir.tsx`). Con Chrome sin ventana y
     `--use-fake-device-for-media-stream --use-file-for-fake-video-capture=<vídeo .y4m>` el escáner de la app
@@ -186,6 +195,69 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 
 ## Siguiente trabajo
 
+### Aprobado por Eric el 20/11/2026 («me parece todo correcto»), por este orden
+
+Estado al aprobarlo: el trueque está **quitado en el código pero sin commit
+ni publicar** (pantalla, enlace de Inicio, campo `trueque` del store,
+`calcularExcedente` y su test; docs al día; 91 tests, `tsc` y lint limpios).
+Tampoco tienen commit los tres vídeos de funciones (`marketing/video-numero`,
+`video-verbos`, `video-zoom`, sus MP4 y `marketing/video-funciones/datos/`) ni
+esta nota. Pedir a Eric el commit (y publicar lo del trueque por EAS Update).
+
+1. **Plan de compra mejorado** (`src/components/plan-compra.tsx`,
+   `planCompra` en `src/lib/calculo.ts`; hoy solo reparte garrafas y botes de
+   garbanzos según el presupuesto):
+   - Lista de compra real por categorías: agua, comida sin cocinar, comida que
+     se cocina (solo si el escenario permite cocinar), pienso de mascotas y lo
+     que falta del kit (elementos sin marcar de `DE_SERIE`: linterna, radio,
+     pilas, botiquín…).
+   - Dos sentidos: «puedo gastar X € al mes» → cuándo se llega al objetivo;
+     «quiero llegar a N días para tal fecha» → cuánto al mes.
+   - Prioridad automática: primero lo que más limita (normalmente el agua),
+     luego lo que no hay que cocinar, luego el kit.
+   - Marcar como comprado: pasa a la despensa pidiendo la caducidad; barra de
+     progreso por mes y gasto acumulado.
+   - Reposiciones: sumar lo que caducará en los meses del plan.
+   - Recordatorio el día de compra (como los avisos de caducidad) y lista para
+     compartir (Share). Con casa compartida, quién compra qué (pensar si va en
+     `Compartido`/SQL o es de cada móvil, como hoy `compra`).
+   - Los precios los pone el usuario (no hay fuente fiable de precios medios:
+     no inventarlos); recordar el último precio de cada cosa.
+2. **Funciones nuevas** (todas aprobadas):
+   - «Gasta esto esta semana»: lo que caduca pronto, para comerlo en el día a
+     día y reponerlo (que la app se abra cada semana).
+   - Plan familiar de emergencia: punto de encuentro, teléfonos, quién recoge
+     a los niños, dónde están los documentos; sin conexión y compartible con
+     la casa (fuente: Ready.gov «Make a plan» / Protección Civil; buscarla).
+   - Guías sin conexión: primeras horas de un apagón, potabilizar agua (solo
+     con fuentes oficiales, como en `docs/fuentes-y-reglas.md`).
+   - Varias casas (la del pueblo, la de los padres) e informe en PDF.
+   - Avisos rojos con la app cerrada y widget con los días: **APK nuevo**.
+3. **Aguante Plus** (detalle y fuentes en `docs/pendiente.md`, «Monetizar»):
+   1,99 €/mes o 14,99 €/año; los 7 primeros días desde que se instala todo
+   abierto sin tarjeta y después se capa. Gratis siempre: días, despensa y
+   escáner, hogar, modos, modo emergencia, kit, fuentes, casa compartida y los
+   **avisos de AEMET en vigor** (no cobrar por avisos de seguridad). Plus: plan
+   de compra mejorado, Actualidad completa (historial, alertas de alimentos y
+   medicamentos, filtros, noticias) y lo nuevo (varias casas, PDF, avisos con
+   la app cerrada). Cobro recomendado: **Google Play** (10 % + 5 % de cobro,
+   según Google en marzo de 2026); pide cuenta de desarrollador, publicar en
+   Play, módulo nativo de pagos (APK nuevo) y dejar `ENLACE_DONAR` vacío en
+   esa versión. Las piezas de Pro ya existen (`src/components/pro.tsx`,
+   `usePro`, tabla `planes`, `PRO_ACTIVO`); falta la prueba de 7 días (fecha
+   de la primera apertura; con cuenta, guardarla en el servidor para que no
+   se reinicie al reinstalar). **Lo tiene que abrir Eric**: cuenta de Play y
+   alta en Hacienda (y quizá autónomo: que pregunte a un gestor). Se puede
+   construir el capado antes de cobrar y dejarlo apagado con `PRO_ACTIVO`.
+4. **Vídeo B** (`marketing/video-verbos`): la escena «COMPARTE» enseña la
+   pantalla de trueque (`compositions/comparte.html`, segunda pantalla
+   `trueque.png`, complemento «con tu casa y tus vecinos»): cambiarla por otra
+   pantalla (casa compartida, plan de compra nuevo…), volver a renderizar y
+   copiar a `marketing/aguante-verbos.mp4`. Las capturas se rehacen con
+   `marketing/video-funciones/datos/capturar.mjs` (Metro en el 8082).
+
+### Lo de antes
+
 - **TikTok** (propuesta del 16/11/2026, Eric no ha respondido aún): Claude
   prepara vídeos y textos, lee las estadísticas en TikTok Studio con la sesión
   de Eric en el navegador integrado y cada semana propone qué tipo de vídeo
@@ -205,8 +277,8 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   pruebe en el móvil (detalle en `docs/pendiente.md`, «más fuentes en
   Actualidad» y «pestaña Actualidad»). Lo que falta, en el mismo fichero.
 - Lo demás está en `docs/pendiente.md`. Eric dejó para más adelante compartir
-  el resultado como imagen (necesita APK nuevo). El trueque
-  entre vecinos tiene una propuesta escrita y espera a que Eric decida.
+  el resultado como imagen (necesita APK nuevo). El trueque se quitó el
+  20/11/2026 (sin publicar aún; ver arriba).
 
 ## Pendiente fuera del código
 
@@ -252,8 +324,8 @@ Cómo funciona, qué tiene que configurar Eric y qué está probado:
 - Plan Pro: tabla `planes` (la rellena Eric en el Table Editor) y función
   `soy_pro()`, ya creadas en el proyecto. En la app, `comprobarPlan` y
   `usePro` en `sincro.ts` (el plan se guarda en `useSincro` para saberlo sin
-  conexión), `planActivo` en `compartido.ts` y `src/components/pro.tsx`. Solo
-  el trueque es de Pro. **Apagado** con `PRO_ACTIVO = false` en
+  conexión), `planActivo` en `compartido.ts` y `src/components/pro.tsx`. Ninguna
+  función es de Pro desde que se quitó el trueque. **Apagado** con `PRO_ACTIVO = false` en
   `src/constants/monetizacion.ts`: se vive de donaciones (`ENLACE_DONAR`, en
   el mismo fichero; si se deja vacío, no sale el apartado «Apoyar Aguante» de
   Ajustes).

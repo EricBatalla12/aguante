@@ -473,7 +473,7 @@ function QueSeComparte() {
   const C = useC();
   return (
     <Texto tam={12} color={C.suave}>
-      {t('Se comparte la despensa, el hogar (personas y mascotas), el kit, la energía, el modo, el reparto manual y la emergencia en curso. El tema, el idioma, los avisos, la nota de trueque y el plan de compra son de cada móvil. Sin conexión la app funciona igual: los cambios se suben cuando vuelve la red y, si dos personas tocan lo mismo, se queda el último cambio.')}
+      {t('Se comparte la despensa, el hogar (personas y mascotas), el kit, la energía, el modo, el reparto manual y la emergencia en curso. El tema, el idioma, los avisos y el plan de compra son de cada móvil. Sin conexión la app funciona igual: los cambios se suben cuando vuelve la red y, si dos personas tocan lo mismo, se queda el último cambio.')}
     </Texto>
   );
 }

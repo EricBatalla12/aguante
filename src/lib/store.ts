@@ -65,7 +65,6 @@ type Datos = {
   idioma: Idioma;
   avisos: boolean;
   energia: Energia;
-  trueque: string; // nota libre: lo que se ofrece o se busca
   compra: Compra; // presupuesto y precios del plan de compra: de cada móvil, no se comparte
 };
 
@@ -102,7 +101,6 @@ type Estado = Datos & {
   guardarAparato: (a: Aparato) => void;
   borrarAparato: (id: string) => void;
   setZonaSolar: (zona: Zona, epoca: Epoca) => void;
-  setTrueque: (texto: string) => void;
   empezarEmergencia: (escenario?: Escenario) => void;
   terminarEmergencia: () => void;
   beber: (litros: number) => void;
@@ -129,7 +127,6 @@ const INICIAL: Datos = {
   idioma: 'sistema',
   avisos: false,
   energia: { fuentes: [], aparatos: [], zona: 'centro', epoca: 'invierno' },
-  trueque: '',
   compra: {},
 };
 
@@ -196,7 +193,6 @@ function soloDatos(s: Estado): Datos {
     idioma: s.idioma,
     avisos: s.avisos,
     energia: s.energia,
-    trueque: s.trueque,
     compra: s.compra,
   };
 }
@@ -272,7 +268,6 @@ export const useAguante = create<Estado>()(
       borrarAparato: (id) =>
         set((s) => ({ energia: { ...s.energia, aparatos: s.energia.aparatos.filter((a) => a.id !== id) } })),
       setZonaSolar: (zona, epoca) => set((s) => ({ energia: { ...s.energia, zona, epoca } })),
-      setTrueque: (trueque) => set({ trueque }),
 
       empezarEmergencia: (escenario) =>
         set((s) => {

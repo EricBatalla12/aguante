@@ -94,7 +94,6 @@ export const EN: Record<string, string> = {
   'Modo de aguante': 'Endurance mode',
   'Reparto manual': 'Manual rationing',
   'Energía propia': 'Own energy',
-  'Trueque con vecinos': 'Trade with neighbours',
   Persona: 'Person',
   Producto: 'Product',
   'Fuente de energía': 'Energy source',
@@ -152,7 +151,6 @@ export const EN: Record<string, string> = {
   'Con sol, el consumo queda cubierto': 'With sun, your use is covered',
   'Da para {n} días sin luz': 'Lasts {n} days without power',
   'Placas, baterías y lo que gasta la casa': 'Panels, batteries and what the home uses',
-  'Lo que os sobra y lo que os falta, listo para compartir': 'What you have spare and what you need, ready to share',
   'Estimación orientativa con fuentes de FAO/OMS, EFSA y FEMA. No sustituye el consejo médico.':
     'An estimate based on FAO/WHO, EFSA and FEMA. Not a substitute for medical advice.',
   'Con sol, ∞': 'With sun, ∞',
@@ -526,24 +524,7 @@ export const EN: Record<string, string> = {
   Portátil: 'Laptop',
   'CPAP sin humidificador': 'CPAP without humidifier',
 
-  // -------------------------------------------------------------- Trueque
   '{l} L de agua': '{l} L of water',
-  'comida para unos {n} días de un adulto': 'food for about {n} adult days',
-  '{lista} (caduca pronto)': '{lista} (expires soon)',
-  'Hola, vecinos. Para estar preparados, cambio cosas:': 'Hi neighbours. To be prepared, I’m swapping things:',
-  'Ofrezco: {lista}.': 'Offering: {lista}.',
-  'Busco: {lista}.': 'Looking for: {lista}.',
-  'Lo que os sobra y os falta para llegar a {n} días con el modo que estáis usando. Compártelo con quien quieras: la app no lo manda a ningún sitio.':
-    'What you have spare and what you need to reach {n} days in the mode you are using. Share it with whoever you like: the app does not send it anywhere.',
-  'Podéis ofrecer': 'You can offer',
-  'Nada por encima del objetivo.': 'Nothing above the goal.',
-  'Os falta': 'You need',
-  'Nada: llegáis al objetivo y el kit está completo.': 'Nothing: you reach the goal and the kit is complete.',
-  'Algo más que añadir al mensaje': 'Anything else to add to the message',
-  'Tengo pilas AA de sobra. Busco medicación para la tensión.': 'I have spare AA batteries. Looking for blood pressure medication.',
-  'Compartir la lista': 'Share the list',
-  'El agua para beber no se cambia si no os sobra: es lo último que hay que soltar. Y medicinas, solo con receta.':
-    'Don’t trade drinking water unless you have spare: it is the last thing to give up. And medicines only with a prescription.',
 
   // --------------------------------------------------------- Notificaciones
   '{nombre} caduca en 2 meses': '{nombre} expires in 2 months',
@@ -757,7 +738,6 @@ export const EN: Record<string, string> = {
   'Quedan {n}': '{n} left',
 
   // ------------------------------------------------------------ Plan Pro
-  'El trueque con vecinos': 'Bartering with neighbours',
   'Calcula lo que os sobra y lo que os falta para llegar al objetivo y lo deja listo para mandarlo a los vecinos por WhatsApp o Telegram.':
     'It works out what you have spare and what you are missing to reach the goal, ready to send to your neighbours on WhatsApp or Telegram.',
   '{funcion} es parte de Aguante Pro': '{funcion} is part of Aguante Pro',
@@ -765,7 +745,6 @@ export const EN: Record<string, string> = {
     'Pro goes with the account, and if someone in your home has it, you all do. For now it is switched on by hand: ask whoever runs Aguante.',
   'Entrar con tu cuenta': 'Sign in with your account',
   'Ya me lo han dado: comprobar': 'I have been given it: check',
-  'Plan gratuito. El trueque con vecinos es de Pro.': 'Free plan. Bartering with neighbours is Pro.',
   'Hasta el {fecha}': 'Until {fecha}',
   'Sin caducidad': 'No expiry',
   'lo tiene alguien de tu casa': 'someone in your home has it',
@@ -892,8 +871,8 @@ export const EN: Record<string, string> = {
   'Deja de ver y de cambiar lo de la casa. Lo que tenga en su móvil se le queda como copia suya. Cambia también el código si lo tiene.':
     'They will no longer see or change the household. What is on their phone stays as their own copy. Change the code too if they have it.',
   Sacar: 'Remove',
-  'Se comparte la despensa, el hogar (personas y mascotas), el kit, la energía, el modo, el reparto manual y la emergencia en curso. El tema, el idioma, los avisos, la nota de trueque y el plan de compra son de cada móvil. Sin conexión la app funciona igual: los cambios se suben cuando vuelve la red y, si dos personas tocan lo mismo, se queda el último cambio.':
-    'The pantry, the household (people and pets), the kit, energy, the mode, the manual split and the ongoing emergency are shared. Theme, language, reminders, the barter note and the shopping plan belong to each phone. Offline the app works the same: changes upload when the connection returns and, if two people change the same thing, the latest change wins.',
+  'Se comparte la despensa, el hogar (personas y mascotas), el kit, la energía, el modo, el reparto manual y la emergencia en curso. El tema, el idioma, los avisos y el plan de compra son de cada móvil. Sin conexión la app funciona igual: los cambios se suben cuando vuelve la red y, si dos personas tocan lo mismo, se queda el último cambio.':
+    'The pantry, the household (people and pets), the kit, energy, the mode, the manual split and the ongoing emergency are shared. Theme, language, reminders and the shopping plan belong to each phone. Offline the app works the same: changes upload when the connection returns and, if two people change the same thing, the latest change wins.',
   'Solo puede sacar a alguien quien creó la casa.': 'Only the person who created the household can remove someone.',
   'Para irte tú, usa «Salir de la casa».': 'To leave yourself, use “Leave household”.',
   'Cambiar por uno nuevo: {nombre}': 'Replace with a new one: {nombre}',
@@ -1073,4 +1052,5 @@ export const EN: Record<string, string> = {
   'AEMPS: alertas de medicamentos': 'AEMPS: medicine alerts',
   'AEMPS: aviso legal': 'AEMPS: legal notice',
   'Todos': 'All',
+  'Plan gratuito.': 'Free plan.',
 };

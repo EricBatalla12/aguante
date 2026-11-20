@@ -24,7 +24,6 @@ import {
   limiteDias,
   ordenarParaComer,
   simularConsumo,
-  calcularExcedente,
   devolverAgua,
   productosConCodigo,
 } from '../src/lib/calculo.ts';
@@ -326,19 +325,6 @@ test('plan del día: no propone lo que ya se ha calentado', () => {
   ];
   assert.equal(planDelDia(p, 1000, { sinLuz: true }, HOY, 0)[0].productoId, 'nev');
   assert.ok(planDelDia(p, 1000, { sinLuz: true }, HOY, 5).every((x) => x.productoId !== 'nev'));
-});
-
-test('excedente: lo que sobra y falta respecto al objetivo', () => {
-  const productos = [
-    { id: 'a', nombre: 'Agua', categoria: 'agua', cantidad: 10, litrosPorUnidad: 5 },
-    { id: 'c', nombre: 'Latas', categoria: 'comida', cantidad: 2, kcalPorUnidad: 1000 },
-  ];
-  const r = calcular([hombre], [], productos, 'manual', {}, HOY, { h: { kcal: 2000, litros: 4 } });
-  const e = calcularExcedente(r, 3);
-  assert.equal(e.litrosSobran, 50 - 12);
-  assert.equal(e.kcalFaltan, 6000 - 2000);
-  assert.equal(e.kcalSobran, 0);
-  assert.equal(e.litrosFaltan, 0);
 });
 
 test('productosConCodigo: ceros delante, sin existencias y orden por caducidad', () => {

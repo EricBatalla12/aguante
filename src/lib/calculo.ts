@@ -565,30 +565,6 @@ export function formatoNumero(n: number, decimales = 0): string {
   return frac ? `${conPuntos}${separadores.decimal}${frac}` : conPuntos;
 }
 
-// ------------------------------------------------------------------ Trueque
-
-export type Excedente = {
-  litrosSobran: number; // agua por encima del objetivo
-  kcalSobran: number; // comida por encima del objetivo
-  litrosFaltan: number;
-  kcalFaltan: number;
-};
-
-/**
- * Lo que sobra o falta respecto al objetivo de días, para ofrecerlo o pedirlo
- * a los vecinos. Se cuenta con el resultado del modo que se esté usando.
- */
-export function calcularExcedente(r: Resultado, objetivoDias: number): Excedente {
-  const litrosNecesarios = objetivoDias * r.litrosDia + r.litrosCocinar;
-  const kcalNecesarias = objetivoDias * r.kcalDia;
-  return {
-    litrosSobran: Math.max(0, r.litrosTotal - litrosNecesarios),
-    kcalSobran: Math.max(0, r.kcalTotal - kcalNecesarias),
-    litrosFaltan: Math.max(0, litrosNecesarios - r.litrosTotal),
-    kcalFaltan: Math.max(0, kcalNecesarias - r.kcalTotal),
-  };
-}
-
 // ------------------------------------------------------------------ Gastar escaneando
 
 /**

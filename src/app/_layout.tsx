@@ -125,7 +125,6 @@ function Navegacion() {
         <Stack.Screen name="energia/index" options={{ title: t('Energía propia') }} />
         <Stack.Screen name="energia/fuente/[id]" options={{ title: t('Fuente de energía') }} />
         <Stack.Screen name="energia/aparato/[id]" options={{ title: t('Aparato') }} />
-        <Stack.Screen name="trueque" options={{ title: t('Trueque con vecinos') }} />
         <Stack.Screen name="emergencia" options={{ headerShown: false }} />
       </Stack>
       <CapaTutorial />

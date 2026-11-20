@@ -68,7 +68,7 @@ export function EstadoPlan() {
   if (!PRO_ACTIVO) return null;
   const activo = planActivo(plan, hoyISO());
   const detalle = !activo
-    ? t('Plan gratuito. El trueque con vecinos es de Pro.')
+    ? t('Plan gratuito.')
     : [
         plan?.hasta ? t('Hasta el {fecha}', { fecha: textoFecha(plan.hasta) }) : t('Sin caducidad'),
         plan?.deCasa ? t('lo tiene alguien de tu casa') : null,

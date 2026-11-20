@@ -14,51 +14,40 @@ Queda:
   último apunte. Para que no se pierda ninguno habría que guardar cada apunte
   como un elemento propio (un tipo nuevo en el SQL).
 
-## Trueque entre usuarios
+## Trueque: quitado
 
-La versión de ahora es local: calcula lo que sobra y lo que falta y lo deja
-listo para mandarlo por WhatsApp o Telegram. Un trueque entre usuarios
-cercanos dentro de la app necesita las cuentas de arriba y decidir qué pasa
-sin internet.
-
-Revisado el 16/11/2026 y **sin hacer a propósito**: antes hay que decidir lo
-que expone a desconocidos. Propuesta, para que Eric decida:
-
-- **Zona por código postal**, nunca por GPS: ni permiso de ubicación ni módulo
-  nativo, y no se puede triangular dónde vive nadie.
-- **Anuncios sin datos de casa**: «ofrezco 10 L de agua», «busco pilas AA».
-  Nada de cuántos días aguanta la casa ni quién vive en ella (diría a un
-  desconocido qué casa tiene reservas y cuál está vacía).
-- **Contacto**: o chat dentro de la app (más trabajo, pero no se publica nada)
-  o un contacto que el anunciante pone a mano y que solo se enseña a quien
-  pulsa «Me interesa». Recomendación: el segundo, con caducidad del anuncio a
-  los 7 días.
-- **Moderación**: botón de denunciar, ocultar anuncios con varias denuncias y
-  límite de anuncios por cuenta. Alguien (Eric) tiene que revisar denuncias.
-- **Servidor**: tabla `anuncios` con RLS (se leen los del mismo código postal,
-  se escriben solo los propios) y funciones como las de la casa. Sin conexión,
-  solo se ven los que se bajaron la última vez.
-- **Privacidad**: el contacto es un dato personal que se enseña a terceros:
-  va en la política de privacidad y necesita consentimiento explícito.
-- Encaja como función de Pro (hoy apagado) o gratis: decidirlo con lo de
-  monetizar.
+El 20/11/2026 Eric decidió quitar el trueque con vecinos (pantalla, enlace de
+Inicio, nota guardada y cálculo del excedente). La propuesta de trueque entre
+usuarios ya no se hará. El vídeo `marketing/aguante-verbos.mp4` aún enseña la
+pantalla de trueque en «COMPARTE»: hay que cambiar esa escena.
 
 ## Monetizar
 
-Sin romper lo principal: que la app sirva gratis y sin internet en una
-emergencia; nunca bloquear tras pago el cálculo, el modo emergencia ni las
-fuentes. No hay nada implementado: cobrar necesita una cuenta de desarrollador
-de Google Play y un sistema de pagos, y eso lo tiene que decidir y abrir Eric.
+Principio que sigue en pie: que la app sirva gratis y sin internet en una
+emergencia; nunca bloquear tras pago el cálculo, el modo emergencia, las
+fuentes ni los avisos oficiales que están en vigor.
 
-- Versión «Pro» con pago único (mejor que suscripción para una app que pasa
-  meses sin abrirse; Stokl lo hace así): casa compartida entre cuentas, varias
-  casas (la del pueblo, la de los padres), exportar en PDF.
-- Ojo: las apps más parecidas (PPantry, Provision) son gratis del todo.
-- Afiliados en la lista de la compra (garrafas, latas, power banks, kit),
-  marcado como enlace patrocinado y sin cambiar las recomendaciones.
-- Versión para empresas, ayuntamientos o protección civil: plantillas de kit y
-  reparto para colegios, residencias o comunidades de vecinos.
-- Nada de anuncios dentro del modo emergencia.
+Propuesta del 20/11/2026 (Eric pidió capar funciones a 2 € al mes, con la
+primera semana con todo). **Aprobada por Eric el 20/11/2026, sin hacer** (el
+orden de trabajo está en CLAUDE.md, «Siguiente trabajo»):
+
+- **Aguante Plus**: 1,99 € al mes o 14,99 € al año. Los 7 primeros días desde
+  que se instala, todo abierto sin pedir tarjeta; después se capa.
+- **Gratis siempre**: días que aguantáis, despensa y escáner, hogar, modos,
+  modo emergencia, kit, fuentes, casa compartida y los avisos de AEMET en vigor
+  (en Actualidad e Inicio).
+- **Plus**: el plan de compra (mejorado), Actualidad completa (historial,
+  alertas de alimentos y medicamentos, filtros, noticias) y lo nuevo que se
+  haga (varias casas, informe en PDF, avisos con la app cerrada…).
+- **Cobro**: lo recomendado es Google Play (suscripción con su sistema de
+  pagos; comisión 10 % + 5 % de cobro según Google, marzo de 2026). Necesita
+  publicar en Play, un módulo nativo (APK nuevo) y quitar el enlace de PayPal
+  en esa versión. Fuera de Play (APK suelto), un intermediario como Lemon
+  Squeezy se lleva una parte fija por cobro que con 2 € pesa mucho (sin
+  comprobar en su web). El plan Pro de Supabase (`planes`, `soy_pro`) ya
+  existe y puede guardar quién paga.
+- **Antes de cobrar**: alta en Hacienda y, quizá, como autónomo: preguntarlo a
+  un gestor. Actualizar la política de privacidad.
 
 ## Marketing
 

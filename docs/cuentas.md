@@ -16,7 +16,7 @@ Cómo funciona y qué hay que configurar en el proyecto de Supabase
   época), el modo, el reparto manual y, desde el 16/11/2026, la **emergencia
   en curso** con su escenario (el ajuste `emergencia`; sin emergencia viaja
   null). Tema, idioma, avisos, el escenario fuera de una emergencia, el
-  objetivo de días, el plan de compra y la nota de trueque son de cada móvil.
+  objetivo de días y el plan de compra son de cada móvil.
   Si dos personas apuntan agua o comida a la vez sin conexión, se queda el
   último apunte, como con los productos.
 - **Código y miembros** (16/11/2026): cualquiera de la casa puede cambiar el
@@ -92,9 +92,9 @@ se enseña el plan y la app no pregunta al servidor. La tabla y la función
 siguen en Supabase; para volver a usarlo basta con ponerlo a `true`. Lo de
 abajo describe cómo funciona encendido.
 
-Encendido, solo el **trueque con vecinos** es de Pro. Sin Pro, la pantalla de
-trueque enseña una tarjeta que lo explica, y en Inicio el enlace lleva la
-etiqueta «Pro». Pro va con la cuenta (sin cuenta no hay Pro), y **si alguien
+Desde que se quitó el trueque (20/11/2026) no hay ninguna función de Pro: las
+piezas (`SinPro`, `PastillaPro`, `EstadoPlan`) siguen en `src/components/pro.tsx`
+para lo que se decida cobrar (ver «Monetizar» en `pendiente.md`). Pro va con la cuenta (sin cuenta no hay Pro), y **si alguien
 de una casa lo tiene, lo tiene toda la casa**.
 
 Para dárselo a alguien, en el panel de Supabase:
@@ -108,15 +108,15 @@ Para dárselo a alguien, en el panel de Supabase:
 5. **nota:** lo que quieras (por qué se lo diste, cuánto pagó…). La app no la
    lee.
 6. Guardar. A la persona le llega la próxima vez que abra la app con
-   conexión, o al pulsar «Ya me lo han dado: comprobar» en la pantalla de
-   trueque.
+   conexión, o al pulsar «Ya me lo han dado: comprobar» en la tarjeta de una
+   función de Pro.
 
 Cómo funciona por dentro: la app no puede leer la tabla `planes`; solo llama a
 `soy_pro()`, que mira el correo de quien llama y el de la gente de sus casas, y
 devuelve si tiene Pro, hasta cuándo y si le viene de la casa. La app guarda la
 respuesta para saberlo sin conexión, y vuelve a mirar la fecha por si caduca
 mientras tanto. El bloqueo está en la app: alguien que modifique el APK podría
-saltárselo, porque el trueque se calcula en el móvil.
+saltárselo, porque las funciones se calculan en el móvil.
 
 Creadas en el proyecto el 15/11/2026 desde el SQL Editor (tabla `planes` y
 función `soy_pro`). Antes de cobrar dinero de verdad dentro de la app, mirar
