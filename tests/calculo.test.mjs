@@ -27,6 +27,7 @@ import {
   devolverAgua,
   productosConCodigo,
 } from '../src/lib/calculo.ts';
+import { gastarEstaSemana, proximosLunes } from '../src/lib/calculo.ts';
 
 const HOY = new Date(2026, 10, 11); // 11 nov 2026
 
@@ -339,4 +340,31 @@ test('productosConCodigo: ceros delante, sin existencias y orden por caducidad',
   assert.deepEqual(productosConCodigo(productos, '12345678905').map((p) => p.id), ['b', 'a', 'd']);
   assert.deepEqual(productosConCodigo(productos, ' 000 '), []);
   assert.deepEqual(productosConCodigo(productos, '111'), []);
+});
+
+// ------------------------------------------------------- Gasta esto esta semana
+
+test('gasta esta semana: lo que caduca en 60 días, primero lo más próximo y repartido por semanas', () => {
+  const hoy = new Date(2026, 10, 23); // lunes 23/11/2026
+  const productos = [
+    { id: 'a', nombre: 'Atún', categoria: 'comida', cantidad: 8, caducidad: '2026-12-21' }, // 28 días: 4 semanas → 2
+    { id: 'b', nombre: 'Leche', categoria: 'comida', cantidad: 3, caducidad: '2026-11-27' }, // 4 días → todo
+    { id: 'c', nombre: 'Arroz', categoria: 'comida', cantidad: 2, caducidad: '2027-06-01' }, // fuera de la ventana
+    { id: 'd', nombre: 'Pasta', categoria: 'comida', cantidad: 1, caducidad: '2026-11-20' }, // ya caducado: no
+    { id: 'e', nombre: 'Agua', categoria: 'agua', cantidad: 0, caducidad: '2026-12-01' }, // no queda
+    { id: 'f', nombre: 'Galletas', categoria: 'comida', cantidad: 5 }, // sin fecha
+    { id: 'g', nombre: 'Garbanzos', categoria: 'comida', cantidad: 1, caducidad: '2027-01-22' }, // 60 días justos → 1
+  ];
+  const g = gastarEstaSemana(productos, hoy);
+  assert.deepEqual(g.map((x) => [x.id, x.dias, x.estaSemana]), [['b', 4, 3], ['a', 28, 2], ['g', 60, 1]]);
+});
+
+test('el aviso semanal va los lunes a las 10, sin contar hoy si ya han pasado', () => {
+  const fmt = (d) => `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()} ${d.getHours()}`;
+  // Lunes a las 9: hoy cuenta
+  assert.deepEqual(proximosLunes(new Date(2026, 10, 23, 9), 2).map(fmt), ['2026-11-23 10', '2026-11-30 10']);
+  // Lunes a las 11: el siguiente
+  assert.deepEqual(proximosLunes(new Date(2026, 10, 23, 11), 1).map(fmt), ['2026-11-30 10']);
+  // Sábado
+  assert.deepEqual(proximosLunes(new Date(2026, 10, 21, 18), 1).map(fmt), ['2026-11-23 10']);
 });

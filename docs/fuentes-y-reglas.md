@@ -432,6 +432,66 @@ Consultado el 16/11/2026.
     cadena y precios de la tienda online de Mercadona): quitado a petición de
     Eric. Los productos que se hubieran elegido se quedan en la lista.
 
+## Gasta esto esta semana
+
+Añadido el 21/11/2026 (`gastarEstaSemana` en `src/lib/calculo.ts`, tarjeta
+en Inicio y aviso de los lunes en `src/lib/notificaciones.ts`).
+
+- **[propio]** Entra lo que caduca en los próximos 60 días (`DIAS_GASTAR`),
+  los mismos del primer aviso de caducidad (`AVISO_DIAS`): desde que avisa,
+  sale cada semana hasta que se gasta. Lo caducado y lo que no tiene fecha,
+  no.
+- **[propio]** Lo de cada producto se reparte en las semanas que le quedan
+  (`ceil(cantidad / max(1, floor(días / 7)))`); con menos de una semana, todo.
+- El aviso va los lunes a las 10, los tres próximos, con la despensa de ese
+  momento (se reprograma al abrir la app o cambiar algo). Interruptor propio
+  en Ajustes (`notificar.semana`; sin el campo, encendido).
+
+## Guías sin conexión
+
+Añadidas el 21/11/2026 (`src/constants/guias.ts`, pantallas en
+`src/app/guias/`). Van dentro de la app: se leen sin internet. Consultadas el
+21/11/2026.
+
+- **Las primeras horas de un apagón**: Ready.gov, *Power Outages*
+  (https://www.ready.gov/power-outages, actualizada el 06/04/2026). Nevera
+  unas 4 horas y congelador lleno unas 48; apagar o desenchufar aparatos por
+  las subidas al volver la luz; una linterna por persona; nunca calentar la
+  casa con horno o fuegos de gas; generador, hornillo o barbacoa fuera y a 20
+  pies (6 m) de ventanas, puertas y garajes; detector de monóxido con pilas
+  en cada planta; ir a un sitio con luz si hace mucho calor o frío; plan con
+  el médico para aparatos y medicinas de nevera, que se tiran tras más de un
+  día sin luz salvo que el prospecto diga otra cosa; tirar la comida que haya
+  estado a 40 °F (4,4 °C; en la app, «4 °C») o más 2 horas o más. La radio a
+  pilas sale del kit de Ready.gov (https://www.ready.gov/kit). **[propio]**:
+  empezar el modo emergencia de Aguante y volver a enchufar poco a poco.
+  Protección Civil: su guía de autoprotección en PDF da 403 y su web no trata
+  esto; no se ha encontrado una guía oficial española de apagones.
+- **Potabilizar agua**: EPA, *Emergency Disinfection of Drinking Water*
+  (https://www.epa.gov/ground-water-and-drinking-water/emergency-disinfection-drinking-water,
+  actualizada el 24/02/2026). Turbia: reposar y filtrar con paño, papel o
+  filtro de café. Hervir a borbotones 1 minuto (3 por encima de 5.000 pies,
+  que la EPA da como 1.000 m). Lejía normal sin perfume, apta para
+  desinfectar según la etiqueta, de menos de un año: 2 gotas por litro (del
+  6 % o del 8,25 %), 8 o 6 gotas por galón (3,8 L); el doble si está turbia,
+  con color o muy fría; 30 minutos y olor ligero a cloro, si no, repetir y 15
+  minutos más. No quita metales pesados, sales ni la mayoría de químicos. El
+  cartel del CDC (PDF) no se pudo leer como texto.
+
+## Plan familiar
+
+Añadido el 21/11/2026 (`src/app/plan.tsx`, `planFamiliar` en el store). Los
+apartados salen de Ready.gov, *Make a Plan* (https://www.ready.gov/plan,
+actualizada el 09/01/2026) y su formulario de comunicación familiar
+(https://www.ready.gov/plan-form, 20/11/2026): puntos de encuentro (un sitio
+conocido y fácil de encontrar), contactos, colegios, trabajos y cuidadores
+con sus instrucciones de recogida, información médica (alergias, medicinas,
+médico, seguro, aparatos, veterinario), cómo os llegarán los avisos, dónde
+refugiarse y la ruta para irse; y practicar el plan. Lo de los documentos sale
+de los recursos que enlaza esa página («Safeguard Critical Documents»). Se
+comparte con la casa como un ajuste (gana el último cambio): no pide cambiar
+el SQL.
+
 ## Avisos que la app tiene que mostrar
 
 - La estimación es orientativa y no sustituye el consejo médico.

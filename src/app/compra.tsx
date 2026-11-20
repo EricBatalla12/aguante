@@ -310,6 +310,8 @@ export default function PlanDeCompra() {
         </Tarjeta>
       )}
 
+      <TuLista enLista={articulos.filter((a) => a.clave.startsWith('prod:')).map((a) => a.id ?? '')} />
+
       {(lineasMes.length > 0 || hechasMes.length > 0) && (
         <Tarjeta style={{ gap: 8 }}>
           <Texto tam={18} peso="800">
@@ -729,6 +731,63 @@ function Necesita({ tipo, cantidad }: { tipo: TipoLista; cantidad: number }) {
         ? t('Faltan {l} L', { l: formatoNumero(Math.ceil(cantidad * 10) / 10, 1) })
         : t('Faltan unas {kcal} kcal', { kcal: formatoNumero(Math.ceil(cantidad / 100) * 100) })}
     </Texto>
+  );
+}
+
+const TIPO_LISTA: Record<TipoLista, string> = {
+  agua: tx('Agua'),
+  lista: tx('Comida lista para comer'),
+  cocinar: tx('Comida para cocinar'),
+};
+
+/**
+ * Todos los productos de tu lista, también los que ahora no hacen falta
+ * (su tipo ya está cubierto): para verlos y quitarlos.
+ */
+function TuLista({ enLista }: { enLista: string[] }) {
+  const C = useC();
+  const elegidos = useAguante((s) => s.compra.elegidos ?? SIN_ELEGIDOS);
+  const setCompra = useAguante((s) => s.setCompra);
+  const [abierta, setAbierta] = useState(false);
+  if (elegidos.length === 0) return null;
+  return (
+    <Tarjeta style={{ gap: 4 }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: abierta }}
+        onPress={() => setAbierta((a) => !a)}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 }}>
+        <Texto tam={18} peso="800" style={{ flex: 1 }}>
+          {t('Tus productos ({n})', { n: elegidos.length })}
+        </Texto>
+        <Icono name={abierta ? 'chevron-up' : 'chevron-down'} color={C.suave} />
+      </Pressable>
+      {abierta && (
+        <>
+          <Texto tam={13} color={C.suave}>
+            {t('Lo que has puesto en tu lista. Lo que ahora no hace falta se queda aquí y vuelve a la compra cuando falte.')}
+          </Texto>
+          {elegidos.map((e, i) => (
+            <View key={e.codigo} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: C.linea }}>
+              <View style={{ flex: 1 }}>
+                <Texto lineas={2}>{e.nombre}</Texto>
+                <Texto tam={12} color={C.suave}>
+                  {[t(TIPO_LISTA[e.tipo]), textoEnvase(e), enLista.includes(e.codigo) ? t('en la compra') : t('ahora no hace falta')].filter(Boolean).join(' · ')}
+                </Texto>
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={t('Quitar {que} de la lista', { que: e.nombre })}
+                hitSlop={8}
+                onPress={() => setCompra({ elegidos: elegidos.filter((x) => x.codigo !== e.codigo) })}
+                style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+                <Icono name="trash-can-outline" color={C.suave} />
+              </Pressable>
+            </View>
+          ))}
+        </>
+      )}
+    </Tarjeta>
   );
 }
 

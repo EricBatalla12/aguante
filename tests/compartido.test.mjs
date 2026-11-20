@@ -210,3 +210,18 @@ test('la actividad del cálculo viaja como ajuste y se valida', () => {
   // Sin actividad (datos antiguos) no se sube nada
   assert.ok(!todasLasFilas(base(), 1).some((f) => f.id === 'actividad'));
 });
+
+test('el plan familiar viaja entero como un ajuste y lo roto no entra', () => {
+  const plan = { encuentro: [{ id: 'e1', lugar: 'La puerta del colegio' }], contactos: [], centros: [], salida: 'Por la calle Mayor' };
+  const conPlan = { ...base(), planFamiliar: plan };
+  // Sube solo si lo hay, y se ve como un cambio cuando se toca
+  assert.ok(todasLasFilas(conPlan, 1).some((f) => f.tipo === 'ajuste' && f.id === 'planFamiliar'));
+  assert.ok(!todasLasFilas(base(), 1).some((f) => f.id === 'planFamiliar'));
+  const tocado = { ...conPlan, planFamiliar: { ...plan, salida: 'Por el parque' } };
+  assert.deepEqual(cambiosEntre(conPlan, tocado, 2).map((f) => f.id), ['planFamiliar']);
+  // Llega de otro móvil
+  const nuevo = aplicarFilas(base(), [{ tipo: 'ajuste', id: 'planFamiliar', datos: plan, borrado: false, cambiado: 3 }]);
+  assert.deepEqual(nuevo.planFamiliar, plan);
+  // Sin sus listas no vale
+  assert.equal(aplicarFilas(base(), [{ tipo: 'ajuste', id: 'planFamiliar', datos: { salida: 'x' }, borrado: false, cambiado: 3 }]), null);
+});

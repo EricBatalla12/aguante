@@ -143,6 +143,12 @@ export default function Preparacion() {
               detalle={t('Lo que falta, con precios, repartido en meses según lo que puedas gastar o para una fecha.')}
               onPress={() => router.push('/compra')}
             />
+            <FilaEnlace
+              icono="account-group-outline"
+              titulo={t('Plan familiar')}
+              detalle={t('Dónde os encontráis, a quién llamáis y quién recoge a los niños.')}
+              onPress={() => router.push('/plan')}
+            />
           </>
         )}
       </Tarjeta>

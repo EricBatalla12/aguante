@@ -224,15 +224,23 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `488c698` la app), web publicada y actualización `cc95aee2` (en la app
   `01a1fb38`, runtime 1.1.0) publicada con el visto bueno de Eric.
 
+- **Después, el mismo 21/11/2026**: «Gasta esto esta semana» (Inicio y aviso
+  de los lunes), **panel de admin** (`src/app/admin.tsx`; rol por correo en
+  `src/constants/admin.ts`, `ericbatalla16@gmail.com`; en desarrollo lo ve
+  cualquiera), guías sin conexión (apagón y potabilizar agua), plan familiar
+  (compartido como ajuste, sin SQL) y «Tus productos» en el plan. Licencia
+  PolyForm Strict (commit `9435d0b`). Detalle en `docs/pendiente.md`,
+  «Hecho el 21/11/2026 (2)». Sin probar en el móvil.
+
 ### Dónde está todo (20/11/2026, al final del día)
 
 - Todo en git y subido a `main` (`git log -1`). La versión 1.1.0 está
   compilada (APK versionCode 4) pero **Eric aún no la ha instalado ni
   probado**: es lo primero que toca (lista en «Pendiente fuera del código»).
 - De lo aprobado abajo: hechos el 1 (plan de compra) y lo nativo del 2
-  (widget y avisos con la app cerrada); descartado el 3 (cobrar). Quedan del
-  2 «Gasta esto esta semana», plan familiar, guías sin conexión, varias casas
-  y PDF; y el 4 (vídeo B).
+  (widget y avisos con la app cerrada); descartados el 3 (cobrar), el 4
+  (vídeo B) y «varias casas» (21/11/2026). Del 2 solo queda el PDF (pide
+  APK): «Gasta esto esta semana», plan familiar y guías, hechos el 21/11/2026.
 - Para publicar en Play: `docs/pendiente.md`, «Para subir a Google Play».
 
 ### Aprobado por Eric el 20/11/2026 («me parece todo correcto»), por este orden
@@ -289,7 +297,8 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
      la casa (fuente: Ready.gov «Make a plan» / Protección Civil; buscarla).
    - Guías sin conexión: primeras horas de un apagón, potabilizar agua (solo
      con fuentes oficiales, como en `docs/fuentes-y-reglas.md`).
-   - Varias casas (la del pueblo, la de los padres) e informe en PDF.
+   - Varias casas: **DESCARTADO por Eric el 21/11/2026**. Informe en PDF:
+     sigue pendiente (pide un módulo nativo como `expo-print`: APK nuevo).
    - Avisos rojos con la app cerrada y widget con los días: **APK nuevo**.
      **Hechos el 20/11/2026** (en el APK versionCode 4, sin probar en el móvil).
 3. **Aguante Plus: DESCARTADO por Eric el 20/11/2026** («de cobrar nos
@@ -310,7 +319,9 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
    se reinicie al reinstalar). **Lo tiene que abrir Eric**: cuenta de Play y
    alta en Hacienda (y quizá autónomo: que pregunte a un gestor). Se puede
    construir el capado antes de cobrar y dejarlo apagado con `PRO_ACTIVO`.
-4. **Vídeo B** (`marketing/video-verbos`): la escena «COMPARTE» enseña la
+4. **Vídeo B: DESCARTADO por Eric el 21/11/2026** (no se rehace; el vídeo
+   sigue enseñando el trueque, así que no usarlo tal cual). Lo que se iba a
+   hacer (`marketing/video-verbos`): la escena «COMPARTE» enseña la
    pantalla de trueque (`compositions/comparte.html`, segunda pantalla
    `trueque.png`, complemento «con tu casa y tus vecinos»): cambiarla por otra
    pantalla (casa compartida, plan de compra nuevo…), volver a renderizar y
@@ -343,10 +354,9 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
 
 ## Pendiente fuera del código
 
-- **Precios de Mercadona: quitados el 21/11/2026** (la tarea semanal y el
-  script ya no están). Falta que Eric **vuelva a ejecutar
-  `supabase/esquema.sql`** (borra `precios_tienda`, `cargar_precios` y
-  `privado.claves`) y **borre el secreto `PRECIOS_TOKEN`** de GitHub.
+- **Precios de Mercadona: quitados del todo el 21/11/2026**: ni tarea ni
+  script, la tabla ya no está en Supabase (comprobado: PostgREST dice que no
+  existe) y el secreto `PRECIOS_TOKEN` tampoco (comprobado con `gh`).
 - **Instalar el APK 1.1.0** (ya compilado, enlace en «Compilar e instalar») y probar en el móvil el widget, los
   avisos de AEMET con la app cerrada, la lista propia del plan de compra y lo
   de antes que solo está probado en web. Ese APK lleva aún el permiso de

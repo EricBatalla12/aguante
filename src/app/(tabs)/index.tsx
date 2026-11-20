@@ -21,7 +21,7 @@ import { Hueco } from '@/components/tutorial';
 import { coloresNivel, textoFenomeno, textoNivel } from '@/components/avisos';
 import { avisoDestacado, avisosDeProvincia, provinciaPorIne } from '@/lib/avisos';
 import { useAvisos } from '@/lib/avisos-estado';
-import { diasHasta, estadoCaducidad, formatoNumero } from '@/lib/calculo';
+import { formatoNumero, gastarEstaSemana } from '@/lib/calculo';
 import { calcularEnergia } from '@/lib/energia';
 import { textoDia, textoMomento } from '@/lib/fechas';
 import { useAguante } from '@/lib/store';
@@ -67,9 +67,8 @@ export default function Inicio() {
   const provincia = provinciaPorIne(ineAvisos);
   const avisosAqui = provincia ? avisosDeProvincia(meteo, provincia, hoy.getTime()) : [];
   const destacado = avisoDestacado(avisosAqui, hoy.getTime());
-  const urgente = productos
-    .filter((p) => p.cantidad > 0 && estadoCaducidad(p, hoy) === 'rojo')
-    .sort((a, b) => (a.caducidad ?? '').localeCompare(b.caducidad ?? ''))[0];
+  // «Gasta esto esta semana»: lo que caduca en los próximos 2 meses, repartido por semanas
+  const semana = gastarEstaSemana(productos, hoy);
   const casa = [
     personas.length ? tn(personas.length, '{n} persona', '{n} personas') : null,
     mascotas.length ? tn(mascotas.length, '{n} mascota', '{n} mascotas') : null,
@@ -297,22 +296,44 @@ export default function Inicio() {
           <Icono name="chevron-right" color={C.suave} />
         </Pressable>
       )}
-      {urgente && urgente.caducidad && (
-        <Pressable
-          accessibilityRole="button"
-          onPress={() => router.push(`/producto/${urgente.id}`)}
-          style={{ flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.rojoTinte, borderRadius: 20, padding: 12 }}>
-          <IconoCaja name="alert-outline" fondo={C.peligro} color={C.blanco} />
-          <View style={{ flex: 1 }}>
-            <Texto peso="700" tam={14} color={C.rojoOscuro}>
-              {t("{nombre} caduca {cuando}", { nombre: urgente.nombre, cuando: textoEn(diasHasta(urgente.caducidad, hoy)) })}
-            </Texto>
-            <Texto tam={13} color={C.rojoOscuro}>
-              {t('Gástalo esta semana y repón la reserva')}
-            </Texto>
+      {semana.length > 0 && (
+        <View style={{ backgroundColor: semana[0].dias <= 7 ? C.rojoTinte : C.segmento, borderRadius: 20, padding: 12, gap: 4 }}>
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingBottom: 4 }}>
+            <IconoCaja name="calendar-week" fondo={semana[0].dias <= 7 ? C.peligro : C.tinta} color={semana[0].dias <= 7 ? C.blanco : C.fondo} />
+            <View style={{ flex: 1 }}>
+              <Texto peso="700" tam={15}>
+                {t('Esta semana, gasta esto')}
+              </Texto>
+              <Texto tam={13} color={C.texto2}>
+                {t('Caduca pronto: cómelo en el día a día y repón la reserva.')}
+              </Texto>
+            </View>
           </View>
-          <Icono name="chevron-right" color={C.rojoOscuro} />
-        </Pressable>
+          {semana.slice(0, 3).map((g) => (
+            <Pressable
+              key={g.id}
+              accessibilityRole="button"
+              onPress={() => router.push(`/producto/${g.id}`)}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 }}>
+              <View style={{ flex: 1 }}>
+                <Texto peso="600" tam={14} lineas={2}>
+                  {g.estaSemana < g.cantidad ? t('{n} de {total} · {nombre}', { n: g.estaSemana, total: g.cantidad, nombre: g.nombre }) : t('{n} · {nombre}', { n: g.estaSemana, nombre: g.nombre })}
+                </Texto>
+                <Texto tam={12} color={g.dias <= 7 ? C.rojoOscuro : C.suave}>
+                  {t('Caduca {cuando}', { cuando: textoEn(g.dias) })}
+                </Texto>
+              </View>
+              <Icono name="chevron-right" color={C.suave} />
+            </Pressable>
+          ))}
+          {semana.length > 3 && (
+            <Pressable accessibilityRole="link" onPress={() => router.push('/despensa')} style={{ minHeight: 44, justifyContent: 'center' }}>
+              <Texto tam={13} peso="700" color={C.enlace} style={{ textDecorationLine: 'underline' }}>
+                {tn(semana.length - 3, 'Y {n} más en la despensa', 'Y {n} más en la despensa')}
+              </Texto>
+            </Pressable>
+          )}
+        </View>
       )}
 
       <Boton icono="barcode-scan" onPress={() => router.push('/anadir')}>
@@ -344,6 +365,18 @@ export default function Inicio() {
               : t('Placas, baterías y lo que gasta la casa')
           }
           onPress={() => router.push('/energia')}
+        />
+        <FilaEnlace
+          icono="account-group-outline"
+          titulo={t('Plan familiar')}
+          detalle={t('Dónde os encontráis, a quién llamáis y quién recoge a los niños.')}
+          onPress={() => router.push('/plan')}
+        />
+        <FilaEnlace
+          icono="book-open-variant"
+          titulo={t('Guías sin conexión')}
+          detalle={t('Las primeras horas de un apagón y cómo potabilizar agua')}
+          onPress={() => router.push('/guias')}
         />
       </Tarjeta>
 

@@ -184,6 +184,29 @@ export const BLOQUES: Bloque[] = [
     ],
   },
   {
+    titulo: tx('Gasta esto esta semana'),
+    icono: 'calendar-week',
+    puntos: [
+      { texto: tx('Sale lo que caduca en los próximos 60 días, los mismos del primer aviso de caducidad: desde que avisa, aparece cada semana hasta que se gasta.'), propio: true },
+      { texto: tx('Lo de cada producto se reparte en las semanas que le quedan: 8 latas que caducan dentro de 4 semanas, 2 esta semana.'), propio: true },
+    ],
+    enlaces: [],
+  },
+  {
+    titulo: tx('Guías sin conexión y plan familiar'),
+    icono: 'book-open-variant',
+    puntos: [
+      { texto: tx('Apagón: lo que dice Ready.gov sobre los cortes de luz (nevera y congelador, aparatos, monóxido de carbono, medicinas y qué tirar después).') },
+      { texto: tx('Potabilizar agua: hervir y las gotas de lejía de la EPA (2 gotas por litro; el doble si está turbia o muy fría; 30 minutos).') },
+      { texto: tx('Plan familiar: los apartados del plan de Ready.gov (puntos de encuentro, contactos, colegios y trabajos, información médica).') },
+    ],
+    enlaces: [
+      { nombre: tx('Ready.gov: cortes de luz'), url: 'https://www.ready.gov/power-outages' },
+      { nombre: tx('EPA: desinfección de agua en emergencias'), url: 'https://www.epa.gov/ground-water-and-drinking-water/emergency-disinfection-drinking-water' },
+      { nombre: tx('Ready.gov: haz un plan'), url: 'https://www.ready.gov/plan' },
+    ],
+  },
+  {
     titulo: tx('Avisos oficiales'),
     icono: 'alert-circle-outline',
     puntos: [

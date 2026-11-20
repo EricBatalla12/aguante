@@ -18,12 +18,10 @@ import * as BackgroundTask from 'expo-background-task';
 import * as Notifications from 'expo-notifications';
 import * as TaskManager from 'expo-task-manager';
 
-import { textoFenomeno } from '../components/avisos';
 import { gravesSinAvisar, leerAemet, provinciaPorIne, urlAemet, type AvisoMet } from './avisos';
 import { useAvisos } from './avisos-estado';
 import { calcular } from './calculo';
-import { textoMomento } from './fechas';
-import { t } from './i18n';
+import { contenidoAemet } from './notificaciones';
 import { escenarioEfectivo, horasSinLuz, useAguante } from './store';
 import { actualizarWidget } from './widget';
 
@@ -65,16 +63,7 @@ async function avisarAemet(): Promise<void> {
   const ahora = Date.now();
   const nuevos = gravesSinAvisar(avisos, p, ahora, a.avisados);
   for (const aviso of nuevos) {
-    await Notifications.scheduleNotificationAsync({
-      content: {
-        title:
-          aviso.nivel === 'rojo'
-            ? t('Aviso rojo de AEMET: {fenomeno}', { fenomeno: textoFenomeno(aviso.fenomeno).toLowerCase() })
-            : t('Aviso naranja de AEMET: {fenomeno}', { fenomeno: textoFenomeno(aviso.fenomeno).toLowerCase() }),
-        body: t('{zona}. De {inicio} a {fin}.', { zona: aviso.zona, inicio: textoMomento(aviso.inicio), fin: textoMomento(aviso.fin) }),
-      },
-      trigger: null,
-    });
+    await Notifications.scheduleNotificationAsync({ content: contenidoAemet(aviso), trigger: null });
   }
   // Se recuerdan los avisados que siguen en pie; los acabados se olvidan
   const vigentes = new Set(avisos.filter((x) => x.fin > ahora).map((x) => x.id));
@@ -87,16 +76,32 @@ function widgetAlDia(): void {
   actualizarWidget(calcular(s.personas, s.mascotas, s.productos, s.modo, esc, new Date(), s.manual, horasSinLuz(s.emergencia, esc)));
 }
 
+/** Lo que hace la tarea cada vez que corre. */
+async function tarea(): Promise<void> {
+  await Promise.all([hidratado(useAguante), hidratado(useAvisos)]);
+  widgetAlDia();
+  await avisarAemet();
+}
+
 TaskManager.defineTask(TAREA, async () => {
   try {
-    await Promise.all([hidratado(useAguante), hidratado(useAvisos)]);
-    widgetAlDia();
-    await avisarAemet();
+    await tarea();
     return BackgroundTask.BackgroundTaskResult.Success;
   } catch {
     return BackgroundTask.BackgroundTaskResult.Failed;
   }
 });
+
+/** Para el panel de admin: corre la tarea ahora mismo, con la app abierta. */
+export async function ejecutarTareaAhora(): Promise<void> {
+  await tarea();
+}
+
+/** Para el panel de admin: si Android deja tareas en segundo plano y si la nuestra está registrada. */
+export async function estadoSegundoPlano(): Promise<{ disponible: boolean; registrada: boolean }> {
+  const estado = await BackgroundTask.getStatusAsync();
+  return { disponible: estado === BackgroundTask.BackgroundTaskStatus.Available, registrada: await TaskManager.isTaskRegisteredAsync(TAREA) };
+}
 
 /** Se registra una vez; si el sistema no deja tareas en segundo plano, no pasa nada. */
 export async function registrarSegundoPlano(): Promise<void> {

@@ -12,6 +12,7 @@ import { Hueco } from '@/components/tutorial';
 import { ENLACE_DONAR } from '@/constants/monetizacion';
 import { confirmar } from '@/lib/confirmar';
 import { pedirPermiso } from '@/lib/notificaciones';
+import { useEsAdmin } from '@/lib/admin';
 import { useSincro } from '@/lib/sincro';
 import { useAguante, type Idioma, type Tema } from '@/lib/store';
 import { useC } from '@/lib/tema';
@@ -52,6 +53,7 @@ export default function Ajustes() {
   const borrarTodo = useAguante((s) => s.borrarTodo);
   const casa = useSincro((s) => s.casa);
   const correo = useSincro((s) => s.correo);
+  const admin = useEsAdmin();
 
   const [sinPermiso, setSinPermiso] = useState(false);
   const [importando, setImportando] = useState(false);
@@ -148,6 +150,12 @@ export default function Ajustes() {
               valor={notificar.despensa}
               onChange={(v) => setNotificar({ despensa: v })}
               ayuda={t('2 meses y 1 semana antes de que caduque cada producto, para gastarlo y reponerlo.')}
+            />
+            <Interruptor
+              etiqueta={t('Gasta esto esta semana')}
+              valor={notificar.semana !== false}
+              onChange={(v) => setNotificar({ semana: v })}
+              ayuda={t('Los lunes a las 10, lo que caduca en los próximos 2 meses, para gastarlo en el día a día y reponerlo.')}
             />
             <Interruptor
               etiqueta={t('Caducidad del kit')}
@@ -301,6 +309,18 @@ export default function Ajustes() {
       </Tarjeta>
 
       <EstadoActualizaciones />
+
+      {admin && (
+        <Tarjeta style={{ paddingVertical: 6, gap: 0 }}>
+          <FilaEnlace
+            primera
+            icono="shield-account-outline"
+            titulo={t('Panel de admin')}
+            detalle={t('Probar avisos, la tarea en segundo plano y más')}
+            onPress={() => router.push('/admin')}
+          />
+        </Tarjeta>
+      )}
 
       <Texto tam={12} color={C.suave} centro>
         Aguante {Constants.expoConfig?.version ?? ''} · {t('Estimación orientativa, no sustituye el consejo médico.')}

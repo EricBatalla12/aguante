@@ -1,7 +1,7 @@
 // Lo que se comparte con la casa, partido en elementos.
 //
 // Cada producto, persona, mascota, fuente, aparato, casilla del kit, ración
-// del reparto manual y ajuste compartido es un elemento con su `tipo` y su
+// del reparto manual y ajuste compartido (entre ellos, el plan familiar) es un elemento con su `tipo` y su
 // `id`. En el servidor cada elemento es una fila, y en caso de conflicto gana
 // el último cambio de ese elemento (ver supabase/esquema.sql): si dos personas
 // tocan productos distintos sin conexión, se quedan los dos cambios.
@@ -27,6 +27,8 @@ export type Compartido = {
   energia: { fuentes: ConId[]; aparatos: ConId[]; zona: string; epoca: string };
   emergencia: Record<string, unknown> | null;
   escenario: Record<string, unknown>;
+  /** El plan familiar entero, como un ajuste: se edita poco y gana el último cambio. */
+  planFamiliar?: Record<string, unknown>;
 };
 
 export type Tipo = 'persona' | 'mascota' | 'producto' | 'kitPropio' | 'kit' | 'manual' | 'fuente' | 'aparato' | 'ajuste';
@@ -76,6 +78,7 @@ const SECCIONES: { leer: (c: Compartido) => unknown; elementos: (c: Compartido) 
     leer: (c) => JSON.stringify(c.emergencia ? [c.emergencia, c.escenario] : null),
     elementos: (c) => [['ajuste', 'emergencia', c.emergencia ? { ...c.emergencia, escenario: c.escenario } : null]],
   },
+  { leer: (c) => c.planFamiliar, elementos: (c) => (c.planFamiliar ? [['ajuste', 'planFamiliar', c.planFamiliar]] : []) },
 ];
 
 function aMapa(c: Compartido, secciones = SECCIONES): Mapa {
@@ -123,6 +126,10 @@ function valorValido(tipo: Tipo, id: string, datos: unknown): unknown {
   if (tipo === 'ajuste' && id === 'actividad') return datos === 'sedentaria' || datos === 'normal' ? datos : undefined;
   if (tipo === 'ajuste' && id === 'zonaSolar') {
     return esObjeto(datos) && typeof datos.zona === 'string' && typeof datos.epoca === 'string' ? datos : undefined;
+  }
+  if (tipo === 'ajuste' && id === 'planFamiliar') {
+    const vale = esObjeto(datos) && ['encuentro', 'contactos', 'centros'].every((k) => Array.isArray(datos[k]));
+    return vale ? datos : undefined;
   }
   if (tipo === 'ajuste' && id === 'emergencia') {
     if (datos === null) return null;
@@ -196,6 +203,7 @@ export function aplicarFilas<T extends Compartido>(c: T, filas: Fila[]): T | nul
       epoca: zonaSolar?.epoca ?? c.energia.epoca,
     },
     ...deEmergencia,
+    planFamiliar: (ajuste('planFamiliar') as Record<string, unknown> | undefined) ?? c.planFamiliar,
   };
 }
 

@@ -14,6 +14,7 @@ import { useEffect, useSyncExternalStore } from 'react';
 import { DialogoConfirmar } from '@/components/dialogo';
 import { CapaTutorial } from '@/components/tutorial';
 import { fijarLengua, lenguaDelSistema, t } from '@/lib/i18n';
+import { almacen } from '@/lib/almacen';
 import { cancelarAvisos, reprogramarAvisos } from '@/lib/notificaciones';
 // Define la tarea en segundo plano: tiene que cargarse al arrancar
 import { registrarSegundoPlano } from '@/lib/segundo-plano';
@@ -94,13 +95,16 @@ function Navegacion() {
   useEffect(() => {
     registrarSegundoPlano().catch(() => {});
     vigilarErrores();
+    // La caché de productos de las tiendas (quitadas el 21/11/2026) ya no la lee nadie
+    Promise.resolve(almacen.removeItem('aguante-tiendas')).catch(() => {});
   }, []);
 
   // Cada tipo de aviso se puede apagar en Ajustes: lo apagado no se programa
   useEffect(() => {
     const deDespensa = notificar.despensa ? productos : [];
     const delKit = notificar.kit ? kitPropio : [];
-    (avisos ? reprogramarAvisos(deDespensa, delKit, diaCompra) : cancelarAvisos()).catch(() => {});
+    const deLaSemana = notificar.semana !== false ? productos : [];
+    (avisos ? reprogramarAvisos(deDespensa, delKit, diaCompra, deLaSemana) : cancelarAvisos()).catch(() => {});
   }, [avisos, productos, kitPropio, diaCompra, notificar]);
 
   // La primera vez, con la app vacía, sale el tutorial (se puede omitir)
@@ -143,6 +147,10 @@ function Navegacion() {
         <Stack.Screen name="modos" options={{ title: t('Modos de aguante') }} />
         <Stack.Screen name="manual" options={{ title: t('Reparto manual') }} />
         <Stack.Screen name="ajustes" options={{ title: t('Ajustes') }} />
+        <Stack.Screen name="admin" options={{ title: t('Panel de admin') }} />
+        <Stack.Screen name="plan" options={{ title: t('Plan familiar') }} />
+        <Stack.Screen name="guias/index" options={{ title: t('Guías sin conexión') }} />
+        <Stack.Screen name="guias/[id]" options={{ title: t('Guía') }} />
         <Stack.Screen name="cuenta" options={{ title: t('Cuenta y casa') }} />
         <Stack.Screen name="fuentes" options={{ title: t('Fuentes y método') }} />
         <Stack.Screen name="energia/index" options={{ title: t('Energía propia') }} />

@@ -1,6 +1,7 @@
 // Modo emergencia: siempre en oscuro para gastar menos batería, letra grande
 // y solo lo que hace falta hoy.
 
+import { router } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 import { useEffect, useMemo, useState } from 'react';
 import { Linking, Pressable, ScrollView, View } from 'react-native';
@@ -321,6 +322,25 @@ function Contenido() {
                 <Icono name={cambiarEsc ? 'chevron-up' : 'chevron-down'} color={C.suave} />
               </Pressable>
               {cambiarEsc && <ControlesEscenario valor={escenario} onChange={setEscenario} />}
+            </Tarjeta>
+
+            <Tarjeta style={{ gap: 0, paddingVertical: 4 }}>
+              {[
+                { icono: 'book-open-variant' as const, texto: t('Guías sin conexión'), ruta: '/guias' as const },
+                { icono: 'account-group-outline' as const, texto: t('Plan familiar'), ruta: '/plan' as const },
+              ].map((x, i) => (
+                <Pressable
+                  key={x.ruta}
+                  accessibilityRole="button"
+                  onPress={() => router.push(x.ruta)}
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, borderTopWidth: i === 0 ? 0 : 1, borderTopColor: C.linea }}>
+                  <Icono name={x.icono} color={C.suave} size={18} />
+                  <Texto peso="700" style={{ flex: 1 }}>
+                    {x.texto}
+                  </Texto>
+                  <Icono name="chevron-right" color={C.suave} size={18} />
+                </Pressable>
+              ))}
             </Tarjeta>
 
             <View style={{ flexDirection: 'row', gap: 8 }}>

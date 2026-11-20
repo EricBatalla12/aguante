@@ -19,7 +19,8 @@ Queda:
 El 20/11/2026 Eric decidió quitar el trueque con vecinos (pantalla, enlace de
 Inicio, nota guardada y cálculo del excedente). La propuesta de trueque entre
 usuarios ya no se hará. El vídeo `marketing/aguante-verbos.mp4` aún enseña la
-pantalla de trueque en «COMPARTE»: hay que cambiar esa escena.
+pantalla de trueque en «COMPARTE»; Eric decidió el 21/11/2026 no rehacerlo:
+no publicarlo tal cual.
 
 ## Monetizar
 
@@ -189,6 +190,49 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
 
+## Hecho el 21/11/2026 (2): semana, panel de admin, guías y plan familiar
+
+A petición de Eric («lo del vídeo y las varias casas descártalo… un panel de
+admin en la app para probar los eventos… un rol de admin para
+ericbatalla16@gmail.com… y empieza con el resto»). Sin módulos nativos ni SQL
+nuevo: va por actualización (al APK 1.1.0).
+
+- **Gasta esto esta semana**: tarjeta en Inicio (sustituye a «X caduca en…»)
+  con lo que caduca en 60 días, cuántas gastar esta semana y enlace a cada
+  producto; aviso los lunes a las 10 (interruptor en Ajustes). Reglas en
+  `fuentes-y-reglas.md`.
+- **Panel de admin** (`src/app/admin.tsx`, enlace al final de Ajustes): estado
+  (permiso, tipos encendidos, tarea en segundo plano, avisos programados con
+  su fecha, reprogramar), probar cada aviso a los 5 segundos con el texto real
+  (caducidad 2 meses y 1 semana, kit, semana, día de compra, AEMET naranja y
+  rojo), ejecutar ya la tarea en segundo plano, olvidar los avisos de AEMET ya
+  notificados, simular un aviso rojo en tu provincia (y quitarlo) y mandar un
+  error de prueba a `errores`. **Rol**: el correo de la sesión está en
+  `ADMINS` (`src/constants/admin.ts`); en desarrollo lo ve cualquiera. Solo se
+  mira en la app porque el panel no da permisos en el servidor; si un día los
+  da, comprobarlo en Supabase.
+- **Guías sin conexión** (`src/constants/guias.ts`, `src/app/guias/`): las
+  primeras horas de un apagón (Ready.gov) y potabilizar agua (EPA). Enlaces en
+  Inicio y en el modo emergencia.
+- **Plan familiar** (`src/app/plan.tsx`): puntos de encuentro, contactos (con
+  «Llamar»), colegios y trabajos con quién recoge, avisos y dónde quedarse,
+  cómo irse, información médica, documentos y notas; «Compartir el plan».
+  Se comparte con la casa como un ajuste (sin SQL nuevo). Enlaces en Inicio,
+  Preparación y el modo emergencia. La política de privacidad lo cuenta.
+- **Tus productos** en el plan de compra: toda la lista, también lo que ahora
+  no hace falta, para verlo y quitarlo. Y se borra al arrancar la caché vieja
+  `aguante-tiendas`.
+- Descartados por Eric: el vídeo B y «varias casas». El PDF sigue pendiente
+  (pide APK).
+
+Comprobado: 114 tests (nuevos: gasta esta semana, lunes, el plan en lo
+compartido), `tsc`, lint, `expo-doctor` y export de Android. En la web de la
+app: la tarjeta semanal, el panel (en la web no hay avisos ni tarea: lo dice),
+simular y quitar un aviso rojo (sale en Inicio), el plan guardándose al
+escribir, las dos guías, «Tus productos» y nada cortado a 320 px. **Sin probar
+en el móvil**: que lleguen los avisos de prueba, la tarea en segundo plano,
+el aviso de los lunes y «Llamar».
+
 ## Hecho el 21/11/2026: la lista la hace cada uno, y la web al día
 
 A petición de Eric («prefiero eliminar lo de las tiendas… que sea el usuario
@@ -232,18 +276,11 @@ en local a 1280, 375 y 320 px, en claro y oscuro, sin enlaces rotos.
 
 Queda:
 
-- Que Eric vuelva a ejecutar `supabase/esquema.sql` (borra los precios) y
-  borre el secreto `PRECIOS_TOKEN` de GitHub.
 - El APK 1.1.0 aún lleva el módulo y el permiso de ubicación (no se usan).
   Se van en el próximo APK; hasta entonces, si se declara en Play, decir que
   no se usa.
-- En los móviles que pidieron productos de tiendas queda guardada la caché
-  `aguante-tiendas` (como mucho 30 días de productos). No molesta; se podría
-  borrar al arrancar.
-- Si un producto de la lista ya no hace falta (su tipo está cubierto), no se
-  ve hasta que vuelva a faltar: no hay una pantalla para ver toda la lista.
-- Web: el enlace de descarga sigue pendiente, y el `LICENSE` del repo es el
-  de la plantilla de Expo (a nombre de 650 Industries): decidir licencia.
+- Web: el enlace de descarga sigue pendiente. La licencia ya está decidida
+  (PolyForm Strict, 21/11/2026).
 
 ## Hecho el 20/11/2026: APK 1.1.0 y precios de Mercadona
 

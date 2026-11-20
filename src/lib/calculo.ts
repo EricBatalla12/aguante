@@ -262,6 +262,55 @@ export function estadoCaducidad(p: { caducidad?: string }, hoy: Date): EstadoCad
   return 'ok';
 }
 
+// ------------------------------------------------------- Gasta esto esta semana
+
+/**
+ * [propio] Lo que entra en «Gasta esto esta semana»: lo que caduca en los
+ * próximos 60 días, los mismos del primer aviso de caducidad. Así, desde que
+ * avisa, sale cada semana hasta que se gasta.
+ */
+export const DIAS_GASTAR = 60;
+
+export type Gastar = { id: string; nombre: string; caducidad: string; dias: number; cantidad: number; estaSemana: number };
+
+/**
+ * Qué conviene gastar esta semana en el día a día (y reponer). Va primero lo
+ * que antes caduca. [propio] Lo de cada producto se reparte en las semanas
+ * que le quedan: 8 latas que caducan dentro de 4 semanas, 2 esta semana; si
+ * queda menos de una semana, todo.
+ */
+export function gastarEstaSemana(productos: Producto[], hoy: Date, ventana = DIAS_GASTAR): Gastar[] {
+  return productos
+    .filter((p) => p.cantidad > 0 && p.caducidad)
+    .map((p) => ({ p, dias: diasHasta(p.caducidad as string, hoy) }))
+    .filter(({ dias }) => dias >= 0 && dias <= ventana)
+    .sort((a, b) => a.dias - b.dias || a.p.nombre.localeCompare(b.p.nombre))
+    .map(({ p, dias }) => {
+      const semanas = Math.max(1, Math.floor(dias / 7));
+      return {
+        id: p.id,
+        nombre: p.nombre,
+        caducidad: p.caducidad as string,
+        dias,
+        cantidad: p.cantidad,
+        estaSemana: Math.min(p.cantidad, Math.ceil(p.cantidad / semanas)),
+      };
+    });
+}
+
+/** Los próximos lunes a las 10:00 (sin contar hoy si ya han pasado las 10), para el aviso semanal. */
+export function proximosLunes(ahora: Date, cuantos = 3): Date[] {
+  const salida: Date[] = [];
+  const d = new Date(ahora.getFullYear(), ahora.getMonth(), ahora.getDate(), 10, 0, 0);
+  d.setDate(d.getDate() + ((8 - d.getDay()) % 7));
+  if (d.getTime() <= ahora.getTime()) d.setDate(d.getDate() + 7);
+  while (salida.length < cuantos) {
+    salida.push(new Date(d));
+    d.setDate(d.getDate() + 7);
+  }
+  return salida;
+}
+
 // ------------------------------------------------------------- Conservación
 
 export function conservacionDe(p: Producto): Conservacion {

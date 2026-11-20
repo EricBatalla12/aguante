@@ -63,10 +63,8 @@ En `supabase/esquema.sql`, al final:
 Del 20 al 21/11/2026 hubo también `precios_tienda`, `cargar_precios` y
 `privado.claves`, para la copia semanal de los precios de Mercadona. Se
 quitaron con las tiendas del plan de compra: `esquema.sql` ahora los borra
-(`drop … if exists`). **Hasta que Eric vuelva a ejecutar `esquema.sql`, la
-tabla y sus 121 productos siguen en el proyecto** (se pueden leer sin cuenta,
-son precios públicos). El secreto `PRECIOS_TOKEN` de GitHub ya no lo usa nada:
-se puede borrar.
+(`drop … if exists`). Borrados del proyecto el 21/11/2026 (comprobado: la
+tabla ya no existe), y el secreto `PRECIOS_TOKEN` de GitHub, también.
 
 ## Entrar con Google
 

@@ -29,7 +29,7 @@ import {
   type Fila,
 } from './compartido';
 import { t } from './i18n';
-import { hoyISO, useAguante } from './store';
+import { hoyISO, normalizarPlan, useAguante } from './store';
 import { leerRespuestaOAuth } from './oauth';
 import { CLAVE_PUBLICABLE, supabase, URL_SUPABASE } from './supabase';
 
@@ -158,6 +158,7 @@ function meterEnStore(nuevo: Compartido) {
       energia: nuevo.energia,
       emergencia: nuevo.emergencia,
       escenario: nuevo.escenario,
+      ...(nuevo.planFamiliar ? { planFamiliar: normalizarPlan(nuevo.planFamiliar) } : {}),
     } as never);
   } finally {
     aplicando = false;

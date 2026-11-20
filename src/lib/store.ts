@@ -68,6 +68,7 @@ type Datos = {
   notificar: Notificar; // de qué se notifica, si están encendidas
   energia: Energia;
   compra: Compra; // presupuesto y precios del plan de compra: de cada móvil, no se comparte
+  planFamiliar: PlanFamiliar; // se comparte con la casa como un ajuste (gana el último cambio)
 };
 
 /**
@@ -94,8 +95,30 @@ export type Compra = {
   tiendas?: unknown;
 };
 
+/**
+ * Plan familiar de emergencia (src/app/plan.tsx), con los apartados del de
+ * Ready.gov: puntos de encuentro, contactos, colegios y trabajos (quién
+ * recoge a quién), cómo salir de casa, información médica y dónde están los
+ * documentos. Todo texto libre: es para leerlo en una emergencia, sin
+ * conexión, y compartirlo.
+ */
+export type PlanFamiliar = {
+  encuentro: { id: string; lugar: string; nota?: string }[];
+  contactos: { id: string; nombre: string; telefono: string; nota?: string }[];
+  centros: { id: string; nombre: string; telefono?: string; recogida?: string }[];
+  /** Cómo os enteraréis de los avisos y dónde os quedaréis si no se puede salir. */
+  refugio?: string;
+  /** Por dónde salir de casa y del barrio si hay que irse. */
+  salida?: string;
+  medica?: string;
+  documentos?: string;
+  notas?: string;
+  actualizado?: string; // AAAA-MM-DD
+};
+
 /** De qué avisa el móvil. El día de compra va en `compra.diaRecordatorio`. */
-export type Notificar = { despensa: boolean; kit: boolean; aemet: boolean; errores: boolean };
+/** `semana`: el aviso de los lunes con lo que conviene gastar. Sin el campo (guardado antes de que existiera), encendido. */
+export type Notificar = { despensa: boolean; kit: boolean; aemet: boolean; errores: boolean; semana?: boolean };
 
 /** Algo que se ha comprado siguiendo el plan: para el gasto de cada mes. */
 export type CompraHecha = { id: string; clave: string; nombre: string; unidades: number; coste: number; fecha: string };
@@ -121,6 +144,7 @@ type Estado = Datos & {
   anadirKit: (e: Omit<ElementoKit, 'id'>) => void;
   guardarKit: (e: ElementoKit) => void;
   setCompra: (c: Partial<Compra>) => void;
+  setPlanFamiliar: (p: Partial<PlanFamiliar>) => void;
   setPrecio: (clave: string, precio: number | undefined) => void;
   apuntarCompra: (h: Omit<CompraHecha, 'id'>) => void;
   quitarCompra: (id: string) => void;
@@ -160,9 +184,10 @@ const INICIAL: Datos = {
   idioma: 'sistema',
   avisos: false,
   // `errores` no es una notificación: es mandar los fallos de la app (ver src/lib/errores.ts)
-  notificar: { despensa: true, kit: true, aemet: true, errores: true },
+  notificar: { despensa: true, kit: true, aemet: true, errores: true, semana: true },
   energia: { fuentes: [], aparatos: [], zona: 'centro', epoca: 'invierno' },
   compra: {},
+  planFamiliar: { encuentro: [], contactos: [], centros: [] },
 };
 
 /** Sustituye el elemento con el mismo id o lo añade al final. */
@@ -230,6 +255,7 @@ function soloDatos(s: Estado): Datos {
     notificar: s.notificar,
     energia: s.energia,
     compra: s.compra,
+    planFamiliar: s.planFamiliar,
   };
 }
 
@@ -293,6 +319,7 @@ export const useAguante = create<Estado>()(
       anadirKit: (e) => set((s) => ({ kitPropio: [...s.kitPropio, { ...e, id: `propio-${nuevoId()}` }] })),
       guardarKit: (e) => set((s) => ({ kitPropio: upsert(s.kitPropio, e) })),
       setCompra: (c) => set((s) => ({ compra: { ...s.compra, ...c } })),
+      setPlanFamiliar: (p) => set((s) => ({ planFamiliar: { ...s.planFamiliar, ...p, actualizado: hoyISO() } })),
       setPrecio: (clave, precio) =>
         set((s) => {
           const precios = { ...s.compra.precios };
@@ -456,6 +483,7 @@ function normalizar(d: Datos): Datos {
     emergencia: normalizarEmergencia(d.emergencia ?? null),
     notificar: { ...INICIAL.notificar, ...d.notificar },
     compra: normalizarCompra(d.compra ?? {}),
+    planFamiliar: normalizarPlan(d.planFamiliar),
   };
 }
 
@@ -478,6 +506,12 @@ function normalizarCompra(c: Compra): Compra {
       return propio;
     });
   return { ...resto, precios, elegidos, hechas: Array.isArray(resto.hechas) ? resto.hechas : [] };
+}
+
+/** El plan familiar con sus listas siempre presentes (en datos viejos o copias no existe). */
+export function normalizarPlan(p: Partial<PlanFamiliar> | null | undefined): PlanFamiliar {
+  const lista = <T>(x: unknown): T[] => (Array.isArray(x) ? (x as T[]) : []);
+  return { ...(p ?? {}), encuentro: lista(p?.encuentro), contactos: lista(p?.contactos), centros: lista(p?.centros) };
 }
 
 function normalizarEmergencia(e: Emergencia | null): Emergencia | null {
