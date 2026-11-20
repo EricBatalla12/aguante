@@ -414,20 +414,23 @@ Consultado el 16/11/2026.
     que toca no cabe en lo que queda del mes, entra lo siguiente que quepa.
   - **[propio]** Se repone lo que caduca dentro del plan (al menos en los 3
     próximos meses, como «Rotar pronto»), en el mes en que caduca.
-  - **Productos de tus tiendas** (desde el 20/11/2026, `src/lib/catalogo.ts`):
-    conservas (`en:canned-foods`), arroz (`en:rices`) y agua (`en:waters`)
-    de Open Food Facts vistos en esas cadenas en España. No dice si hay
-    existencias ni el precio. Las kcal y los gramos son los de cada ficha, que
-    a veces están mal: cada producto se puede quitar o cambiar.
-  - **[propio]** Qué entra: conservas de 80 kcal/100 g o más (deja fuera
-    encurtidos y verduras que apenas dan energía); arroz de 300 kcal/100 g o
-    más y 250 g o más (crudo: el cocido y los platos hechos no); agua sin gas
-    ni sabor, de 1,5 L o más. El agua de cocer el arroz elegido se calcula
-    con la misma proporción, según su peso.
-  - **[propio]** Qué se propone: cuatro conservas, un arroz y un agua. Con
-    precio, lo que más da por euro; sin precio, de los 40 más escaneados,
-    primero lo que más kcal tiene por 100 g y sin repetir familia (la primera
-    palabra del nombre); en el agua, la garrafa más grande.
+  - **Tu lista** (desde el 21/11/2026, `src/app/lista-producto.tsx`): los
+    productos los elige cada uno. Escaneados: el peso y las kcal de la ficha
+    de Open Food Facts (a veces están mal: se pueden cambiar antes de
+    añadirlos). Valores típicos: las kcal de `genericos.ts` (USDA FoodData
+    Central) y un envase **[propio]**, el más corriente (bote de 400 g, lata
+    de atún o sardinas con 80 g escurridos como la calculadora de la web,
+    paquete de 1 kg de arroz o lentejas, 500 g de pasta; garrafas de 5 y 8 L
+    y botella de 1,5 L). De la despensa: lo que tenga apuntado (si no tiene
+    peso, las kcal de la unidad y su agua de cocer).
+  - **[propio]** Lo que falta de cada tipo se reparte de uno en uno entre los
+    productos de ese tipo que tienen la cantidad automática, al que menos
+    lleve (variedad); los de cantidad fijada cuentan antes. Lo que no cubren,
+    en unidades de referencia. El agua de cocer lo que va en la lista se
+    calcula con la proporción del arroz, según su peso.
+  - Del 20 al 21/11/2026 hubo «tus tiendas» (productos de Open Food Facts por
+    cadena y precios de la tienda online de Mercadona): quitado a petición de
+    Eric. Los productos que se hubieran elegido se quedan en la lista.
 
 ## Avisos que la app tiene que mostrar
 

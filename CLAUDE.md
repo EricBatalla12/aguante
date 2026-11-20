@@ -18,7 +18,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - Web: si Eric no tiene su Metro en el 8081, arrancar con el panel de
   navegador la configuración `aguante-web` de `/home/eric/Proyectos/.claude/launch.json`
   (Metro en el **8082**). Datos de prueba: escribir `localStorage['aguante']`
-  como `{state, version: 4}` y recargar (con una versión anterior, pasa por
+  como `{state, version: 5}` y recargar (con una versión anterior, pasa por
   la migración). El panel a veces no se pinta: las
   animaciones solo avanzan al hacer una captura; los textos cortados se miden
   con JS (`scrollWidth > clientWidth` con overflow no visible, en iframes de
@@ -90,7 +90,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `docs/fuentes-y-reglas.md` y en `src/constants/fuentes.ts` (pantalla de
   fuentes). No meter cifras de memoria: buscar la fuente y marcar «criterio
   propio» lo que no la tenga.
-- **Estado**: `src/lib/store.ts` (zustand persistido, `version: 4`; subir la
+- **Estado**: `src/lib/store.ts` (zustand persistido, `version: 5`; subir la
   versión hace que `migrate` pase los datos guardados por `normalizar`). Un campo
   nuevo va en `Datos`, `INICIAL`, `soloDatos` y, si hace falta, en `normalizar`
   (migración y copias importadas). Lo que es solo del móvil y no va en copias
@@ -146,7 +146,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
     búsqueda va por `~/.claude/skills/media-use/audio/scripts/audio.mjs` (`media-use resolve --type bgm`
     pide la CLI `heygen`, que no está instalada).
 
-## Estado a 16/11/2026 (al final del día)
+## Estado a 20/11/2026 (al final del día)
 
 - **En GitHub**: repositorio **público** `EricBatalla12/aguante` (se llamaba
   `aguante-web` y solo tenía la web). La rama local `feat/mvp` sigue a
@@ -196,7 +196,9 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   (en la app `01a1ef48`; avisos oficiales y tutorial sin tirones),
   `36296207` (agua beber + higiene, actividad, tutorial y preguntas), `533b7fe4` (kit en listas, plan de compra, calendario y casa
   compartida) y `5a049262` (entrar con Google).
-- APK versionCode 3: https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
+- APK versionCode 3 (1.0.0, el que tiene Eric instalado):
+  https://expo.dev/artifacts/eas/naWm_cWazPsZsEM0vZBgwVSUwqB-Nbc5xWNhuODff_g.apk
+  El nuevo es el **versionCode 4** (1.1.0), ver «Compilar e instalar».
 - El modo automático bloquea a veces `git commit` si Eric no lo ha pedido en
   ese mismo mensaje: no rodearlo, preguntar.
 - Para capturas o pruebas en la versión web con el panel sin pintar: Chrome sin
@@ -206,6 +208,27 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `aguante-sitio` de `/home/eric/Proyectos/.claude/launch.json` (puerto 8090).
 
 ## Siguiente trabajo
+
+### Lo último (21/11/2026)
+
+- **Las tiendas se han quitado del plan de compra** a petición de Eric: la
+  lista la hace cada uno (`src/app/lista-producto.tsx`: escanear, comprar
+  otra vez lo de la despensa, valores típicos o a mano). Fuera la copia de
+  Mercadona y `expo-location`. Store en la versión 5. **Y la web, al día**
+  (portada, guía del kit, índice de guías). Detalle, lo comprobado y lo que
+  queda en `docs/pendiente.md`, «Hecho el 21/11/2026». Sin probar en el
+  móvil (el escáner de la lista, sobre todo).
+
+### Dónde está todo (20/11/2026, al final del día)
+
+- Todo en git y subido a `main` (`git log -1`). La versión 1.1.0 está
+  compilada (APK versionCode 4) pero **Eric aún no la ha instalado ni
+  probado**: es lo primero que toca (lista en «Pendiente fuera del código»).
+- De lo aprobado abajo: hechos el 1 (plan de compra) y lo nativo del 2
+  (widget y avisos con la app cerrada); descartado el 3 (cobrar). Quedan del
+  2 «Gasta esto esta semana», plan familiar, guías sin conexión, varias casas
+  y PDF; y el 4 (vídeo B).
+- Para publicar en Play: `docs/pendiente.md`, «Para subir a Google Play».
 
 ### Aprobado por Eric el 20/11/2026 («me parece todo correcto»), por este orden
 
@@ -239,7 +262,8 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
    tiendas en el plan (productos de Open Food Facts por cadena, lista
    propuesta y modificable, el escáner apunta lo comprado; `src/lib/catalogo.ts`,
    `src/lib/tiendas.ts`) y PKCE al entrar con Google. La API de la tienda
-   online de Mercadona se miró y se descartó (`docs/pendiente.md`). Lo que
+   online de Mercadona se usa desde el 20/11/2026 con una copia semanal, tras
+   preguntarle Eric a Mercadona (ver más abajo). Lo que
    falta para publicar en Play, por orden: `docs/pendiente.md`, «Para subir a
    Google Play».
    Más tarde, el 20/11/2026, en git (`e0408e3`) y **en el APK versionCode 4**
@@ -262,6 +286,7 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
      con fuentes oficiales, como en `docs/fuentes-y-reglas.md`).
    - Varias casas (la del pueblo, la de los padres) e informe en PDF.
    - Avisos rojos con la app cerrada y widget con los días: **APK nuevo**.
+     **Hechos el 20/11/2026** (en el APK versionCode 4, sin probar en el móvil).
 3. **Aguante Plus: DESCARTADO por Eric el 20/11/2026** («de cobrar nos
    olvidamos, nos quedamos con las donaciones»). No hacer nada de esto salvo
    que lo vuelva a pedir; el código de Pro sigue apagado con `PRO_ACTIVO`.
@@ -313,17 +338,14 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
 
 ## Pendiente fuera del código
 
-- **Precios de Mercadona: en marcha desde el 20/11/2026.** SQL ejecutado,
-  secreto `PRECIOS_TOKEN` creado y huella en `privado.claves`. Tarea
-  «Precios de las tiendas» (lunes 05:23 UTC): 84 productos publicados de 121
-  (52 conservas y legumbres, 8 arroces, 24 aguas); los que no valen se
-  guardan como no publicados para no volver a pedir su detalle. Cada semana
-  son 5 peticiones a Mercadona (comprobado en la segunda carga: 0 detalles) y
-  unas 10 a Open Food Facts (calorías que no tiene). Si falla, GitHub avisa
-  por correo.
+- **Precios de Mercadona: quitados el 21/11/2026** (la tarea semanal y el
+  script ya no están). Falta que Eric **vuelva a ejecutar
+  `supabase/esquema.sql`** (borra `precios_tienda`, `cargar_precios` y
+  `privado.claves`) y **borre el secreto `PRECIOS_TOKEN`** de GitHub.
 - **Instalar el APK 1.1.0** (ya compilado, enlace en «Compilar e instalar») y probar en el móvil el widget, los
-  avisos de AEMET con la app cerrada, «Buscar las que tengo cerca» y lo de
-  antes que solo está probado en web.
+  avisos de AEMET con la app cerrada, la lista propia del plan de compra y lo
+  de antes que solo está probado en web. Ese APK lleva aún el permiso de
+  ubicación, que ya no se usa (se va en el próximo).
 
 - **Verificación en dos pasos** en las cuentas de Expo (`eric_161`), GitHub,
   Google y Supabase: con la de Expo se puede mandar código a todos los móviles

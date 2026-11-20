@@ -51,25 +51,22 @@ Código: `src/lib/compartido.ts` (puro, con tests en `tests/compartido.test.mjs`
 `src/lib/sincro.ts` (motor de sincronización), `src/lib/supabase.ts` (cliente)
 y `src/app/cuenta.tsx` (pantalla). Servidor: `supabase/esquema.sql`.
 
-## Precios de las tiendas y errores (20/11/2026)
+## Errores de la app (20/11/2026)
 
 En `supabase/esquema.sql`, al final:
 
-- `precios_tienda`: productos y precios publicados por las cadenas (de momento
-  Mercadona). Cualquiera puede leerla, también sin cuenta. Solo escribe
-  `cargar_precios(token, tienda, filas)`, que comprueba la huella sha256 del
-  token en `privado.claves`. El token está solo en el secreto `PRECIOS_TOKEN`
-  de GitHub; lo usa `scripts/precios-tiendas.mjs` desde
-  `.github/workflows/precios.yml` (lunes 05:23 UTC).
 - `errores`: lo que falla en los móviles (`src/lib/errores.ts`). Nadie la
   puede leer desde la app; se mira en el Table Editor. Se escribe con
   `apuntar_error(p)` (también sin cuenta), con tope de 500 por hora, y se
   borra lo de más de 90 días.
 
-Probado en un Postgres 17 local (Docker): re-ejecutable, token malo
-rechazado, carga y actualización conservando código de barras y kcal, lo que
-desaparece queda como no publicado, sin sesión se lee pero no se escribe. **No
-ejecutado aún en el proyecto de Supabase.**
+Del 20 al 21/11/2026 hubo también `precios_tienda`, `cargar_precios` y
+`privado.claves`, para la copia semanal de los precios de Mercadona. Se
+quitaron con las tiendas del plan de compra: `esquema.sql` ahora los borra
+(`drop … if exists`). **Hasta que Eric vuelva a ejecutar `esquema.sql`, la
+tabla y sus 121 productos siguen en el proyecto** (se pueden leer sin cuenta,
+son precios públicos). El secreto `PRECIOS_TOKEN` de GitHub ya no lo usa nada:
+se puede borrar.
 
 ## Entrar con Google
 

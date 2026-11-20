@@ -77,7 +77,8 @@ primera semana con todo). Aprobada y descartada ese mismo día:
 ### Para subir a Google Play (mirado el 20/11/2026)
 
 Lo que ya está: `targetSdk` 36 (Google lo pide a las apps nuevas desde el
-31/08/2026), solo pide cámara y notificaciones, política de privacidad y
+31/08/2026), solo pide cámara y notificaciones (el APK 1.1.0 lleva además la
+ubicación, que ya no se usa y se va en el próximo), política de privacidad y
 página de borrar la cuenta publicadas, borrar la cuenta dentro de la app, y
 el perfil `production` de EAS genera el AAB.
 
@@ -188,7 +189,63 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
 
-## Hecho el 20/11/2026: APK 1.1.0 (sin compilar) y precios de Mercadona
+## Hecho el 21/11/2026: la lista la hace cada uno, y la web al día
+
+A petición de Eric («prefiero eliminar lo de las tiendas… que sea el usuario
+quién va creando su lista»; aprobó la propuesta entera).
+
+- **Fuera las tiendas**: «Tus tiendas», «Buscar las que tengo cerca», la
+  propuesta de productos y «Añadir otro de tus tiendas»
+  (`src/lib/tiendas.ts`, `src/lib/catalogo.ts` y `src/constants/tiendas.ts`
+  borrados). Fuera también la copia semanal de Mercadona
+  (`scripts/precios-tiendas.mjs` y `.github/workflows/precios.yml`) y el
+  módulo de ubicación (`expo-location`, del `package.json` y de los plugins
+  de `app.json`).
+- **Tu lista**: en el plan, debajo de agua, comida lista y comida para
+  cocinar sale lo que falta («Faltan 52 L», «Faltan unas 7.600 kcal») y
+  «Añadir agua/comida a tu lista», que abre `src/app/lista-producto.tsx`:
+  escanear (en la web, escribir el código), «Comprar otra vez lo de tu
+  despensa» (un toque), valores típicos o a mano (nombre, litros o peso y
+  kcal/100 g, precio y nota). La cantidad la calcula la app o la fija cada
+  uno, como antes; mientras no haya nada, la lista va en medidas típicas.
+  La lista se queda de un mes para otro.
+- **Migración** (store a la versión 5): se borran las tiendas y los
+  productos que se hubieran elegido de ellas se quedan en la lista; su precio
+  de la tienda pasa a ser el último precio si no había otro.
+- `supabase/esquema.sql` borra la tabla de precios (falta que Eric lo
+  ejecute; ver `cuentas.md`). Política de privacidad sin tiendas ni
+  ubicación.
+- **Web**: portada con modo emergencia, energía y Actualidad (capturas
+  reales), preguntas al día (internet, «¿es oficial?»), guía nueva del kit
+  (`web/guias/kit.html`), índice de guías, «Más guías» en cada una, 404
+  arreglado, calculadora recompilada (quitaba código muerto), `sitemap.xml`
+  y datos estructurados.
+
+Comprobado: 111 tests, `tsc`, lint, `expo-doctor` (20/20) y export de
+Android. En la versión web de la app: la migración desde la versión 4, añadir
+un típico con precio y nota (el plan lo reparte y quita el genérico), comprar
+otra vez algo de la despensa sin peso (cuenta sus kcal y su agua de cocer),
+buscar un código en Open Food Facts de verdad, «Comprado» de algo escrito a
+mano (pasa a la despensa sin código falso) y nada cortado a 320 px. La web,
+en local a 1280, 375 y 320 px, en claro y oscuro, sin enlaces rotos.
+**Sin probar en el móvil**: el escáner de la lista (en la web no hay cámara).
+
+Queda:
+
+- Que Eric vuelva a ejecutar `supabase/esquema.sql` (borra los precios) y
+  borre el secreto `PRECIOS_TOKEN` de GitHub.
+- El APK 1.1.0 aún lleva el módulo y el permiso de ubicación (no se usan).
+  Se van en el próximo APK; hasta entonces, si se declara en Play, decir que
+  no se usa.
+- En los móviles que pidieron productos de tiendas queda guardada la caché
+  `aguante-tiendas` (como mucho 30 días de productos). No molesta; se podría
+  borrar al arrancar.
+- Si un producto de la lista ya no hace falta (su tipo está cubierto), no se
+  ve hasta que vuelva a faltar: no hay una pantalla para ver toda la lista.
+- Web: el enlace de descarga sigue pendiente, y el `LICENSE` del repo es el
+  de la plantilla de Expo (a nombre de 650 Industries): decidir licencia.
+
+## Hecho el 20/11/2026: APK 1.1.0 y precios de Mercadona
 
 **Precios de Mercadona** (Eric preguntó por su chat y le contestaron que se
 puede usar la información publicada en sus canales oficiales; no nombran la
@@ -201,9 +258,14 @@ app, si la cadena tiene precios ahí, usa esos productos con su precio, su
 enlace («Ver en la tienda») y la fecha; el precio que ponga cada uno manda.
 Probado: el script contra Mercadona y Open Food Facts de verdad, sin escribir
 (con `--solo=118`, arroz: 8 de 15 válidos, por ejemplo arroz redondo
-Hacendado 1 kg a 1,15 €); el SQL en Postgres local. **Falta**: ejecutar el
-SQL en Supabase, crear el secreto y lanzar la tarea (CLAUDE.md, «Pendiente
-fuera del código»).
+Hacendado 1 kg a 1,15 €); el SQL en Postgres local. **En marcha** ese mismo
+día: SQL ejecutado en Supabase, secreto creado y tres cargas desde GitHub
+Actions. Resultado: 121 productos guardados, 84 publicados (52 conservas y
+legumbres, 8 arroces, 24 aguas). En la primera se colaron dos gaseosas como
+agua: arreglado con `esAguaParaBeber` (`catalogo.ts`), que usan la app y el
+script. Los que no valen se guardan como no publicados para no volver a pedir
+su detalle: cada lunes son 5 peticiones a Mercadona (comprobado: 0 detalles en
+la tercera carga) y unas 10 a Open Food Facts por las kcal que no tiene.
 
 **Lo que pide APK nuevo** (versión 1.1.0 en `app.json`):
 
@@ -226,11 +288,12 @@ fuera del código»).
 
 Comprobado: 119 tests, `tsc`, lint, `expo-doctor`, export de Android (el
 widget queda como texto en el bundle) y `expo prebuild` (receptor del widget,
-permisos y versión en el manifiesto). **No compilado ni probado en un móvil**:
-aquí no hay emulador usable (sin `/dev/kvm`) y el Java instalado (27) es más
-nuevo de lo que admite Gradle. La primera prueba real será el APK de EAS.
+permisos y versión en el manifiesto). Aquí no hay emulador usable (sin
+`/dev/kvm`) y el Java instalado (27) es más nuevo de lo que admite Gradle, así
+que se compiló en EAS: **APK versionCode 4, bien compilado el 20/11/2026, sin
+instalar ni probar en el móvil**.
 
-## Hecho el 20/11/2026: tus tiendas en el plan de compra
+## Hecho el 20/11/2026: tus tiendas en el plan de compra (quitado el 21/11/2026)
 
 - **Tus tiendas** (en el plan): se eligen cadenas de una lista
   (`src/constants/tiendas.ts`) o se escribe otra. Encontrarlas solas por
@@ -258,8 +321,9 @@ nuevo de lo que admite Gradle. La primera prueba real será el APK de EAS.
   precio depende del almacén (código postal) y una app publicada la llamaría
   desde miles de móviles. Además, sacar una parte sustancial de una base de
   datos ajena choca con el derecho «sui generis» de la UE (Directiva 96/9/CE).
-  Decisión recomendada: no usarla. Alternativas: pedir permiso a Mercadona o
-  poner un enlace para que cada uno mire el precio en la web de su tienda.
+  Recomendación de entonces: no usarla sin permiso. **Ese mismo día Eric
+  preguntó a Mercadona** y se usa con una copia semanal (ver «APK 1.1.0 y
+  precios de Mercadona», arriba).
 - **Escanear**: al añadir a la despensa un producto que está en la lista (por
   código de barras), sale encendido «Lo he comprado para el plan de compra»
   con su último precio, y al guardar se apunta. Si solo coincide el tipo

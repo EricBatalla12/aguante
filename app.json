@@ -78,12 +78,6 @@
             }
           ]
         }
-      ],
-      [
-        "expo-location",
-        {
-          "locationWhenInUsePermission": "Aguante usa tu ubicación aproximada para buscar los supermercados que tienes cerca."
-        }
       ]
     ],
     "experiments": {

@@ -135,6 +135,7 @@ function Navegacion() {
         <Stack.Screen name="anadir" options={{ title: t('Añadir producto'), presentation: 'modal' }} />
         <Stack.Screen name="gastar" options={{ title: t('Gastar producto'), presentation: 'modal' }} />
         <Stack.Screen name="compra" options={{ title: t('Plan de compra') }} />
+        <Stack.Screen name="lista-producto" options={{ title: t('Añadir a la lista'), presentation: 'modal' }} />
         <Stack.Screen name="producto/[id]" options={{ title: t('Producto') }} />
         <Stack.Screen name="kit/[id]" options={{ title: t('Kit de emergencia') }} />
         <Stack.Screen name="persona/[id]" options={{ title: t('Persona') }} />

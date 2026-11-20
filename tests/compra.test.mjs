@@ -15,14 +15,13 @@ import {
   mesDe,
   mesReal,
   porReponer,
+  esCodigoBarras,
+  necesidades,
   presupuestoParaMeses,
-  preciosConTienda,
-  proponer,
   proximosRecordatorios,
   repartir,
+  tipoDe,
 } from '../src/lib/compra.ts';
-import { cadenasDeOsm, cantidadDe, deFilaPrecio, esAguaParaBeber, etiquetaTienda, juntarCatalogos, leerCatalogo } from '../src/lib/catalogo.ts';
-import { readFileSync } from 'node:fs';
 import { GENERICOS } from '../src/constants/genericos.ts';
 import { diaAviso, enlaceCalendario } from '../src/lib/calendario.ts';
 
@@ -245,75 +244,14 @@ test('lo gastado por meses y los recordatorios del día de compra', () => {
   assert.equal(proximosRecordatorios(31, hoy)[0].getDate(), 28);
 });
 
-// ------------------------------------------------------------- Tiendas
-
-// Respuestas reales de la búsqueda de Open Food Facts (Mercadona, 20/11/2026), recortadas
-const json = (n) => JSON.parse(readFileSync(new URL(`./datos/off-mercadona-${n}.json`, import.meta.url), 'utf8'));
-
-test('la etiqueta de la tienda es como la de Open Food Facts', () => {
-  assert.equal(etiquetaTienda('El Corte Inglés'), 'el-corte-ingles');
-  assert.equal(etiquetaTienda('  Dia  '), 'dia');
-  assert.equal(etiquetaTienda('Más y Más'), 'mas-y-mas');
-});
-
-test('la cantidad sale del campo numérico o del texto', () => {
-  assert.deepEqual(cantidadDe({ product_quantity: 1000, product_quantity_unit: 'g' }), { gramos: 1000 });
-  assert.deepEqual(cantidadDe({ product_quantity: '6000', product_quantity_unit: 'ml' }), { litros: 6 });
-  assert.deepEqual(cantidadDe({ quantity: '420 gr neto' }), { gramos: 420 });
-  assert.deepEqual(cantidadDe({ quantity: '1,5 L' }), { litros: 1.5 });
-  assert.deepEqual(cantidadDe({ quantity: '425' }), {});
-});
-
-test('de las conservas se quedan las que dan energía', () => {
-  const c = leerCatalogo(json('conservas'), 'mercadona', 'lista');
-  assert.ok(c.length >= 10, `solo ${c.length}`);
-  for (const p of c) {
-    assert.ok(p.kcal100g >= 80 && p.gramos > 0, p.nombre);
-    assert.deepEqual(p.tiendas, ['mercadona']);
-  }
-  assert.ok(!c.some((p) => /^(pepinillos|champiñones)/i.test(p.nombre)));
-  assert.ok(c.some((p) => /fabada/i.test(p.nombre)));
-});
-
-test('del arroz, el crudo de 250 g o más; del agua, sin gas y de 1,5 L o más', () => {
-  const arroz = leerCatalogo(json('arroz'), 'mercadona', 'cocinar');
-  assert.ok(arroz.length > 0);
-  for (const p of arroz) assert.ok(p.kcal100g >= 300 && p.gramos >= 250, p.nombre);
-  assert.ok(!arroz.some((p) => /cocido|risotto/i.test(p.nombre)));
-  const agua = leerCatalogo(json('agua'), 'mercadona', 'agua');
-  assert.ok(agua.length > 0);
-  for (const p of agua) assert.ok(p.litros >= 1.5 && !/gas/i.test(p.nombre), p.nombre);
-});
-
-test('también se lee la respuesta de search.openfoodfacts.org', () => {
-  const j = JSON.parse(readFileSync(new URL('./datos/sal-lidl-conservas.json', import.meta.url), 'utf8'));
-  const c = leerCatalogo(j, 'lidl', 'lista');
-  assert.ok(c.length >= 5, `solo ${c.length}`);
-  assert.ok(c.every((p) => p.kcal100g >= 80 && p.gramos > 0 && p.tiendas[0] === 'lidl'));
-  assert.ok(c.some((p) => p.marca && !p.marca.includes(',')));
-});
-
-test('agua para beber: sin gas, sin sabor y nada de gaseosas ni tónicas', () => {
-  for (const n of ['Agua mineral grande Bronchales', 'Agua mineral natural sin gas', 'Agua de manantial'])
-    assert.ok(esAguaParaBeber(n), n);
-  // La que se coló en la primera carga de Mercadona (20/11/2026)
-  for (const n of ['Gaseosa grande Hacendado', 'Agua con gas', 'Agua con sabor a limón', 'Tónica', 'Agua sin gas sabor fresa'])
-    assert.ok(!esAguaParaBeber(n), n);
-});
-
-test('un producto de dos tiendas sale una vez, con las dos', () => {
-  const a = { codigo: '1', nombre: 'Atún', tipo: 'lista', tiendas: ['mercadona'], gramos: 100, kcal100g: 200 };
-  const juntos = juntarCatalogos([[a], [{ ...a, tiendas: ['dia'] }]]);
-  assert.equal(juntos.length, 1);
-  assert.deepEqual(juntos[0].tiendas, ['mercadona', 'dia']);
-});
+// ------------------------------------------------------------- Tu lista
 
 const atun = { codigo: '111', tipo: 'lista', nombre: 'Atún', gramos: 200, kcal100g: 250 }; // 500 kcal
 const fabada = { codigo: '222', tipo: 'lista', nombre: 'Fabada', gramos: 400, kcal100g: 150 }; // 600 kcal
 const arroz = { codigo: '333', tipo: 'cocinar', nombre: 'Arroz', gramos: 1000, kcal100g: 350 }; // 3.500 kcal
 const garrafa = { codigo: '444', tipo: 'agua', nombre: 'Agua', litros: 8 };
 
-test('con productos elegidos, lo que falta se reparte entre ellos', () => {
+test('con productos en tu lista, lo que falta se reparte entre ellos', () => {
   // 3 primeros días de 2.000 kcal sin cocinar: 6.000 kcal entre atún y fabada
   const lista = listaCompra({ ...entrada, faltanKcal: 6000, faltanLitros: 20 }, [atun, fabada, garrafa]);
   const de = (clave) => lista.find((a) => a.clave === clave)?.unidades ?? 0;
@@ -327,42 +265,20 @@ test('con productos elegidos, lo que falta se reparte entre ellos', () => {
 });
 
 test('las unidades fijadas a mano cuentan y lo que no se cubre va en referencia', () => {
-  // Atún fijado en 4 (2.000 kcal) y sin más elegidos: faltan 4.000 → 8 botes
+  // Atún fijado en 4 (2.000 kcal) y sin más productos: faltan 4.000 → 8 botes
   const lista = listaCompra({ ...entrada, faltanKcal: 6000 }, [{ ...atun, unidades: 4 }]);
   assert.equal(lista.find((a) => a.clave === 'prod:111').unidades, 4);
   assert.equal(lista.find((a) => a.clave === 'lista').unidades, Math.ceil(4000 / KCAL_BOTE));
 });
 
-test('el arroz elegido suma su agua de cocer, en proporción a su peso', () => {
+test('el arroz de tu lista suma su agua de cocer, en proporción a su peso', () => {
   // 14.000 kcal: 6.000 sin cocinar y 8.000 de arroz de 3.500 → 3 kg, que piden 3 × 2,56 L
   const lista = listaCompra({ ...entrada, faltanKcal: 14000 }, [arroz, garrafa]);
   assert.equal(lista.find((a) => a.clave === 'prod:333').unidades, 3);
   assert.equal(lista.find((a) => a.clave === 'prod:444').unidades, Math.ceil((3 * 2.56) / 8));
   assert.deepEqual(aporteDe(arroz), { kcal: 3500, litrosCocer: 2.56 });
-  // Sin cocina, el arroz elegido no entra
+  // Sin cocina, el arroz de la lista no entra
   assert.equal(listaCompra({ ...entrada, faltanKcal: 14000, sinCocina: true }, [arroz]).find((a) => a.clave === 'prod:333'), undefined);
-});
-
-test('proponer: cuatro conservas, un arroz y la garrafa más grande; con precio, lo que más rinde', () => {
-  const catalogo = [
-    ...leerCatalogo(json('conservas'), 'mercadona', 'lista'),
-    ...leerCatalogo(json('arroz'), 'mercadona', 'cocinar'),
-    ...leerCatalogo(json('agua'), 'mercadona', 'agua'),
-  ];
-  const p = proponer(catalogo);
-  const conservas = p.filter((e) => e.tipo === 'lista');
-  assert.equal(conservas.length, 4);
-  // Sin repetir familia y de las que más energía tienen
-  assert.equal(new Set(conservas.map((e) => e.nombre.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').match(/[a-z]+/)[0])).size, 4);
-  assert.ok(conservas.every((e) => e.kcal100g >= 150), conservas.map((e) => `${e.nombre} ${e.kcal100g}`).join(', '));
-  assert.equal(p.filter((e) => e.tipo === 'cocinar').length, 1);
-  const agua = p.filter((e) => e.tipo === 'agua');
-  assert.equal(agua.length, 1);
-  assert.equal(agua[0].litros, Math.max(...catalogo.filter((c) => c.tipo === 'agua').map((c) => c.litros)));
-  // Si una conserva tiene precio y rinde, va la primera
-  const ultima = catalogo.filter((c) => c.tipo === 'lista').at(-1);
-  const conPrecio = proponer(catalogo, { [`prod:${ultima.codigo}`]: 0.5 });
-  assert.equal(conPrecio.find((e) => e.tipo === 'lista').codigo, ultima.codigo);
 });
 
 test('lo escaneado se reconoce: el mismo producto, o lo genérico de su tipo', () => {
@@ -372,48 +288,31 @@ test('lo escaneado se reconoce: el mismo producto, o lo genérico de su tipo', (
   assert.equal(lineaDe({ codigo: '999', categoria: 'mascota' }, lista), null);
 });
 
-test('una fila de precios de la tienda se lee como producto, con su precio', () => {
-  const p = deFilaPrecio({ tienda: 'mercadona', id: '5044', ean: '8480000050441', nombre: 'Arroz redondo', marca: 'Hacendado', tipo: 'cocinar', gramos: '1000', kcal100g: '344', precio: '1.15', enlace: 'https://tienda.mercadona.es/product/5044', actualizado: '2026-11-23T05:30:00Z' });
-  assert.deepEqual(
-    { codigo: p.codigo, gramos: p.gramos, kcal100g: p.kcal100g, precio: p.precio, fecha: p.fecha, tiendas: p.tiendas },
-    { codigo: '8480000050441', gramos: 1000, kcal100g: 344, precio: 1.15, fecha: '2026-11-23', tiendas: ['mercadona'] },
-  );
-  // Sin código de barras, el de la tienda; sin precio o con un tipo raro, nada
-  assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'Agua', tipo: 'agua', litros: 8, precio: 1 }).codigo, 'mercadona-7');
-  assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'X', tipo: 'otro', precio: 1 }), null);
-  assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '8', nombre: 'Gaseosa grande Hacendado', tipo: 'agua', litros: 1.5, precio: 0.55 }), null);
-  assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'X', tipo: 'lista', precio: 0 }), null);
+test('lo que falta de cada tipo, con el agua de cocer lo que se compra', () => {
+  // 14.000 kcal: 6.000 sin cocinar y 8.000 para cocinar; en paquetes de arroz de 3.650 → 3, que piden 3 × 2,56 L
+  const n = necesidades({ ...entrada, faltanKcal: 14000, faltanLitros: 10 });
+  assert.equal(n.lista, 6000);
+  assert.equal(n.cocinar, 8000);
+  assert.ok(Math.abs(n.agua - (10 + 3 * LITROS_COCER_PAQUETE)) < 1e-9);
+  // Sin cocina, toda la comida es lista para comer y no hay agua de cocer
+  assert.deepEqual(necesidades({ ...entrada, faltanKcal: 14000, faltanLitros: 10, sinCocina: true }), { agua: 10, lista: 14000, cocinar: 0 });
 });
 
-test('el precio que pone cada uno manda sobre el de la tienda', () => {
-  const elegidos = [{ ...atun, precio: 1.2 }, { ...fabada, precio: 2 }];
-  assert.deepEqual(preciosConTienda({ 'prod:111': 0.99 }, elegidos), { 'prod:111': 0.99, 'prod:222': 2 });
+test('lo de la despensa va a su tipo y solo los códigos de barras cuentan como tales', () => {
+  assert.equal(tipoDe({ categoria: 'agua' }), 'agua');
+  assert.equal(tipoDe({ categoria: 'comida' }), 'lista');
+  assert.equal(tipoDe({ categoria: 'comida', necesitaCocinar: true }), 'cocinar');
+  assert.equal(tipoDe({ categoria: 'mascota' }), null);
+  assert.ok(esCodigoBarras('8480000050441'));
+  assert.ok(!esCodigoBarras('man:abc123'));
+  assert.ok(!esCodigoBarras(undefined));
 });
 
-test('con precios de la tienda se propone lo que más da por euro', () => {
-  const caro = { codigo: '1', tipo: 'lista', nombre: 'Bonito', tiendas: ['m'], gramos: 100, kcal100g: 300, precio: 3 }; // 100 kcal/€
-  const barato = { codigo: '2', tipo: 'lista', nombre: 'Garbanzos', tiendas: ['m'], gramos: 400, kcal100g: 120, precio: 0.8 }; // 600 kcal/€
-  const p = proponer([caro, barato], {}, { agua: 1, lista: 1, cocinar: 1 });
-  assert.equal(p[0].codigo, '2');
-  assert.equal(p[0].precio, 0.8);
-});
-
-test('las cadenas cercanas salen de OpenStreetMap, de más a menos tiendas', () => {
-  // Supermercados a 1,5 km del centro de Alicante (Overpass, 20/11/2026)
-  const osm = JSON.parse(readFileSync(new URL('./datos/osm-alicante.json', import.meta.url), 'utf8'));
-  const cadenas = [
-    { clave: 'mercadona', nombre: 'Mercadona' },
-    { clave: 'carrefour', nombre: 'Carrefour' },
-    { clave: 'spar', nombre: 'Spar' },
-  ];
-  const c = cadenasDeOsm(osm, cadenas);
-  assert.deepEqual(c[0], { clave: 'mercadona', nombre: 'Mercadona', tiendas: 7 });
-  // «Carrefour City» cuenta como Carrefour
-  assert.ok(c.some((x) => x.clave === 'carrefour'));
-  assert.ok(!c.some((x) => x.clave === 'carrefour-city'));
-  // Las que no se conocen salen con su nombre
-  assert.ok(c.some((x) => x.nombre === 'masymas'));
-  assert.deepEqual(cadenasDeOsm({ elements: [{ tags: {} }] }, cadenas), []);
+test('algo de la despensa sin peso aporta las kcal de su unidad y el agua de cocer que tenga', () => {
+  assert.deepEqual(aporteDe({ codigo: 'man:1', tipo: 'lista', nombre: 'Potaje', kcal: 700 }), { kcal: 700 });
+  assert.deepEqual(aporteDe({ codigo: 'man:2', tipo: 'cocinar', nombre: 'Lentejas', kcal: 3520, litrosCocer: 3 }), { kcal: 3520, litrosCocer: 3 });
+  // Con peso y kcal por 100 g manda lo de la etiqueta
+  assert.equal(aporteDe({ codigo: '1', tipo: 'lista', nombre: 'Atún', gramos: 80, kcal100g: 198 }).kcal, 158.4);
 });
 
 // ------------------------------------------------------------- Calendario

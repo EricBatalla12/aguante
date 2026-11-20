@@ -85,13 +85,13 @@ export type Compra = {
   hechas?: CompraHecha[];
   /** Día del mes (1–28) del recordatorio; sin él, no hay. */
   diaRecordatorio?: number;
-  /** Dónde compra cada uno: la etiqueta de Open Food Facts (`clave`) y el nombre. */
-  tiendas?: { clave: string; nombre: string }[];
-  /** Productos de esas tiendas elegidos para la lista (ver `Elegido` en compra.ts). */
+  /** Los productos que cada uno pone en su lista (ver `Elegido` en compra.ts). */
   elegidos?: Elegido[];
   // Antiguos, del primer plan de compra: pasan a `precios` al normalizar
   precioGarrafa?: number;
   precioBote?: number;
+  /** Antiguo (hasta el 20/11/2026): las tiendas de cada uno. Se borra al normalizar. */
+  tiendas?: unknown;
 };
 
 /** De qué avisa el móvil. El día de compra va en `compra.diaRecordatorio`. */
@@ -431,11 +431,12 @@ export const useAguante = create<Estado>()(
     }),
     {
       name: 'aguante',
-      version: 4,
+      version: 5,
       storage: createJSONStorage(() => almacen),
       // v1 no tenía el registro de lo comido; v2 no tenía energía, idioma ni
       // dónde se guarda cada producto; v3 guardaba solo dos precios en el plan
-      // de compra (garrafa y bote).
+      // de compra (garrafa y bote); v4 tenía tiendas y productos de las tiendas
+      // con su precio publicado.
       migrate: (guardado) => normalizar({ ...INICIAL, ...(guardado as Partial<Datos>) }) as Estado,
     },
   ),
@@ -458,13 +459,25 @@ function normalizar(d: Datos): Datos {
   };
 }
 
-/** Los precios del primer plan de compra (garrafa y bote) pasan a la lista de precios. */
+/**
+ * Los precios del primer plan de compra (garrafa y bote) pasan a la lista de
+ * precios. Desde que no hay tiendas (20/11/2026), los productos que se habían
+ * elegido de ellas se quedan en la lista como propios, y su precio de la
+ * tienda pasa a ser el último precio si no había otro.
+ */
 function normalizarCompra(c: Compra): Compra {
-  const { precioGarrafa, precioBote, ...resto } = c;
+  const { precioGarrafa, precioBote, tiendas: _tiendas, ...resto } = c;
   const precios = { ...resto.precios };
   if (precioGarrafa && precios.agua === undefined) precios.agua = precioGarrafa;
   if (precioBote && precios.lista === undefined) precios.lista = precioBote;
-  return { ...resto, precios, hechas: Array.isArray(resto.hechas) ? resto.hechas : [] };
+  const elegidos = (Array.isArray(resto.elegidos) ? resto.elegidos : [])
+    .filter((e) => e && typeof e.codigo === 'string' && ['agua', 'lista', 'cocinar'].includes(e.tipo))
+    .map((e) => {
+      const { tienda: _t, enlace: _e, fecha: _f, precio, ...propio } = e as Elegido & { tienda?: string; enlace?: string; fecha?: string; precio?: number };
+      if (precio && precio > 0 && precios[`prod:${e.codigo}`] === undefined) precios[`prod:${e.codigo}`] = precio;
+      return propio;
+    });
+  return { ...resto, precios, elegidos, hechas: Array.isArray(resto.hechas) ? resto.hechas : [] };
 }
 
 function normalizarEmergencia(e: Emergencia | null): Emergencia | null {

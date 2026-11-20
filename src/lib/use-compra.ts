@@ -7,9 +7,11 @@ import { DE_SERIE } from '@/constants/kit';
 import { calcular, calcularFaltante, formatoNumero, type Faltante } from './calculo';
 import {
   listaCompra,
+  necesidades,
   porReponer,
   type Articulo,
   type Dias,
+  type Necesidad,
 } from './compra';
 import { t, tn } from './i18n';
 import { useAguante } from './store';
@@ -24,6 +26,8 @@ const KIT_COMPRA = [...DE_SERIE.casa, ...DE_SERIE.botiquin].filter((k) => !KIT_F
 export type DatosCompra = {
   /** La lista, con lo que hay que reponer en los `meses` próximos meses. */
   lista: (meses: number) => Articulo[];
+  /** Lo que falta de agua (L), comida lista y para cocinar (kcal). */
+  necesidad: Necesidad;
   dias: Dias;
   falta: Faltante;
   /** Los días que aguantáis hoy en modo normal: los mismos que enseña Preparación. */
@@ -51,23 +55,24 @@ export function useDatosCompra(): DatosCompra {
     const falta = calcularFaltante(personas, mascotas, productos, objetivo, hoy, actividad);
     const kcalSinCocinar = calcular(personas, mascotas, productos, 'normal', { ...esc, sinCocina: true }, hoy).kcalTotal;
     const kitFalta = KIT_COMPRA.filter((k) => !kit[k.id]);
-    const lista = (meses: number) =>
-      listaCompra({
-        ...falta,
-        kcalDia: r.kcalDia,
-        kcalSinCocinar,
-        objetivoDias: objetivo,
-        sinCocina,
-        kit: kitFalta,
-        reponer: porReponer(productos, hoy, meses),
-      }, elegidos ?? []);
+    const entrada = (meses: number) => ({
+      ...falta,
+      kcalDia: r.kcalDia,
+      kcalSinCocinar,
+      objetivoDias: objetivo,
+      sinCocina,
+      kit: kitFalta,
+      reponer: porReponer(productos, hoy, meses),
+    });
+    const lista = (meses: number) => listaCompra(entrada(meses), elegidos ?? []);
+    const necesidad = necesidades(entrada(0), elegidos ?? []);
     const dias: Dias = {
       agua: r.diasAgua,
       comida: r.diasComida,
       porLitro: r.litrosDia > 0 ? 1 / r.litrosDia : 0,
       porKcal: r.kcalDia > 0 ? 1 / r.kcalDia : 0,
     };
-    return { lista, dias, falta, diasHoy, hoy };
+    return { lista, necesidad, dias, falta, diasHoy, hoy };
   }, [personas, mascotas, productos, objetivo, actividad, kit, sinCocina, hoy, diasHoy, elegidos]);
 }
 

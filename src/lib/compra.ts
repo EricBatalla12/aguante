@@ -43,8 +43,8 @@ export type Aporte = { litros?: number; kcal?: number; litrosCocer?: number };
 export type Articulo = {
   /**
    * Para recordar el precio: 'agua', 'lista', 'cocinar', 'mascotas',
-   * 'kit:<id>', 'reponer:<id del producto>' o 'prod:<código de barras>' (un
-   * producto concreto de las tiendas de cada uno).
+   * 'kit:<id>', 'reponer:<id del producto>' o 'prod:<id>' (un producto de la
+   * lista de cada uno; su id es el código de barras si lo tiene).
    */
   clave: string;
   categoria: CategoriaCompra;
@@ -53,45 +53,60 @@ export type Articulo = {
   nombre?: string;
   /** Reponer: mes en que caduca (0 = este mes). Se compra ese mes, no antes. */
   mes?: number;
-  /** Reponer: el producto de la despensa; kit: el elemento; producto: su código. */
+  /** Reponer: el producto de la despensa; kit: el elemento; producto: su id. */
   id?: string;
   /** Agua, comida y arroz: lo que da cada unidad (para saber cuántos días suma). */
   aporte?: Aporte;
 };
 
 /** Lo que da cada unidad de referencia: garrafa, bote y paquete de arroz. */
-export const APORTE_REFERENCIA: Record<'agua' | 'lista' | 'cocinar', Aporte> = {
+export const APORTE_REFERENCIA: Record<TipoLista, Aporte> = {
   agua: { litros: LITROS_GARRAFA },
   lista: { kcal: KCAL_BOTE },
   cocinar: { kcal: KCAL_PAQUETE, litrosCocer: LITROS_COCER_PAQUETE },
 };
 
 /**
- * Un producto de las tiendas de cada uno elegido para la lista. Sin
- * `unidades`, la app reparte lo que falta entre los elegidos de su tipo; con
- * `unidades`, las ha fijado la persona.
+ * Un producto que cada uno pone en su lista (escaneado, de su despensa, de los
+ * valores típicos o escrito a mano). Sin `unidades`, la app reparte lo que
+ * falta entre los de su tipo; con `unidades`, las ha fijado la persona.
  */
 export type Elegido = {
+  /** El código de barras si lo tiene (así se reconoce al escanearlo); si no, `man:<id>`. */
   codigo: string;
-  tipo: 'agua' | 'lista' | 'cocinar';
+  tipo: TipoLista;
   nombre: string;
   marca?: string;
-  tienda?: string;
   gramos?: number;
   litros?: number;
   kcal100g?: number;
+  /** Kcal de una unidad, si no se sabe el peso (algo de la despensa apuntado sin etiqueta). */
+  kcal?: number;
+  /** Agua para cocer una unidad, si se sabe (de la despensa); si no, sale del peso. */
+  litrosCocer?: number;
   unidades?: number;
-  /** El precio publicado por la tienda (si lo hay), su enlace y de cuándo es. */
-  precio?: number;
-  enlace?: string;
-  fecha?: string;
+  /** Lo que quiera apuntarse: «la de 8 L», «la del súper de abajo». */
+  nota?: string;
 };
 
-/** Lo que da una unidad de un producto elegido. El arroz gasta agua al cocerlo, en proporción a su peso. */
+/** Los tipos de la lista que dan días: agua, comida lista para comer y para cocinar. */
+export type TipoLista = 'agua' | 'lista' | 'cocinar';
+
+/** ¿Es un código de barras de verdad (y no el id de algo escrito a mano)? */
+export const esCodigoBarras = (codigo?: string) => /^\d{6,14}$/.test(codigo ?? '');
+
+/** A qué tipo de la lista va un producto de la despensa. Null si no es agua ni comida. */
+export function tipoDe(p: { categoria: string; necesitaCocinar?: boolean }): TipoLista | null {
+  if (p.categoria === 'agua') return 'agua';
+  if (p.categoria !== 'comida') return null;
+  return p.necesitaCocinar ? 'cocinar' : 'lista';
+}
+
+/** Lo que da una unidad de un producto de la lista. El arroz gasta agua al cocerlo, en proporción a su peso. */
 export function aporteDe(e: Elegido): Aporte {
   if (e.tipo === 'agua') return { litros: e.litros ?? 0 };
-  const kcal = ((e.gramos ?? 0) * (e.kcal100g ?? 0)) / 100;
-  return e.tipo === 'cocinar' ? { kcal, litrosCocer: ((e.gramos ?? 0) / 1000) * LITROS_COCER_PAQUETE } : { kcal };
+  const kcal = e.kcal ?? ((e.gramos ?? 0) * (e.kcal100g ?? 0)) / 100;
+  return e.tipo === 'cocinar' ? { kcal, litrosCocer: e.litrosCocer ?? ((e.gramos ?? 0) / 1000) * LITROS_COCER_PAQUETE } : { kcal };
 }
 
 export type EntradaLista = {
@@ -110,16 +125,28 @@ export type EntradaLista = {
   reponer: { id: string; nombre: string; unidades: number; mes: number }[];
 };
 
+/** Lo que falta de cada tipo: litros de agua (con la de cocer lo que se compra) y kcal. */
+export type Necesidad = Record<TipoLista, number>;
+
 /**
- * Qué hay que comprar para llegar al objetivo. Con productos elegidos de las
- * tiendas, la necesidad de su tipo se cubre con ellos; lo que no cubran (o
- * todo, sin elegidos) va en unidades de referencia.
+ * Qué hay que comprar para llegar al objetivo. Con productos en la lista de
+ * cada uno, la necesidad de su tipo se cubre con ellos; lo que no cubran (o
+ * todo, si no hay ninguno) va en unidades de referencia.
  */
 export function listaCompra(e: EntradaLista, elegidos: Elegido[] = []): Articulo[] {
+  return calcularLista(e, elegidos).articulos;
+}
+
+/** Lo que falta de agua, comida lista y comida para cocinar, para enseñarlo encima de cada parte de la lista. */
+export function necesidades(e: EntradaLista, elegidos: Elegido[] = []): Necesidad {
+  return calcularLista(e, elegidos).necesidad;
+}
+
+function calcularLista(e: EntradaLista, elegidos: Elegido[]): { articulos: Articulo[]; necesidad: Necesidad } {
   const kcalListaObjetivo = e.sinCocina ? Infinity : Math.min(e.objetivoDias, DIAS_SIN_COCINAR) * e.kcalDia;
   const faltaLista = Math.min(e.faltanKcal, Math.max(0, kcalListaObjetivo - e.kcalSinCocinar));
   const faltaCocinar = Math.max(0, e.faltanKcal - faltaLista);
-  // Sin cocina no se propone nada que haya que cocinar, aunque esté elegido
+  // Sin cocina no se propone nada que haya que cocinar, aunque esté en la lista
   const usables = e.sinCocina ? elegidos.filter((x) => x.tipo !== 'cocinar') : elegidos;
   const lista = cubrir('lista', faltaLista, usables);
   const cocinar = cubrir('cocinar', faltaCocinar, usables);
@@ -128,7 +155,8 @@ export function listaCompra(e: EntradaLista, elegidos: Elegido[] = []): Articulo
     (s, a) => s + a.unidades * (a.aporte?.litrosCocer ?? 0),
     0,
   );
-  const agua = cubrir('agua', e.faltanLitros + litrosCocer, usables);
+  const faltaAgua = e.faltanLitros + litrosCocer;
+  const agua = cubrir('agua', faltaAgua, usables);
   const salida: Articulo[] = [
     ...e.reponer.map(
       (r): Articulo => ({ clave: `reponer:${r.id}`, categoria: 'reponer', unidades: r.unidades, nombre: r.nombre, mes: r.mes, id: r.id }),
@@ -143,17 +171,20 @@ export function listaCompra(e: EntradaLista, elegidos: Elegido[] = []): Articulo
     { clave: 'mascotas', categoria: 'mascotas', unidades: e.faltanKcalMascotas > 0 ? 1 : 0 },
     ...e.kit.map((k): Articulo => ({ clave: `kit:${k.id}`, categoria: 'kit', unidades: 1, nombre: k.que, id: k.id })),
   ];
-  return salida.filter((a) => a.unidades > 0);
+  return {
+    articulos: salida.filter((a) => a.unidades > 0),
+    necesidad: { agua: faltaAgua, lista: faltaLista, cocinar: e.sinCocina ? 0 : faltaCocinar },
+  };
 }
 
 /**
- * Cubre `necesidad` (kcal o litros) con los elegidos de ese tipo. Primero
+ * Cubre `necesidad` (kcal o litros) con los productos de la lista de ese tipo. Primero
  * cuentan los que tienen las unidades fijadas; lo que falte se reparte de una
  * en una entre los demás, al que menos lleve, para que haya variedad. Si no
  * queda ninguno sin fijar, lo que falte va en unidades de referencia.
  */
 function cubrir(
-  tipo: 'agua' | 'lista' | 'cocinar',
+  tipo: TipoLista,
   necesidad: number,
   elegidos: Elegido[],
 ): { articulos: Articulo[]; referencia: Articulo } {
@@ -191,84 +222,6 @@ function cubrir(
   };
 }
 
-/**
- * Propone qué productos de las tiendas elegir: para la comida lista para
- * comer, cuatro distintos (variedad); para el arroz y el agua, uno.
- * - Con precio, va antes lo que más da por euro.
- * - Sin precio, [propio]: de los 40 más escaneados (que es más fácil que
- *   estén en la tienda), primero lo que más energía tiene por 100 g, y sin
- *   repetir familia (la primera palabra: un atún, una sardina, una fabada…).
- *   En el agua, la garrafa más grande (menos envases que guardar).
- */
-export function proponer(
-  catalogo: { codigo: string; tipo: 'agua' | 'lista' | 'cocinar'; nombre: string; marca?: string; tiendas: string[]; gramos?: number; litros?: number; kcal100g?: number; precio?: number; enlace?: string; fecha?: string }[],
-  precios: Record<string, number> = {},
-  cuantos: Record<'agua' | 'lista' | 'cocinar', number> = { agua: 1, lista: 4, cocinar: 1 },
-): Elegido[] {
-  const salida: Elegido[] = [];
-  for (const tipo of ['agua', 'lista', 'cocinar'] as const) {
-    const todos = catalogo
-      .filter((p) => p.tipo === tipo)
-      .map((p, orden): { e: Elegido; orden: number } => ({
-        e: {
-          codigo: p.codigo,
-          tipo,
-          nombre: p.nombre,
-          marca: p.marca,
-          tienda: p.tiendas[0],
-          gramos: p.gramos,
-          litros: p.litros,
-          kcal100g: p.kcal100g,
-          precio: p.precio,
-          enlace: p.enlace,
-          fecha: p.fecha,
-        },
-        orden,
-      }));
-    const rinde = (x: Elegido) => {
-      // El que ha puesto la persona manda sobre el de la tienda
-      const precio = precios[`prod:${x.codigo}`] ?? x.precio ?? 0;
-      const a = aporteDe(x);
-      const cantidad = tipo === 'agua' ? (a.litros ?? 0) : (a.kcal ?? 0);
-      return precio > 0 ? cantidad / precio : undefined;
-    };
-    const conPrecio = todos.filter((c) => rinde(c.e) !== undefined).sort((a, b) => (rinde(b.e) ?? 0) - (rinde(a.e) ?? 0));
-    const sinPrecio = todos
-      .filter((c) => rinde(c.e) === undefined && c.orden < 40)
-      .sort((a, b) =>
-        tipo === 'agua'
-          ? (b.e.litros ?? 0) - (a.e.litros ?? 0) || a.orden - b.orden
-          : (b.e.kcal100g ?? 0) - (a.e.kcal100g ?? 0) || a.orden - b.orden,
-      );
-    const familias = new Set<string>();
-    for (const c of [...conPrecio, ...sinPrecio]) {
-      if (salida.filter((x) => x.tipo === tipo).length >= cuantos[tipo]) break;
-      const familia = familiaDe(c.e.nombre);
-      if (familias.has(familia)) continue;
-      familias.add(familia);
-      salida.push(c.e);
-    }
-  }
-  return salida;
-}
-
-/** «Atún claro en aceite» → «atun»: para no proponer cuatro latas de lo mismo. */
-function familiaDe(nombre: string): string {
-  return (
-    nombre
-      .toLowerCase()
-      .normalize('NFD')
-      .replace(/[\u0300-\u036f]/g, '')
-      .match(/[a-z]+/)?.[0] ?? nombre
-  );
-}
-
-/** Los precios que valen para el plan: los de la tienda, y encima los que ha puesto cada uno. */
-export function preciosConTienda(precios: Record<string, number>, elegidos: Elegido[]): Record<string, number> {
-  const deTienda = Object.fromEntries(elegidos.filter((e) => (e.precio ?? 0) > 0).map((e) => [`prod:${e.codigo}`, e.precio as number]));
-  return { ...deTienda, ...precios };
-}
-
 /** Quita los ceros de delante: un mismo código se lee con ellos o sin ellos según el lector. */
 const sinCeros = (c: string) => c.trim().replace(/^0+/, '');
 
@@ -286,8 +239,7 @@ export function lineaDe(
     const a = articulos.find((x) => x.clave.startsWith('prod:') && sinCeros(x.id ?? '') === sinCeros(p.codigo ?? ''));
     if (a) return { clave: a.clave, exacto: true };
   }
-  const tipo =
-    p.categoria === 'agua' ? 'agua' : p.categoria === 'mascota' ? 'mascotas' : p.necesitaCocinar ? 'cocinar' : 'lista';
+  const tipo = p.categoria === 'mascota' ? 'mascotas' : (tipoDe(p) ?? 'lista');
   const a = articulos.find((x) => x.categoria === tipo);
   return a ? { clave: a.clave, exacto: false } : null;
 }

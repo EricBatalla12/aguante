@@ -61,7 +61,7 @@ export default function Preparacion() {
   const articulos = listaCompra(MESES_REPONER);
   const deCocinar = articulos.filter((a) => a.categoria === 'cocinar');
   const litrosCocer = deCocinar.reduce((s, a) => s + a.unidades * (a.aporte?.litrosCocer ?? 0), 0);
-  // Con productos de las tiendas puede haber varias líneas de un tipo: la explicación va solo en la primera
+  // Con productos propios en la lista puede haber varias líneas de un tipo: la explicación va solo en la primera
   const primeras = new Set(['agua', 'lista', 'cocinar', 'mascotas'].map((c) => articulos.find((a) => a.categoria === c)?.clave));
   const lista = articulos.flatMap((a): { que: string; por: string; icono: NombreIcono }[] => {
     const linea = (icono: NombreIcono, que: string, por: string) => [{ icono, que, por: primeras.has(a.clave) ? por : '' }];
