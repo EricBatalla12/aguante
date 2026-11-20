@@ -55,5 +55,6 @@
     "publicar": "npx --yes eas-cli@latest update --channel preview --environment preview --platform android",
     "sitio": "tsc --ignoreConfig src/lib/calculo.ts src/constants/genericos.ts --outDir web/js --rootDir src --target es2022 --module es2022 --skipLibCheck"
   },
-  "private": true
+  "private": true,
+  "license": "SEE LICENSE IN LICENSE"
 }

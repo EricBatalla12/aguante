@@ -98,3 +98,10 @@ npx eslint .      # lint
 - `src/constants/fuentes.ts`: lo que enseña la pantalla «Fuentes y método».
   Hay que mantenerlo a la par con `docs/fuentes-y-reglas.md`.
 - `src/app/`: las pantallas (Expo Router).
+
+## Licencia
+
+[PolyForm Strict 1.0.0](LICENSE): el código se puede leer, estudiar y probar
+para uso personal y sin ánimo de lucro, pero no distribuir (ni copias, ni
+versiones modificadas, ni en una tienda de apps) ni usar para ganar dinero.
+Para otra cosa, hay que pedir permiso.
