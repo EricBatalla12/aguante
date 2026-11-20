@@ -178,10 +178,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   datos cargados a mano y la descarga desde Node). **Ya en el móvil de Eric**
   (18/11/2026, 16:40: Ajustes enseña la actualización `01a1ef48`), pero falta
   que pruebe el tutorial nuevo y la pantalla de avisos con su provincia.
-- Última actualización publicada: grupo `b6534754` (en la app, `01a1f990`;
-  elegir notificaciones y aviso de app no oficial, commit `5cc375f`), canal
-  `preview`, runtime 1.0.0, el 20/11/2026. Sin confirmar que le haya llegado
-  al móvil de Eric. Las anteriores: `6bde7b32` (en la app `01a1f98c`; plan
+- Última actualización publicada: grupo `fff77e3f` (en la app, `01a1f9b1`;
+  productos de tus tiendas en el plan, escáner que apunta lo comprado y
+  PKCE, commit `c1ea39c`), canal `preview`, runtime 1.0.0, el 20/11/2026.
+  Sin confirmar que le haya llegado al móvil de Eric. Las anteriores:
+  `b6534754` (en la app `01a1f990`; elegir notificaciones), `6bde7b32` (en la app `01a1f98c`; plan
   de compra), `baa21b36` (en la app `01a1f97a`; sin el trueque), `107efbb6` (en la app `01a1efb8`; Actualidad con AESAN, AEMPS,
   Copernicus y filtro por tipo), `078c8705` (en la app `01a1ef9f`; pestaña
   Actualidad), `c895fffd`
@@ -227,6 +228,13 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
      el plan es de cada móvil (ver `docs/pendiente.md`).
    - Los precios los pone el usuario (no hay fuente fiable de precios medios:
      no inventarlos); recordar el último precio de cada cosa.
+   Ese mismo día, publicado (grupo `fff77e3f`, en la app `01a1f9b1`): tus
+   tiendas en el plan (productos de Open Food Facts por cadena, lista
+   propuesta y modificable, el escáner apunta lo comprado; `src/lib/catalogo.ts`,
+   `src/lib/tiendas.ts`) y PKCE al entrar con Google. La API de la tienda
+   online de Mercadona se miró y se descartó (`docs/pendiente.md`). Lo que
+   falta para publicar en Play, por orden: `docs/pendiente.md`, «Para subir a
+   Google Play».
    También el 20/11/2026, a petición de Eric y publicado (grupo `b6534754`,
    en la app `01a1f990`): elegir en Ajustes de qué notifica la app y el aviso
    de «app no oficial» en Actualidad (ver

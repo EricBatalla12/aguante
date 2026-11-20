@@ -81,8 +81,32 @@ Lo que ya está: `targetSdk` 36 (Google lo pide a las apps nuevas desde el
 página de borrar la cuenta publicadas, borrar la cuenta dentro de la app, y
 el perfil `production` de EAS genera el AAB.
 
-Lo que falta:
+Lo que falta, por orden (repasado el 20/11/2026):
 
+- **Pantalla de consentimiento de Google en «Prueba»**: así solo pueden
+  entrar con Google hasta 100 usuarios de prueba apuntados a mano, y su
+  autorización caduca a los 7 días. Hay que publicarla (ya existen la página
+  principal y la de privacidad). Fuente: Google, «Manage App Audience».
+- **Correo de los códigos con el Gmail personal de Eric**: los usuarios ven
+  esa dirección y Gmail no está pensado para envíos de una app. Pasar a un
+  proveedor de correo con un dominio propio.
+- **Supabase gratis** pausa el proyecto tras 7 días de poca actividad (avisa
+  por correo una semana antes). Con usuarios reales es difícil que pase, pero
+  si pasa dejan de ir las cuentas y las casas compartidas.
+- **Compilación para Play**: perfil `production` (AAB y canal `production`).
+  Es una compilación nativa nueva: antes, poner al día los parches de Expo
+  (`npx expo install --fix`; hoy `expo-doctor` falla por eso) y subir
+  `version` en `app.json`. Desde entonces, cada actualización se publica en
+  los dos canales (`preview` para el APK de Eric, `production` para Play).
+- **Donaciones en Play**: Google no deja enlazar a PayPal desde una app de
+  Play. Ocultar «Apoyar Aguante» cuando el canal de la compilación sea
+  `production` (`Updates.channel`), sin tocar el APK.
+- **Probar en el móvil** lo que solo está probado en la web: tutorial,
+  Actualidad con tu provincia, plan de compra y tiendas, notificaciones
+  (caducidad y día de compra) y entrar con Google con PKCE.
+- **Seguridad**: verificación en dos pasos en Expo, GitHub, Google y
+  Supabase; cambiar la contraseña de aplicación de Gmail y el secreto de
+  Google, y borrar el JSON del secreto de `~/Descargas`.
 - Cuenta de desarrollador (25 $, una vez) con verificación de identidad.
   Las cuentas personales nuevas tienen que pasar una prueba cerrada con al
   menos 12 personas durante 14 días seguidos antes de pedir producción.
@@ -186,6 +210,14 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
 - **Precios**: no hay fuente. Open Prices no tenía ninguna de 20 conservas de
   Mercadona en España (mirado el 20/11/2026): los pone cada uno y se recuerda
   el último por producto.
+- **¿Y la tienda online de Mercadona?** (mirado el 20/11/2026) Su API
+  (`tienda.mercadona.es/api/…`) responde sin sesión, pero su `robots.txt`
+  prohíbe `/api` a los programas, no es una API pública ni documentada, el
+  precio depende del almacén (código postal) y una app publicada la llamaría
+  desde miles de móviles. Además, sacar una parte sustancial de una base de
+  datos ajena choca con el derecho «sui generis» de la UE (Directiva 96/9/CE).
+  Decisión recomendada: no usarla. Alternativas: pedir permiso a Mercadona o
+  poner un enlace para que cada uno mire el precio en la web de su tienda.
 - **Escanear**: al añadir a la despensa un producto que está en la lista (por
   código de barras), sale encendido «Lo he comprado para el plan de compra»
   con su último precio, y al guardar se apunta. Si solo coincide el tipo
