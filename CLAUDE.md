@@ -242,8 +242,10 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
      con fuentes oficiales, como en `docs/fuentes-y-reglas.md`).
    - Varias casas (la del pueblo, la de los padres) e informe en PDF.
    - Avisos rojos con la app cerrada y widget con los días: **APK nuevo**.
-3. **Aguante Plus** (detalle y fuentes en `docs/pendiente.md`, «Monetizar»):
-   1,99 €/mes o 14,99 €/año; los 7 primeros días desde que se instala todo
+3. **Aguante Plus: DESCARTADO por Eric el 20/11/2026** («de cobrar nos
+   olvidamos, nos quedamos con las donaciones»). No hacer nada de esto salvo
+   que lo vuelva a pedir; el código de Pro sigue apagado con `PRO_ACTIVO`.
+   Lo que se había aprobado: 1,99 €/mes o 14,99 €/año; los 7 primeros días desde que se instala todo
    abierto sin tarjeta y después se capa. Gratis siempre: días, despensa y
    escáner, hogar, modos, modo emergencia, kit, fuentes, casa compartida y los
    **avisos de AEMET en vigor** (no cobrar por avisos de seguridad). Plus: plan
@@ -290,6 +292,11 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
   20/11/2026 y ya está publicado (ver arriba).
 
 ## Pendiente fuera del código
+
+- **Verificación en dos pasos** en las cuentas de Expo (`eric_161`), GitHub,
+  Google y Supabase: con la de Expo se puede mandar código a todos los móviles
+  por EAS Update. Recomendado el 20/11/2026; desde aquí no se puede comprobar.
+- Probar «Entrar con Google» en el móvil tras el cambio a PKCE (20/11/2026).
 
 - Poner la web en Google Cloud (pantalla de consentimiento de OAuth del
   proyecto «Aguante»): página principal https://ericbatalla12.github.io/aguante/

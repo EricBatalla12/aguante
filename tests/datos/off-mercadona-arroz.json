@@ -1,0 +1,176 @@
+{
+"count": 10,
+"products": [
+{
+"code": "8480000050090",
+"product_name": "Arroz cocido basmati",
+"product_name_es": "Arroz cocido basmati",
+"brands": "Hacendado",
+"product_quantity": 250,
+"product_quantity_unit": "g",
+"quantity": "250 g (2 x 125 g)",
+"categories_tags": [
+"en:meals",
+"en:rices",
+"en:aromatic-rices",
+"en:indica-rices",
+"en:long-grain-rices",
+"en:microwave-meals",
+"en:basmati-rices",
+"en:plant-based-meals",
+"en:precooked-rices",
+"en:prepared-rices"
+],
+"nutriments": {
+"energy-kcal_100g": 147.3
+}
+},
+{
+"code": "8480000050120",
+"product_name": "Arroz aromático jazmín",
+"product_name_es": "Arroz aromático jazmín",
+"brands": "Hacendado",
+"product_quantity": 1000,
+"product_quantity_unit": "g",
+"quantity": "1 kg",
+"categories_tags": [
+"en:rices",
+"en:aromatic-rices",
+"en:indica-rices",
+"en:long-grain-rices",
+"en:jasmine-rice"
+],
+"nutriments": {
+"energy-kcal_100g": 344
+}
+},
+{
+"code": "8480000050168",
+"product_name": "Arroz especial ensaladas y guarnición",
+"product_name_es": "Arroz especial ensaladas y guarnición",
+"brands": "Hacendado",
+"product_quantity": 1000,
+"product_quantity_unit": "g",
+"quantity": "1 kg",
+"categories_tags": [
+"en:rices",
+"en:long-grain-rices",
+"en:mixed-rices"
+],
+"nutriments": {
+"energy-kcal_100g": 343
+}
+},
+{
+"code": "8480000050182",
+"product_name": "Arroz especial sushi",
+"product_name_es": "Arroz especial sushi",
+"brands": "Hacendado",
+"product_quantity": 1000,
+"product_quantity_unit": "g",
+"quantity": "1 Kg",
+"categories_tags": [
+"en:meals",
+"en:rices",
+"en:sushi-rice"
+],
+"nutriments": {
+"energy-kcal_100g": 345.8
+}
+},
+{
+"code": "8480000050649",
+"product_name": "Arroz Largo",
+"product_name_es": "Arroz Largo",
+"brands": "Hacendado",
+"product_quantity": 2,
+"product_quantity_unit": "g",
+"quantity": "2 g",
+"categories_tags": [
+"en:rices"
+],
+"nutriments": {
+"energy-kcal_100g": 345
+}
+},
+{
+"code": "8480000501547",
+"product_name": "Arroz redondo",
+"product_name_es": "Arroz redondo",
+"brands": "Hacendado",
+"categories_tags": [
+"en:rices",
+"en:short-grain-rices"
+],
+"nutriments": {
+"energy-kcal_100g": 347
+}
+},
+{
+"code": "8480000050373",
+"product_name": "Arroz especial sushi",
+"product_name_es": "Arroz especial sushi",
+"brands": "Hacendado",
+"product_quantity": 500,
+"product_quantity_unit": "g",
+"quantity": "500 g",
+"categories_tags": [
+"en:rices",
+"en:sushi-rice"
+],
+"nutriments": {
+"energy-kcal_100g": 344
+}
+},
+{
+"code": "8480000042613",
+"product_name": "Risotto de setas",
+"product_name_es": "Risotto de setas",
+"brands": "Hacendado",
+"product_quantity": 280,
+"product_quantity_unit": "g",
+"quantity": "280 g",
+"categories_tags": [
+"en:rices"
+],
+"nutriments": {
+"energy-kcal_100g": 213
+}
+},
+{
+"code": "8480000050304",
+"product_name": "Arroz redondo vaporizado",
+"product_name_es": "Arroz redondo vaporizado",
+"brands": "Hacendado",
+"product_quantity": 1000,
+"product_quantity_unit": "g",
+"quantity": "1 kg",
+"categories_tags": [
+"en:rices",
+"en:long-grain-rices",
+"en:parboiled-rices",
+"en:white-rices"
+],
+"nutriments": {
+"energy-kcal_100g": 344.9
+}
+},
+{
+"code": "8410184017190",
+"product_name": "Arroz Brillante Sabroz",
+"product_name_es": "Arroz Brillante Sabroz",
+"brands": "Brillante",
+"product_quantity": 1000,
+"product_quantity_unit": "g",
+"quantity": "1 kg",
+"categories_tags": [
+"en:rices",
+"en:white-rices",
+"en:short-grain-rices"
+],
+"nutriments": {
+"energy-kcal_100g": 348
+}
+}
+]
+}

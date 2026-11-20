@@ -5,7 +5,7 @@ import { Pressable, View } from 'react-native';
 import { Hueco } from '@/components/tutorial';
 import { Barra, Boton, Campo, CampoFecha, FilaEnlace, Icono, Pantalla, type NombreIcono, Pastilla, Segmentado, Seccion, Tarjeta, Texto, Titulo } from '@/components/ui';
 import { aguaBeber, aguaMascota, estadoCaducidad, formatoNumero } from '@/lib/calculo';
-import { LITROS_COCER_PAQUETE, MESES_REPONER } from '@/lib/compra';
+import { MESES_REPONER } from '@/lib/compra';
 import { describir, useDatosCompra } from '@/lib/use-compra';
 import { componerFecha, FECHA_VACIA } from '@/lib/fechas';
 import { coloresCaducidad, textoCaducidad } from '@/lib/formato';
@@ -59,37 +59,25 @@ export default function Preparacion() {
 
   // La misma lista que el plan de compra, sin el kit ni las reposiciones (tienen su sitio aquí abajo)
   const articulos = listaCompra(MESES_REPONER);
-  const paquetes = articulos.find((a) => a.categoria === 'cocinar')?.unidades ?? 0;
+  const deCocinar = articulos.filter((a) => a.categoria === 'cocinar');
+  const litrosCocer = deCocinar.reduce((s, a) => s + a.unidades * (a.aporte?.litrosCocer ?? 0), 0);
+  // Con productos de las tiendas puede haber varias líneas de un tipo: la explicación va solo en la primera
+  const primeras = new Set(['agua', 'lista', 'cocinar', 'mascotas'].map((c) => articulos.find((a) => a.categoria === c)?.clave));
   const lista = articulos.flatMap((a): { que: string; por: string; icono: NombreIcono }[] => {
+    const linea = (icono: NombreIcono, que: string, por: string) => [{ icono, que, por: primeras.has(a.clave) ? por : '' }];
     switch (a.categoria) {
       case 'agua':
-        return [
-          {
-            icono: 'water-outline',
-            que: describir(a),
-            por: t('Faltan {l} L, contando el agua para cocinar', {
-              l: formatoNumero(falta.faltanLitros + paquetes * LITROS_COCER_PAQUETE, 1),
-            }),
-          },
-        ];
+        return linea('water-outline', describir(a), t('Faltan {l} L, contando el agua para cocinar', { l: formatoNumero(falta.faltanLitros + litrosCocer, 1) }));
       case 'lista':
-        return [
-          {
-            icono: 'food-variant',
-            que: describir(a),
-            por: paquetes > 0 ? t('Para los 3 primeros días, sin tener que cocinar') : t('O cualquier comida que no haya que cocinar'),
-          },
-        ];
+        return linea(
+          'food-variant',
+          describir(a),
+          deCocinar.length > 0 ? t('Para los 3 primeros días, sin tener que cocinar') : t('O cualquier comida que no haya que cocinar'),
+        );
       case 'cocinar':
-        return [{ icono: 'pot-steam-outline', que: describir(a), por: t('Para el resto de días. O pasta, o legumbre seca') }];
+        return linea('pot-steam-outline', describir(a), t('Para el resto de días. O pasta, o legumbre seca'));
       case 'mascotas':
-        return [
-          {
-            icono: 'paw',
-            que: t('Comida para las mascotas'),
-            por: t('Faltan ≈ {kcal} kcal', { kcal: formatoNumero(Math.ceil(falta.faltanKcalMascotas / 100) * 100) }),
-          },
-        ];
+        return linea('paw', t('Comida para las mascotas'), t('Faltan ≈ {kcal} kcal', { kcal: formatoNumero(Math.ceil(falta.faltanKcalMascotas / 100) * 100) }));
       default:
         return [];
     }
@@ -139,9 +127,11 @@ export default function Preparacion() {
                     <Icono name={l.icono} color={C.suave} />
                     <View style={{ flex: 1 }}>
                       <Texto peso="600">{l.que}</Texto>
-                      <Texto tam={12} color={C.suave}>
-                        {l.por}
-                      </Texto>
+                      {l.por !== '' && (
+                        <Texto tam={12} color={C.suave}>
+                          {l.por}
+                        </Texto>
+                      )}
                     </View>
                   </View>
                 ))}

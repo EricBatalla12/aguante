@@ -1,0 +1,425 @@
+{
+"count": 117,
+"hits": [
+{
+"code": "20639228",
+"brands": [
+"Nixe"
+],
+"quantity": "115 g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-mussels"
+],
+"nutriments": {
+"energy-kcal_100g": 163
+},
+"product_name": "Mejillones",
+"product_name_es": "Mejillones"
+},
+{
+"code": "20578237",
+"brands": [
+"Baresa"
+],
+"quantity": "350 g (neto), 150 + 30 g (escurrido)",
+"categories_tags": [
+"en:canned-foods"
+],
+"nutriments": {},
+"product_name": "Aceitunas verdes rellenas de pimiento",
+"product_name_es": "Aceitunas verdes rellenas de pimiento"
+},
+{
+"code": "20495558",
+"brands": [
+"Deluxe"
+],
+"quantity": "530 g - neto, 325 g - escurrido, 580 ml",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 18
+},
+"product_name": "Esparragos de Navarra",
+"product_name_es": "Esparragos de Navarra"
+},
+{
+"code": "20991500",
+"brands": [
+"Italiamo"
+],
+"quantity": "150 g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 104
+},
+"product_name": "Couri di carciofo marinati",
+"product_name_es": "Artichoke Hearts in a Herb Marinade"
+},
+{
+"code": "20555580",
+"brands": [
+"Campo Largo"
+],
+"quantity": "660 g (neto), 425 g (escurrido), 720 ml",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-legumes"
+],
+"nutriments": {},
+"product_name": "Bio alubia blanca",
+"product_name_es": "Bio alubia blanca"
+},
+{
+"code": "20450724",
+"brands": [
+"Freshona"
+],
+"quantity": "780g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 21
+},
+"product_name": "Tomate pelado entero",
+"product_name_es": "Tomate pelado entero"
+},
+{
+"code": "4056489268581",
+"brands": [
+"Nixe",
+"Lidl"
+],
+"quantity": "2 x 125 g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-fishes",
+"en:canned-sardines"
+],
+"nutriments": {
+"energy-kcal_100g": 317
+},
+"product_name": "Sardinas en aceite de oliva",
+"product_name_es": "Sardinas en aceite de oliva"
+},
+{
+"code": "4056489294832",
+"brands": [
+"Nixe"
+],
+"quantity": "210 g (3 x 70 g)",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-fishes",
+"en:canned-tunas"
+],
+"nutriments": {
+"energy-kcal_100g": 370
+},
+"product_name": "Atún Claro en aceite de Oliva",
+"product_name_es": "Atún Claro en aceite de Oliva"
+},
+{
+"code": "20041656",
+"brands": [
+"Nixe",
+"Lidl"
+],
+"quantity": "73 g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-fishes",
+"en:canned-tunas"
+],
+"nutriments": {
+"energy-kcal_100g": 180
+},
+"product_name": "Bonito del Norte en Aceite de Oliva",
+"product_name_es": "Bonito del Norte en Aceite de Oliva"
+},
+{
+"code": "4056489143963",
+"brands": [
+"Nixe"
+],
+"categories_tags": [
+"en:canned-foods",
+"en:canned-fishes",
+"en:canned-tunas"
+],
+"nutriments": {
+"energy-kcal_100g": 198
+},
+"product_name": "Atún claro en aceite de girasol",
+"product_name_es": "Atún claro en aceite de girasol"
+},
+{
+"code": "20496302",
+"brands": [
+"Deluxe",
+" Baresa"
+],
+"quantity": "140g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 32
+},
+"product_name": "Paprikamark",
+"product_name_es": "Paprikamark"
+},
+{
+"code": "4056489369004",
+"brands": [
+"Deluxe"
+],
+"quantity": "100 g",
+"categories_tags": [
+"en:canned-foods"
+],
+"nutriments": {
+"energy-kcal_100g": 89
+},
+"product_name": "Oeufs de lompe",
+"product_name_es": "Huevas de lumpo"
+},
+{
+"code": "20153120",
+"brands": [
+"Freshona"
+],
+"quantity": "330 g neto, 160 g escurrido, 370 ml",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {},
+"product_name": "Gurken _Cornichons",
+"product_name_es": "Pepinillos agridulces"
+},
+{
+"code": "20517113",
+"brands": [
+"VitAsia",
+"Lidl"
+],
+"quantity": "310g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 13
+},
+"product_name": "wok gemüse chinesisch",
+"product_name_es": "Mezcla de brotes de judía, bambú, col, castañas y zanahoria"
+},
+{
+"code": "8421251925379",
+"brands": [
+"Tesoros del Norte"
+],
+"quantity": "300 g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 25
+},
+"product_name": "Piparras en vinagre",
+"product_name_es": "Piparras en vinagre"
+},
+{
+"code": "20196301",
+"brands": [
+"Freshona"
+],
+"quantity": "190g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 36
+},
+"product_name": "Cornichons",
+"product_name_es": "Cornichons"
+},
+{
+"code": "8410090051370",
+"brands": [
+"Calvo"
+],
+"quantity": "4x52g escurrido 4x65g neto",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-fishes",
+"en:canned-tunas"
+],
+"nutriments": {
+"energy-kcal_100g": 265
+},
+"product_name": "Atún claro en aceite de oliva",
+"product_name_es": "Atún claro en aceite de oliva"
+},
+{
+"code": "20484804",
+"brands": [
+"El Tequito",
+"Freshona"
+],
+"quantity": "350 g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 12
+},
+"product_name": "Jalapeños",
+"product_name_es": "Jalapeños picantes"
+},
+{
+"code": "20829520",
+"brands": [
+"Freshona",
+"Lidl"
+],
+"quantity": "pcs",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-fruits"
+],
+"nutriments": {
+"energy-kcal_100g": 56
+},
+"product_name": "Ananas Scheiben",
+"product_name_es": "Rodajas de piña en su jugo"
+},
+{
+"code": "20198077",
+"brands": [
+"Italiamo",
+"lidl Italiamo"
+],
+"quantity": "400g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 40
+},
+"product_name": "Polpa di pomodoro con cipolla e aglio"
+},
+{
+"code": "20386139",
+"brands": [
+"Deluxe"
+],
+"quantity": "280 g neto, 170 g escurrido, 310 ml",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 20
+},
+"product_name": "Setas nameko",
+"product_name_es": "Setas nameko"
+},
+{
+"code": "20004354",
+"brands": [
+"Freshona",
+" Sweet"
+],
+"quantity": "850 g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 35
+},
+"product_name": "Csemegeuborka"
+},
+{
+"code": "20004101",
+"brands": [
+"Freshona"
+],
+"quantity": "170 g",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 18
+},
+"product_name": "Champignons"
+},
+{
+"code": "20094683",
+"brands": [
+"Nixe",
+"Lidl"
+],
+"quantity": "168 g (3 x 56 g) [240 g (3 x 80 g)]",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-fishes",
+"en:canned-tunas"
+],
+"nutriments": {
+"energy-kcal_100g": 100
+},
+"product_name": "Thon entier Albacore au naturel",
+"product_name_es": "Atún Claro al Natural"
+},
+{
+"code": "4056489262275",
+"brands": [
+"Nixe",
+"Lidl"
+],
+"quantity": "3 x 70 g / 156 ml (3 x 52 ml)",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-fishes",
+"en:canned-tunas"
+],
+"nutriments": {
+"energy-kcal_100g": 195
+},
+"product_name": "Atún en aceite de Oliva",
+"product_name_es": "Atún en aceite de Oliva"
+}
+]
+}

@@ -24,6 +24,7 @@ import {
   type Racion,
 } from './calculo';
 import type { ElementoKit } from '../constants/kit';
+import type { Elegido } from './compra';
 import type { Aparato, Epoca, FuenteEnergia, Zona } from './energia';
 import { t } from '@/lib/i18n';
 
@@ -84,6 +85,10 @@ export type Compra = {
   hechas?: CompraHecha[];
   /** Día del mes (1–28) del recordatorio; sin él, no hay. */
   diaRecordatorio?: number;
+  /** Dónde compra cada uno: la etiqueta de Open Food Facts (`clave`) y el nombre. */
+  tiendas?: { clave: string; nombre: string }[];
+  /** Productos de esas tiendas elegidos para la lista (ver `Elegido` en compra.ts). */
+  elegidos?: Elegido[];
   // Antiguos, del primer plan de compra: pasan a `precios` al normalizar
   precioGarrafa?: number;
   precioBote?: number;
@@ -296,12 +301,20 @@ export const useAguante = create<Estado>()(
         }),
       // Apunta el gasto y se queda con el precio por unidad para la próxima vez.
       // Se guardan las 300 últimas: de sobra para ver el gasto de cada mes.
+      // Si es un producto elegido con las unidades fijadas, se descuentan las compradas.
       apuntarCompra: (h) =>
         set((s) => {
           const precios = { ...s.compra.precios };
           if (h.unidades > 0 && h.coste > 0) precios[h.clave] = Math.round((h.coste / h.unidades) * 100) / 100;
           const hechas = [...(s.compra.hechas ?? []), { ...h, id: nuevoId() }].slice(-300);
-          return { compra: { ...s.compra, precios, hechas } };
+          const codigo = h.clave.startsWith('prod:') ? h.clave.slice(5) : null;
+          const elegidos = (s.compra.elegidos ?? []).map((e) =>
+            // Compradas todas las fijadas, vuelve a la cantidad automática
+            e.codigo === codigo && e.unidades !== undefined
+              ? { ...e, unidades: e.unidades - h.unidades > 0 ? e.unidades - h.unidades : undefined }
+              : e,
+          );
+          return { compra: { ...s.compra, precios, hechas, elegidos } };
         }),
       quitarCompra: (id) =>
         set((s) => ({ compra: { ...s.compra, hechas: (s.compra.hechas ?? []).filter((h) => h.id !== id) } })),

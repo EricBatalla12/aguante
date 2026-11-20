@@ -23,6 +23,11 @@ export const supabase = createClient(URL_SUPABASE, CLAVE_PUBLICABLE, {
     persistSession: true,
     // Se entra con un código, no con enlaces: no hay sesión que leer de la URL
     detectSessionInUrl: false,
+    // Al volver de Google por aguante://auth llega un código de un solo uso,
+    // no la sesión: otra app que se registrara con ese mismo esquema y lo
+    // interceptara no podría canjearlo, porque el secreto para hacerlo
+    // (el «code verifier») solo está en este móvil.
+    flowType: 'pkce',
   },
 });
 

@@ -27,9 +27,11 @@ Principio que sigue en pie: que la app sirva gratis y sin internet en una
 emergencia; nunca bloquear tras pago el cálculo, el modo emergencia, las
 fuentes ni los avisos oficiales que están en vigor.
 
+**Decidido por Eric el 20/11/2026: no se cobra; solo donaciones.** Lo de
+abajo queda como referencia por si se retoma.
+
 Propuesta del 20/11/2026 (Eric pidió capar funciones a 2 € al mes, con la
-primera semana con todo). **Aprobada por Eric el 20/11/2026, sin hacer** (el
-orden de trabajo está en CLAUDE.md, «Siguiente trabajo»):
+primera semana con todo). Aprobada y descartada ese mismo día:
 
 - **Aguante Plus**: 1,99 € al mes o 14,99 € al año. Los 7 primeros días desde
   que se instala, todo abierto sin pedir tarjeta; después se capa.
@@ -161,6 +163,43 @@ El plan Pro está hecho pero apagado (`PRO_ACTIVO`, ver
   comprobar).
 - Decidir qué más es de Pro. Recomendación: la energía, si se hace de Pro,
   desbloqueada durante el modo emergencia.
+
+## Hecho el 20/11/2026: tus tiendas en el plan de compra
+
+- **Tus tiendas** (en el plan): se eligen cadenas de una lista
+  (`src/constants/tiendas.ts`) o se escribe otra. Encontrarlas solas por
+  cercanía pediría el permiso de ubicación (módulo nativo, APK nuevo): no se
+  ha hecho.
+- **Productos de esas tiendas**: conservas, arroz y agua de Open Food Facts
+  (`src/lib/tiendas.ts`, guardado 30 días en `aguante-tiendas`). Primero
+  search.openfoodfacts.org, que filtra por el nombre de la tienda y encuentra
+  más (20/11/2026: Mercadona 243 conservas, 30 arroces y 54 aguas; Carrefour
+  443, 78 y 37; Lidl 117, 10 y 11). No tiene CORS: en la web falla y entra la
+  búsqueda clásica, que filtra por la etiqueta, encuentra menos y a ratos
+  responde 503. Filtros y propuesta en `src/lib/catalogo.ts` y `proponer`
+  (`compra.ts`); los criterios, en `fuentes-y-reglas.md`.
+- **Lista propuesta y modificable**: la necesidad de agua, comida lista y
+  arroz se reparte entre los productos elegidos; cada uno con su precio, su
+  cantidad (automática o fijada) y quitar; «Añadir otro de tus tiendas».
+  Lo que no cubran sigue en unidades de referencia. El reparto en meses es el
+  mismo de antes, con lo que da cada producto.
+- **Precios**: no hay fuente. Open Prices no tenía ninguna de 20 conservas de
+  Mercadona en España (mirado el 20/11/2026): los pone cada uno y se recuerda
+  el último por producto.
+- **Escanear**: al añadir a la despensa un producto que está en la lista (por
+  código de barras), sale encendido «Lo he comprado para el plan de compra»
+  con su último precio, y al guardar se apunta. Si solo coincide el tipo
+  (agua, conserva…), sale apagado: puede que se esté apuntando lo que ya había
+  en casa. «He comprado otra cosa: escanearla» abre el escáner con la línea
+  del plan ya puesta.
+- **PKCE** al entrar con Google (ver `cuentas.md`).
+
+Comprobado: 114 tests (con respuestas reales de Open Food Facts en
+`tests/datos/`), `tsc`, lint y export de Android; en la web, contra Open Food
+Facts de verdad (por la búsqueda clásica): proponer con Mercadona, quitar,
+añadir, fijar cantidad, «Comprado» de un producto y el escáner simulado con
+`/anadir?codigo=…`. **Sin probar en el móvil**, y en particular la búsqueda en
+search.openfoodfacts.org desde la app (se probó desde Node con el mismo código).
 
 ## Hecho el 20/11/2026: plan de compra mejorado
 

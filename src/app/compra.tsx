@@ -5,7 +5,7 @@
 
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { Platform, Pressable, Share, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, Share, View } from 'react-native';
 
 import {
   Aviso,
@@ -34,9 +34,11 @@ import {
   mesDe,
   mesReal,
   presupuestoParaMeses,
+  proponer,
   repartir,
   type Articulo,
   type CategoriaCompra,
+  type Elegido,
   type Linea,
   type Plan,
 } from '@/lib/compra';
@@ -47,6 +49,9 @@ import { pedirPermiso } from '@/lib/notificaciones';
 import { hoyISO, nuevoId, useAguante } from '@/lib/store';
 import { useC } from '@/lib/tema';
 import { describir, useDatosCompra } from '@/lib/use-compra';
+import { etiquetaTienda, juntarCatalogos, type ProductoTienda } from '@/lib/catalogo';
+import { catalogoDe, useCatalogos } from '@/lib/tiendas';
+import { CADENAS } from '@/constants/tiendas';
 
 const OBJETIVOS = [
   { valor: 3, etiqueta: tx('72 horas') },
@@ -252,6 +257,8 @@ export default function PlanDeCompra() {
         />
       </Tarjeta>
 
+      <TusTiendas precios={precios} />
+
       {articulos.length > 0 && (
         <Tarjeta style={{ gap: 12 }}>
           <Texto tam={18} peso="800">
@@ -282,16 +289,19 @@ export default function PlanDeCompra() {
                 )}
                 {!plegado &&
                   deCat.map((a) => (
-                    <Campo
-                      key={a.clave}
-                      etiqueta={describir(a, a.unidades, falta.faltanKcalMascotas)}
-                      valor={textosPrecio[a.clave] ?? aCampo(precios[a.clave])}
-                      onChange={cambiarPrecio(a.clave)}
-                      teclado="decimal-pad"
-                      sufijo="€"
-                      ayuda={ayudaDe(a, nombreMes)}
-                    />
+                    <View key={a.clave} style={{ gap: 6 }}>
+                      <Campo
+                        etiqueta={describir(a, a.unidades, falta.faltanKcalMascotas)}
+                        valor={textosPrecio[a.clave] ?? aCampo(precios[a.clave])}
+                        onChange={cambiarPrecio(a.clave)}
+                        teclado="decimal-pad"
+                        sufijo="€"
+                        ayuda={ayudaDe(a, nombreMes)}
+                      />
+                      {a.clave.startsWith('prod:') && <ControlesProducto codigo={a.id ?? ''} unidades={a.unidades} />}
+                    </View>
                   ))}
+                {(cat === 'agua' || cat === 'lista' || cat === 'cocinar') && <AnadirDeTiendas tipo={cat} enLista={deCat.map((a) => a.id ?? '')} />}
               </View>
             );
           })}
@@ -450,6 +460,19 @@ export default function PlanDeCompra() {
 }
 
 function ayudaDe(a: Articulo, nombreMes: (i: number) => string): string | undefined {
+  if (a.clave.startsWith('prod:')) {
+    if (a.categoria === 'agua') {
+      const l = a.aporte?.litros ?? 0;
+      return t('Precio de uno. Cada uno trae {l} L.', { l: formatoNumero(l, l % 1 ? 1 : 0) });
+    }
+    if (a.categoria === 'cocinar') {
+      return t('Precio de uno. Unas {kcal} kcal; cocerlo gasta unos {l} L de agua, ya sumados al agua.', {
+        kcal: formatoNumero(a.aporte?.kcal ?? 0),
+        l: formatoNumero(a.aporte?.litrosCocer ?? 0, 1),
+      });
+    }
+    return t('Precio de uno. Unas {kcal} kcal cada uno.', { kcal: formatoNumero(a.aporte?.kcal ?? 0) });
+  }
   switch (a.categoria) {
     case 'agua':
       return t('Precio de una garrafa.');
@@ -569,6 +592,7 @@ function Comprar({
   const alternarKit = useAguante((s) => s.alternarKit);
   const kit = useAguante((s) => s.kit);
   const apuntarCompra = useAguante((s) => s.apuntarCompra);
+  const elegido = useAguante((s) => s.compra.elegidos?.find((e) => `prod:${e.codigo}` === articulo.clave));
   const unaSola = articulo.categoria === 'kit' || articulo.categoria === 'mascotas';
   const [unidades, setUnidades] = useState(unaSola ? 1 : unidadesPlan);
   const [textoPrecio, setTextoPrecio] = useState(aCampo(precio));
@@ -587,7 +611,9 @@ function Comprar({
     const sinDia = cad.estado === 'ok' ? cad.sinDia || undefined : undefined;
     const base = { id: nuevoId(), cantidad: unidades, caducidad: caducidadISO, caducidadSinDia: sinDia };
     let producto: Producto | null = null;
-    if (articulo.categoria === 'agua') {
+    if (elegido) {
+      producto = { ...base, ...productoDe(elegido) };
+    } else if (articulo.categoria === 'agua') {
       producto = { ...base, nombre: t('Agua (garrafa de 5 L)'), categoria: 'agua', litrosPorUnidad: LITROS_GARRAFA };
     } else if (articulo.categoria === 'lista') {
       producto = { ...base, nombre: t('Garbanzos cocidos (bote de 400 g)'), categoria: 'comida', gramos: 400, kcal100g: 139, kcalPorUnidad: KCAL_BOTE, conservacion: 'ambiente' };
@@ -613,11 +639,11 @@ function Comprar({
     alAcabar();
   };
 
-  // Otra comida, otro pienso: se apunta el gasto y se escanea en la despensa
+  // Otra comida, otro pienso: se escanea y, al guardarlo, la pantalla de
+  // añadir lo apunta como comprado en esta línea del plan
   const escanear = () => {
-    apuntar(nombre);
     alAcabar();
-    router.push('/anadir');
+    router.push({ pathname: '/anadir', params: { plan: articulo.clave } });
   };
 
   return (
@@ -663,6 +689,242 @@ function Comprar({
       <Boton variante="suave" onPress={alAcabar}>
         {t('Cancelar')}
       </Boton>
+    </View>
+  );
+}
+
+/** Lo que pasa a la despensa al comprar un producto elegido de las tiendas. */
+function productoDe(e: Elegido): Omit<Producto, 'id' | 'cantidad'> {
+  const nombre = [e.nombre, e.marca].filter(Boolean).join(' · ');
+  if (e.tipo === 'agua') return { nombre, categoria: 'agua', litrosPorUnidad: e.litros, codigo: e.codigo };
+  const kcalPorUnidad = Math.round(((e.gramos ?? 0) * (e.kcal100g ?? 0)) / 100);
+  const comun = { nombre, categoria: 'comida' as const, gramos: e.gramos, kcal100g: e.kcal100g, kcalPorUnidad, codigo: e.codigo, conservacion: 'ambiente' as const };
+  if (e.tipo === 'lista') return comun;
+  return { ...comun, necesitaCocinar: true, aguaCocinarPorUnidadL: Math.round(((e.gramos ?? 0) / 1000) * LITROS_COCER_PAQUETE * 100) / 100 };
+}
+
+/** «400 g», «8 L»: la cantidad de un producto de las tiendas. */
+function textoEnvase(p: { gramos?: number; litros?: number }): string {
+  if (p.litros) return t('{n} L', { n: formatoNumero(p.litros, p.litros % 1 ? 1 : 0) });
+  if (p.gramos) return p.gramos >= 1000 ? t('{n} kg', { n: formatoNumero(p.gramos / 1000, p.gramos % 1000 ? 1 : 0) }) : t('{n} g', { n: formatoNumero(p.gramos) });
+  return '';
+}
+
+// Vacíos fijos: un `?? []` dentro del selector daría una lista nueva en cada
+// lectura y React volvería a pintar sin parar
+const SIN_TIENDAS: { clave: string; nombre: string }[] = [];
+const SIN_ELEGIDOS: Elegido[] = [];
+
+const nombreTienda = (etiqueta?: string) => CADENAS.find((c) => c.clave === etiqueta)?.nombre ?? etiqueta ?? '';
+
+/** Dónde compras, y la propuesta con productos de esas tiendas. */
+function TusTiendas({ precios }: { precios: Record<string, number> }) {
+  const C = useC();
+  const tiendas = useAguante((s) => s.compra.tiendas ?? SIN_TIENDAS);
+  const elegidos = useAguante((s) => s.compra.elegidos ?? SIN_ELEGIDOS);
+  const setCompra = useAguante((s) => s.setCompra);
+  const [otra, setOtra] = useState('');
+  const [cargando, setCargando] = useState(false);
+  const [aviso, setAviso] = useState<{ tono: 'verde' | 'ambar'; texto: string } | null>(null);
+  const propias = tiendas.filter((x) => !CADENAS.some((c) => c.clave === x.clave));
+  const opciones = [...CADENAS, ...propias];
+
+  const alternar = (o: { clave: string; nombre: string }) => {
+    const ya = tiendas.some((x) => x.clave === o.clave);
+    setCompra({ tiendas: ya ? tiendas.filter((x) => x.clave !== o.clave) : [...tiendas, o] });
+  };
+
+  const anadirOtra = () => {
+    const nombre = otra.trim();
+    const etiqueta = etiquetaTienda(nombre);
+    if (!etiqueta) return;
+    if (!tiendas.some((x) => x.clave === etiqueta)) setCompra({ tiendas: [...tiendas, { clave: etiqueta, nombre }] });
+    setOtra('');
+  };
+
+  const proponerLista = async () => {
+    setCargando(true);
+    setAviso(null);
+    try {
+      const res = await catalogoDe(tiendas);
+      const nuevos = proponer(res.productos, precios);
+      const problemas = [
+        res.fallidas.length > 0 ? t('No se ha podido consultar {tiendas} (¿sin conexión?). Prueba otra vez en un rato.', { tiendas: res.fallidas.map(nombreTienda).join(', ') }) : '',
+        res.vacias.length > 0 ? t('De {tiendas} no hay productos en Open Food Facts.', { tiendas: res.vacias.map(nombreTienda).join(', ') }) : '',
+      ].filter(Boolean);
+      if (nuevos.length === 0) {
+        setAviso({ tono: 'ambar', texto: [t('No hemos encontrado conservas, arroz ni agua de esas tiendas.'), ...problemas].join(' ') });
+        return;
+      }
+      setCompra({ elegidos: nuevos });
+      setAviso({
+        tono: problemas.length ? 'ambar' : 'verde',
+        texto: [tn(res.productos.length, 'Hay {n} producto de tus tiendas: te proponemos los de la lista. Cámbialos si quieres.', 'Hay {n} productos de tus tiendas: te proponemos los de la lista. Cámbialos si quieres.'), ...problemas].join(' '),
+      });
+    } finally {
+      setCargando(false);
+    }
+  };
+
+  return (
+    <Tarjeta style={{ gap: 12 }}>
+      <Texto tam={18} peso="800">
+        {t('Tus tiendas')}
+      </Texto>
+      <Texto tam={13} color={C.suave}>
+        {t('Elige dónde compras y te proponemos conservas, arroz y agua de esas tiendas para la lista. Salen de Open Food Facts (lo que la gente ha escaneado en cada cadena): puede que alguno ya no esté, y el precio lo pones tú.')}
+      </Texto>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {opciones.map((o) => {
+          const activa = tiendas.some((x) => x.clave === o.clave);
+          return (
+            <Pressable
+              key={o.clave}
+              accessibilityRole="checkbox"
+              accessibilityState={{ checked: activa }}
+              onPress={() => alternar(o)}
+              style={{
+                minHeight: 40,
+                paddingHorizontal: 14,
+                borderRadius: 20,
+                justifyContent: 'center',
+                backgroundColor: activa ? C.primario : C.segmento,
+              }}>
+              <Texto tam={14} peso="600" color={activa ? C.sobrePrimario : C.tinta}>
+                {o.nombre}
+              </Texto>
+            </Pressable>
+          );
+        })}
+      </View>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: 8 }}>
+        <View style={{ flex: 1 }}>
+          <Campo etiqueta={t('Otra tienda')} valor={otra} onChange={setOtra} placeholder={t('Nombre de la cadena')} />
+        </View>
+        <Boton pequeno icono="plus" deshabilitado={!etiquetaTienda(otra)} onPress={anadirOtra}>
+          {t('Añadir')}
+        </Boton>
+      </View>
+      {cargando ? (
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 }}>
+          <ActivityIndicator color={C.tinta} />
+          <Texto color={C.suave}>{t('Buscando productos de tus tiendas…')}</Texto>
+        </View>
+      ) : (
+        <Boton icono="store-search-outline" deshabilitado={tiendas.length === 0} onPress={proponerLista}>
+          {elegidos.length > 0 ? t('Volver a proponer') : t('Proponer productos de mis tiendas')}
+        </Boton>
+      )}
+      {aviso && <Aviso tono={aviso.tono} texto={aviso.texto} />}
+      {elegidos.length > 0 && !cargando && (
+        <Boton variante="suave" onPress={() => setCompra({ elegidos: [] })}>
+          {t('Quitar los productos y volver a lo genérico')}
+        </Boton>
+      )}
+    </Tarjeta>
+  );
+}
+
+/** Debajo de un producto de las tiendas: de dónde es, cuántas (se pueden fijar) y quitarlo. */
+function ControlesProducto({ codigo, unidades }: { codigo: string; unidades: number }) {
+  const C = useC();
+  const elegidos = useAguante((s) => s.compra.elegidos ?? SIN_ELEGIDOS);
+  const setCompra = useAguante((s) => s.setCompra);
+  const e = elegidos.find((x) => x.codigo === codigo);
+  if (!e) return null;
+  const cambiar = (cambio: Partial<Elegido> | null) =>
+    setCompra({ elegidos: cambio === null ? elegidos.filter((x) => x.codigo !== codigo) : elegidos.map((x) => (x.codigo === codigo ? { ...x, ...cambio } : x)) });
+  return (
+    <View style={{ gap: 6 }}>
+      <Texto tam={12} color={C.suave}>
+        {[e.marca, textoEnvase(e), nombreTienda(e.tienda), e.unidades === undefined ? t('cantidad automática') : t('cantidad fijada por ti')].filter(Boolean).join(' · ')}
+      </Texto>
+      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
+        <View style={{ flex: 1 }}>
+          <Contador valor={unidades} min={1} onChange={(v) => cambiar({ unidades: v })} estirar />
+        </View>
+        {e.unidades !== undefined && (
+          <Boton pequeno variante="suave" onPress={() => cambiar({ unidades: undefined })}>
+            {t('Automático')}
+          </Boton>
+        )}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('Quitar {que} de la lista', { que: e.nombre })}
+          hitSlop={8}
+          onPress={() => cambiar(null)}
+          style={{ width: 44, height: 44, alignItems: 'center', justifyContent: 'center' }}>
+          <Icono name="trash-can-outline" color={C.suave} />
+        </Pressable>
+      </View>
+    </View>
+  );
+}
+
+/**
+ * «Añadir otro de tus tiendas»: lo del catálogo de ese tipo que no sale en la
+ * lista, incluidos los elegidos que ahora no hacen falta (están a 0). Al
+ * añadir uno de esos se le fija 1 unidad.
+ */
+function AnadirDeTiendas({ tipo, enLista }: { tipo: 'agua' | 'lista' | 'cocinar'; enLista: string[] }) {
+  const C = useC();
+  const tiendas = useAguante((s) => s.compra.tiendas ?? SIN_TIENDAS);
+  const elegidos = useAguante((s) => s.compra.elegidos ?? SIN_ELEGIDOS);
+  const setCompra = useAguante((s) => s.setCompra);
+  const catalogos = useCatalogos((s) => s.catalogos);
+  const [abierto, setAbierto] = useState(false);
+  const catalogo: ProductoTienda[] = useMemo(
+    () => juntarCatalogos(tiendas.map((x) => catalogos[x.clave]?.productos ?? [])),
+    [tiendas, catalogos],
+  );
+  const candidatos = catalogo.filter((p) => p.tipo === tipo && !enLista.includes(p.codigo));
+  if (candidatos.length === 0) return null;
+  const anadir = (p: ProductoTienda) =>
+    setCompra({
+      elegidos: elegidos.some((e) => e.codigo === p.codigo)
+        ? elegidos.map((e) => (e.codigo === p.codigo ? { ...e, unidades: 1 } : e))
+        : [
+            ...elegidos,
+            { codigo: p.codigo, tipo, nombre: p.nombre, marca: p.marca, tienda: p.tiendas[0], gramos: p.gramos, litros: p.litros, kcal100g: p.kcal100g },
+          ],
+    });
+  return (
+    <View>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: abierto }}
+        onPress={() => setAbierto((a) => !a)}
+        style={{ flexDirection: 'row', alignItems: 'center', gap: 8, minHeight: 44 }}>
+        <Icono name="plus-circle-outline" color={C.tinta} size={18} />
+        <Texto peso="600" style={{ flex: 1 }}>
+          {t('Añadir otro de tus tiendas ({n})', { n: candidatos.length })}
+        </Texto>
+        <Icono name={abierto ? 'chevron-up' : 'chevron-down'} color={C.suave} />
+      </Pressable>
+      {abierto &&
+        candidatos.slice(0, 25).map((p) => (
+          <Pressable
+            key={p.codigo}
+            accessibilityRole="button"
+            accessibilityLabel={t('Añadir {que} a la lista', { que: p.nombre })}
+            onPress={() => anadir(p)}
+            style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 48, borderTopWidth: 1, borderTopColor: C.linea, paddingVertical: 6 }}>
+            <View style={{ flex: 1 }}>
+              <Texto lineas={2}>{p.nombre}</Texto>
+              <Texto tam={12} color={C.suave}>
+                {[
+                  p.marca,
+                  textoEnvase(p),
+                  p.kcal100g ? t('{n} kcal/100 g', { n: formatoNumero(p.kcal100g) }) : '',
+                  p.tiendas.map(nombreTienda).join(', '),
+                ]
+                  .filter(Boolean)
+                  .join(' · ')}
+              </Texto>
+            </View>
+            <Icono name="plus" color={C.tinta} />
+          </Pressable>
+        ))}
     </View>
   );
 }

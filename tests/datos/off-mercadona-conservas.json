@@ -1,0 +1,797 @@
+{
+"count": 130,
+"products": [
+{
+"code": "8480000180025",
+"product_name": "Atún claro en aceite de oliva",
+"product_name_es": "Atún claro en aceite de oliva",
+"brands": "MERCADONA",
+"product_quantity": 480,
+"product_quantity_unit": "g",
+"quantity": "6 latas de 80 gramos",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:fatty-fishes",
+"en:canned-fishes",
+"en:canned-tunas",
+"en:tuna-in-olive-oil"
+],
+"nutriments": {
+"energy-kcal_100g": 97
+}
+},
+{
+"code": "8480000180551",
+"product_name": "Atún Claro en Aceite de Girasol",
+"product_name_es": "Atún Claro en Aceite de Girasol",
+"brands": "Hacendado, MERCADONA",
+"product_quantity": 480,
+"product_quantity_unit": "g",
+"quantity": "480 g (360 g escurrido)",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:fatty-fishes",
+"en:canned-fishes",
+"en:canned-tunas"
+],
+"nutriments": {
+"energy-kcal_100g": 251.666666666667
+}
+},
+{
+"code": "8480000166166",
+"product_name": "Champiñones laminados en conserva",
+"product_name_es": "Champiñones laminados en conserva",
+"brands": "MERCADONA",
+"product_quantity": 150,
+"product_quantity_unit": "g",
+"quantity": "150g",
+"categories_tags": [
+"en:fruits-and-vegetables-based-foods",
+"en:vegetable-based-foods-and-beverages",
+"en:canned-foods",
+"en:vegetables-based-foods",
+"en:canned-plant-based-foods",
+"en:canned-mushrooms",
+"en:canned-champignon-mushrooms",
+"en:canned-sliced-champignon-mushrooms"
+],
+"nutriments": {
+"energy-kcal_100g": 14
+}
+},
+{
+"code": "8480000181077",
+"product_name": "Filetes de melva en aceite de oliva",
+"product_name_es": "Filetes de melva en aceite de oliva",
+"brands": "MERCADONA",
+"product_quantity": 120,
+"product_quantity_unit": "g",
+"quantity": "120g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:canned-fishes"
+],
+"nutriments": {
+"energy-kcal_100g": 178
+}
+},
+{
+"code": "8480000054807",
+"product_name": "Pepinillos agridulces",
+"product_name_es": "Pepinillos agridulces",
+"brands": "MERCADONA",
+"product_quantity": 670,
+"product_quantity_unit": "g",
+"quantity": "670 g",
+"categories_tags": [
+"en:fruits-and-vegetables-based-foods",
+"en:vegetable-based-foods-and-beverages",
+"en:canned-foods",
+"en:pickles",
+"en:vegetables-based-foods",
+"en:canned-plant-based-foods",
+"en:plant-based-pickles",
+"en:processed-vegetables",
+"en:vegetables",
+"en:canned-vegetables",
+"en:pickled-vegetables",
+"en:pickled-cucumbers",
+"en:pickled-gherkins"
+],
+"nutriments": {
+"energy-kcal_100g": 56
+}
+},
+{
+"code": "8402001014253",
+"product_name": "Patatas Cocidas",
+"product_name_es": "Patatas Cocidas",
+"brands": "Hacendado",
+"product_quantity": 660,
+"product_quantity_unit": "g",
+"quantity": "660 g (400 g)",
+"categories_tags": [
+"en:fruits-and-vegetables-based-foods",
+"en:vegetable-based-foods-and-beverages",
+"en:canned-foods",
+"en:vegetables-based-foods",
+"en:canned-plant-based-foods",
+"en:processed-vegetables",
+"en:canned-vegetables"
+],
+"nutriments": {
+"energy-kcal_100g": 53
+}
+},
+{
+"code": "8480000866882",
+"product_name": "Pimientos del piquillo",
+"product_name_es": "Pimientos del piquillo",
+"brands": "Hacendado, MERCADONA",
+"product_quantity": 340,
+"product_quantity_unit": "g",
+"quantity": "neto 340g - escurrido 275g",
+"categories_tags": [
+"en:fruits-and-vegetables-based-foods",
+"en:vegetable-based-foods-and-beverages",
+"en:canned-foods",
+"en:vegetables-based-foods",
+"en:canned-plant-based-foods",
+"en:processed-vegetables",
+"en:vegetables",
+"en:canned-vegetables",
+"en:canned-peppers"
+],
+"nutriments": {
+"energy-kcal_100g": 40
+}
+},
+{
+"code": "8410954000087",
+"product_name": "Guindillas",
+"product_name_es": "Guindillas",
+"brands": "CIAL. RIOVERDE S.A., Rioverde",
+"product_quantity": 120,
+"product_quantity_unit": "g",
+"quantity": "120 grams",
+"categories_tags": [
+"en:fruits-and-vegetables-based-foods",
+"en:vegetable-based-foods-and-beverages",
+"en:canned-foods",
+"en:pickles",
+"en:vegetables-based-foods",
+"en:canned-plant-based-foods",
+"en:plant-based-pickles",
+"en:processed-vegetables",
+"en:vegetables",
+"en:canned-vegetables",
+"en:pickled-vegetables",
+"en:pickled-peppers",
+"en:canned-peppers",
+"en:pickled-guindilla-peppers"
+],
+"nutriments": {
+"energy-kcal_100g": 41
+}
+},
+{
+"code": "8480000136282",
+"product_name": "Filetes de caballa del sur",
+"product_name_es": "Filetes de caballa del sur",
+"brands": "Hacendado",
+"product_quantity": 240,
+"product_quantity_unit": "g",
+"quantity": "2 x 120 g",
+"categories_tags": [
+"en:canned-foods"
+],
+"nutriments": {
+"energy-kcal_100g": 177
+}
+},
+{
+"code": "8480000181107",
+"product_name": "Filetes de melva en aceite de girasol",
+"product_name_es": "Filetes de melva en aceite de girasol",
+"brands": "Hacendado, MERCADONA",
+"product_quantity": 90,
+"product_quantity_unit": "g",
+"quantity": "90 g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:canned-fishes"
+],
+"nutriments": {
+"energy-kcal_100g": 183
+}
+},
+{
+"code": "8480000261076",
+"product_name": "Fabada",
+"product_name_es": "Fabada",
+"brands": "Hacendado",
+"product_quantity": 420,
+"product_quantity_unit": "g",
+"quantity": "420 gr neto",
+"categories_tags": [
+"en:canned-foods"
+],
+"nutriments": {
+"energy-kcal_100g": 173
+}
+},
+{
+"code": "8410032006444",
+"product_name": "Fabada asturiana",
+"product_name_es": "Fabada asturiana",
+"brands": "Albo",
+"quantity": "425",
+"categories_tags": [
+"en:canned-foods",
+"en:meals",
+"en:canned-meals"
+],
+"nutriments": {
+"energy-kcal_100g": 137
+}
+},
+{
+"code": "8480000185099",
+"product_name": "Berberechos al natural",
+"product_name_es": "Berberechos al natural",
+"brands": "Hacendado",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:canned-fishes"
+],
+"nutriments": {
+"energy-kcal_100g": 79
+}
+},
+{
+"code": "8480000167330",
+"product_name": "Escalivada",
+"product_name_es": "Escalivada",
+"brands": "Hacendado",
+"product_quantity": 290,
+"product_quantity_unit": "g",
+"quantity": "290 g",
+"categories_tags": [
+"en:canned-foods",
+"en:meals",
+"en:prepared-vegetables",
+"en:canned-meals",
+"en:plant-based-meals"
+],
+"nutriments": {
+"energy-kcal_100g": 76.6
+}
+},
+{
+"code": "8410902032054",
+"product_name": "Albóndigas de pollo Lanora",
+"product_name_es": "Albóndigas de pollo",
+"brands": "La Nora",
+"product_quantity": 415,
+"product_quantity_unit": "g",
+"quantity": "415g",
+"categories_tags": [
+"en:canned-foods"
+],
+"nutriments": {
+"energy-kcal_100g": 141
+}
+},
+{
+"code": "8480000187130",
+"product_name": "Calamar Trozos Salsa Americana",
+"product_name_es": "Calamar Trozos Salsa Americana",
+"brands": "Hacendado",
+"product_quantity": 240,
+"product_quantity_unit": "g",
+"quantity": "3 x 80 g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:canned-fishes"
+],
+"nutriments": {
+"energy-kcal_100g": 171
+}
+},
+{
+"code": "8480000260277",
+"product_name": "Lentejas",
+"product_name_es": "Lentejas",
+"brands": "Hacendado",
+"product_quantity": 570,
+"product_quantity_unit": "g",
+"quantity": "570 g",
+"categories_tags": [
+"en:legumes-and-their-products",
+"en:legumes",
+"en:canned-foods",
+"en:legume-seeds",
+"en:meals",
+"en:canned-plant-based-foods",
+"en:prepared-vegetables",
+"en:cooked-vegetables",
+"en:canned-legumes",
+"en:canned-lentils"
+],
+"nutriments": {
+"energy-kcal_100g": 89
+}
+},
+{
+"code": "8480000261038",
+"product_name": "Cocido madrileño",
+"product_name_es": "Cocido madrileño",
+"brands": "Hacendado",
+"product_quantity": 420,
+"product_quantity_unit": "g",
+"quantity": "420 g",
+"categories_tags": [
+"en:canned-foods",
+"en:meals",
+"en:canned-meals"
+],
+"nutriments": {
+"energy-kcal_100g": 114
+}
+},
+{
+"code": "8480000180155",
+"product_name": "Atún claro en aceite de girasol",
+"product_name_es": "Atún claro en aceite de girasol",
+"brands": "Hacendado",
+"product_quantity": 190,
+"product_quantity_unit": "g",
+"quantity": "190 g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:fatty-fishes",
+"en:canned-fishes",
+"en:canned-tunas",
+"en:tuna-in-olive-oil"
+],
+"nutriments": {
+"energy-kcal_100g": 286
+}
+},
+{
+"code": "8480000260062",
+"product_name": "Alubia con verduras",
+"product_name_es": "Alubia con verduras",
+"brands": "Hacendado",
+"product_quantity": 570,
+"product_quantity_unit": "g",
+"quantity": "570g",
+"categories_tags": [
+"en:legumes-and-their-products",
+"en:legumes",
+"en:canned-foods",
+"en:legume-seeds",
+"en:meals",
+"en:canned-plant-based-foods",
+"en:prepared-vegetables",
+"en:canned-legumes",
+"en:canned-common-beans"
+],
+"nutriments": {
+"energy-kcal_100g": 73
+}
+},
+{
+"code": "8480000610492",
+"product_name": "Pochas",
+"product_name_es": "Pochas",
+"brands": "Hacendado",
+"product_quantity": 500,
+"product_quantity_unit": "g",
+"quantity": "500 g",
+"categories_tags": [
+"en:legumes-and-their-products",
+"en:legumes",
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-legumes",
+"en:canned-common-beans"
+],
+"nutriments": {
+"energy-kcal_100g": 152
+}
+},
+{
+"code": "1228268800883",
+"product_name": "Garbanzos",
+"product_name_es": "Garbanzos",
+"brands": "Hacendado",
+"product_quantity": 400,
+"product_quantity_unit": "g",
+"quantity": "400 g",
+"categories_tags": [
+"en:legumes-and-their-products",
+"en:legumes",
+"en:canned-foods",
+"en:legume-seeds",
+"en:canned-plant-based-foods",
+"en:canned-legumes",
+"en:canned-chickpeas"
+],
+"nutriments": {
+"energy-kcal_100g": 101.4
+}
+},
+{
+"code": "7211002400481",
+"product_name": "Lentejas",
+"product_name_es": "Lentejas",
+"brands": "Hacendado",
+"product_quantity": 0,
+"quantity": "570 vez.",
+"categories_tags": [
+"en:legumes-and-their-products",
+"en:legumes",
+"en:canned-foods",
+"en:legume-seeds",
+"en:canned-plant-based-foods",
+"en:canned-legumes",
+"en:canned-lentils"
+]
+},
+{
+"code": "8014190014053",
+"product_name": "Crema de verduras",
+"product_name_es": "Crema de verduras",
+"brands": "Dimmidisì, La linea verde",
+"product_quantity": 620,
+"product_quantity_unit": "g",
+"quantity": "620 g",
+"categories_tags": [
+"en:fruits-and-vegetables-based-foods",
+"en:canned-foods",
+"en:meals",
+"en:soups",
+"en:vegetable-soups",
+"en:canned-meals",
+"en:refrigerated-meals",
+"en:canned-soups",
+"en:cream-soups",
+"en:refrigerated-soups",
+"en:canned-vegetable-soups",
+"en:cream-of-vegetable-soups",
+"en:refrigerated-vegetable-soups"
+],
+"nutriments": {
+"energy-kcal_100g": 38
+}
+},
+{
+"code": "8480000164056",
+"product_name": "Guisantes extra",
+"product_name_es": "Guisantes extra",
+"brands": "Hacendado",
+"categories_tags": [
+"en:legumes-and-their-products",
+"en:fruits-and-vegetables-based-foods",
+"en:legumes",
+"en:vegetable-based-foods-and-beverages",
+"en:canned-foods",
+"en:vegetables-based-foods",
+"en:canned-plant-based-foods",
+"en:processed-vegetables",
+"en:vegetables",
+"en:canned-vegetables",
+"en:canned-legumes",
+"en:canned-peas"
+],
+"nutriments": {
+"energy-kcal_100g": 59
+}
+},
+{
+"code": "8480000167187",
+"product_name": "Brotes germinados",
+"product_name_es": "Brotes germinados",
+"brands": "Hacendado",
+"product_quantity": 345,
+"product_quantity_unit": "g",
+"quantity": "345 g (neto), 180 g (escurrido), 370 ml",
+"categories_tags": [
+"en:legumes-and-their-products",
+"en:legumes",
+"en:canned-foods",
+"en:legume-seeds",
+"en:canned-plant-based-foods",
+"en:canned-sprouts",
+"en:canned-legume-sprouts",
+"en:canned-mung-bean-sprouts"
+],
+"nutriments": {
+"energy-kcal_100g": 28.3
+}
+},
+{
+"code": "8480000167286",
+"product_name": "Menestra",
+"product_name_es": "Menestra",
+"brands": "Hacendado",
+"product_quantity": 300,
+"product_quantity_unit": "g",
+"quantity": "300 g",
+"categories_tags": [
+"en:canned-foods",
+"en:meals",
+"en:canned-meals",
+"en:plant-based-meals"
+],
+"nutriments": {
+"energy-kcal_100g": 129
+}
+},
+{
+"code": "8437014771046",
+"product_name": "Baked beans tomate sauce",
+"product_name_es": "Baked beans tomate sauce",
+"brands": "Brooks Beans",
+"product_quantity": 415,
+"product_quantity_unit": "g",
+"quantity": "415 g",
+"categories_tags": [
+"en:canned-foods",
+"en:meals",
+"en:prepared-vegetables",
+"en:canned-meals",
+"en:baked-beans-in-tomato-sauce",
+"en:plant-based-meals"
+],
+"nutriments": {
+"energy-kcal_100g": 69.8
+}
+},
+{
+"code": "8480000162083",
+"product_name": "Patata para tortilla",
+"product_name_es": "Patata para tortilla",
+"brands": "Hacendado",
+"product_quantity": 340,
+"product_quantity_unit": "g",
+"quantity": "340 g.",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-plant-based-foods",
+"en:canned-potatoes"
+],
+"nutriments": {
+"energy-kcal_100g": 234.4
+}
+},
+{
+"code": "8480000171528",
+"product_name": "Fritada",
+"product_name_es": "Fritada",
+"brands": "Hacendado",
+"product_quantity": 380,
+"product_quantity_unit": "g",
+"quantity": "380 g (neto)",
+"categories_tags": [
+"en:canned-foods",
+"en:meals",
+"en:canned-meals",
+"en:plant-based-meals"
+],
+"nutriments": {
+"energy-kcal_100g": 87
+}
+},
+{
+"code": "8480000180414",
+"product_name": "Atún al natural",
+"brands": "Hacendado",
+"product_quantity": 80,
+"product_quantity_unit": "g",
+"quantity": "80 g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:fatty-fishes",
+"en:canned-fishes",
+"en:canned-tunas"
+]
+},
+{
+"code": "8480000180421",
+"product_name": "Atun en aceite de oliva",
+"brands": "Hacendado",
+"product_quantity": 80,
+"product_quantity_unit": "g",
+"quantity": "80 g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:fatty-fishes",
+"en:canned-fishes",
+"en:canned-tunas",
+"en:tuna-in-olive-oil"
+],
+"nutriments": {
+"energy-kcal_100g": 363
+}
+},
+{
+"code": "8480000181114",
+"product_name": "Bonito del norte en escabeche",
+"product_name_es": "Bonito del norte en escabeche",
+"brands": "Hacendado",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:fatty-fishes"
+],
+"nutriments": {
+"energy-kcal_100g": 106
+}
+},
+{
+"code": "8480000182135",
+"product_name": "Sardinillas en aceite de girasol",
+"product_name_es": "Sardinillas en aceite de girasol",
+"brands": "Hacendado",
+"product_quantity": 100,
+"product_quantity_unit": "g",
+"quantity": "100 g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:fatty-fishes",
+"en:canned-fishes",
+"en:canned-sardines"
+],
+"nutriments": {
+"energy-kcal_100g": 338
+}
+},
+{
+"code": "8480000182234",
+"product_name": "Sardinillas picantonas",
+"product_name_es": "Sardinillas picantonas",
+"brands": "Hacendado",
+"product_quantity": 85,
+"product_quantity_unit": "g",
+"quantity": "85 g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:fatty-fishes",
+"en:canned-fishes",
+"en:canned-sardines",
+"en:sardines-in-tomato-sauce"
+],
+"nutriments": {
+"energy-kcal_100g": 213
+}
+},
+{
+"code": "8480000185389",
+"product_name": "Zamburiñas en salsa de vieira",
+"product_name_es": "Zamburiñas en salsa de vieira",
+"brands": "Hacendado",
+"product_quantity": 111,
+"product_quantity_unit": "g",
+"quantity": "111g",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:canned-fishes"
+],
+"nutriments": {
+"energy-kcal_100g": 140
+}
+},
+{
+"code": "8480000186102",
+"product_name": "Mejillones en escabeche",
+"product_name_es": "Mejillones en escabeche",
+"brands": "Ceres",
+"product_quantity": 115,
+"product_quantity_unit": "g",
+"quantity": "115 g, 6/8",
+"categories_tags": [
+"en:canned-foods",
+"en:canned-seafood",
+"en:canned-mussels"
+],
+"nutriments": {
+"energy-kcal_100g": 170
+}
+},
+{
+"code": "8480000187307",
+"product_name": "Tacos De Pota Marinera",
+"product_name_es": "Tacos De Pota Marinera",
+"brands": "Hacendado",
+"categories_tags": [
+"en:fishes-and-their-products",
+"en:canned-foods",
+"en:fishes",
+"en:canned-seafood",
+"en:canned-fishes"
+],
+"nutriments": {
+"energy-kcal_100g": 278
+}
+},
+{
+"code": "8480000260130",
+"product_name": "Garbanzos con espinacas",
+"product_name_es": "Garbanzos con espinacas",
+"brands": "Hacendado",
+"product_quantity": 570,
+"product_quantity_unit": "g",
+"quantity": "570 g",
+"categories_tags": [
+"en:legumes-and-their-products",
+"en:legumes",
+"en:canned-foods",
+"en:legume-seeds",
+"en:canned-plant-based-foods",
+"en:canned-legumes",
+"en:canned-chickpeas"
+],
+"nutriments": {
+"energy-kcal_100g": 70
+}
+},
+{
+"code": "8480000330406",
+"product_name": "Aceitunas gordales con pepinillos en vinagre",
+"product_name_es": "Aceitunas gordales con pepinillos en vinagre",
+"brands": "Hacendado",
+"product_quantity": 670,
+"product_quantity_unit": "g",
+"quantity": "670 g (neto), 360 g (escurrido), 720 ml",
+"categories_tags": [
+"en:canned-foods",
+"en:pickles",
+"en:plant-based-pickles",
+"en:plant-based-mixed-pickles"
+],
+"nutriments": {
+"energy-kcal_100g": 90.8
+}
+}
+]
+}

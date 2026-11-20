@@ -175,9 +175,12 @@ export const BLOQUES: Bloque[] = [
       { texto: tx('Cocer 1 kg de arroz gasta unos 2,56 L de agua, que se suman al agua: 2 tazas de agua por taza de arroz (Universidad de Maryland) y 185 g por taza (USDA).') },
       { texto: tx('Los 3 primeros días del objetivo, comida que no hay que cocinar; el resto, para cocinar. Sin cocina, toda lista para comer.'), propio: true },
       { texto: tx('Cada mes se compra primero lo que hay que reponer, luego lo que menos días os da (agua o comida), luego las mascotas y al final el kit.'), propio: true },
+      { texto: tx('Los productos de tus tiendas salen de Open Food Facts: lo que la gente ha escaneado en cada cadena, con las kcal y el peso de su ficha. No sabe si hay existencias ni el precio.') },
+      { texto: tx('De ahí se proponen conservas con 80 kcal/100 g o más, arroz crudo y agua sin gas de 1,5 L o más: primero lo que más energía da y sin repetir.'), propio: true },
     ],
     enlaces: [
       { nombre: tx('University of Maryland Extension: cooking rice'), url: 'https://extension.umd.edu/resource/cooking-rice' },
+      { nombre: tx('Open Food Facts'), url: 'https://world.openfoodfacts.org' },
     ],
   },
   {

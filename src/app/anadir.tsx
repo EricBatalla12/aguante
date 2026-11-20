@@ -4,16 +4,22 @@ import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, Platform, View } from 'react-native';
 
 import { ProductoForm } from '@/components/producto-form';
-import { Aviso, Boton, Icono, Pantalla, Texto } from '@/components/ui';
+import { Aviso, Boton, Campo, Icono, Interruptor, Pantalla, Texto } from '@/components/ui';
+import { lineaDe, MESES_REPONER } from '@/lib/compra';
+import { aCampo, numero } from '@/lib/formato';
 import type { Producto } from '@/lib/calculo';
 import { volver } from '@/lib/navegacion';
 import { buscarCodigo, type DatosOFF } from '@/lib/off';
-import { useAguante } from '@/lib/store';
+import { hoyISO, useAguante } from '@/lib/store';
+import { useDatosCompra } from '@/lib/use-compra';
 import { useC } from '@/lib/tema';
 import { useResultado } from '@/lib/use-resultado';
 import { t } from '@/lib/i18n';
 
 type Fase = 'escaneando' | 'buscando' | 'formulario';
+
+// Fijo: un `?? {}` dentro del selector daría un objeto nuevo en cada lectura
+const SIN_PRECIOS: Record<string, number> = {};
 
 // Solo en desarrollo y en la web, para probar y para las capturas de los vídeos:
 // `?escanear=1` abre el escáner (la web normal va directa al formulario) y
@@ -35,7 +41,14 @@ export default function Anadir() {
   const [permiso, pedirPermiso] = useCameraPermissions();
   const guardar = useAguante((s) => s.guardarProducto);
   const r = useResultado('normal');
-  const prueba = useLocalSearchParams<{ escanear?: string; codigo?: string }>();
+  const prueba = useLocalSearchParams<{ escanear?: string; codigo?: string; plan?: string }>();
+  // Viene del plan de compra («He comprado otra cosa»): la línea en la que se apunta
+  const lineaPlan = prueba.plan;
+  const apuntarCompra = useAguante((s) => s.apuntarCompra);
+  const precios = useAguante((s) => s.compra.precios ?? SIN_PRECIOS);
+  const articulos = useDatosCompra().lista(MESES_REPONER);
+  const [apuntarElegido, setApuntar] = useState<boolean | null>(null);
+  const [textoPrecio, setTextoPrecio] = useState<string | null>(null);
   const codigoPrueba = PRUEBAS_WEB ? prueba.codigo : undefined;
   const [fase, setFase] = useState<Fase>(
     codigoPrueba ? 'buscando' : Platform.OS === 'web' && !(PRUEBAS_WEB && prueba.escanear) ? 'formulario' : 'escaneando',
@@ -87,12 +100,22 @@ export default function Anadir() {
 
   const escanearOtra = () => {
     leido.current = false;
+    setApuntar(null);
+    setTextoPrecio(null);
     setDatos(null);
     setMensaje(null);
     setCodigo(null);
     setSinConexion(false);
     setFase('escaneando');
   };
+
+  // ¿Está lo escaneado en la lista del plan? El mismo producto se apunta solo;
+  // si solo coincide el tipo (agua, conservas…), se deja elegir: puede que
+  // se esté apuntando lo que ya había en casa.
+  const previsto = datos ? aProducto(datos) : null;
+  const coincide = previsto ? lineaDe({ codigo: previsto.codigo, categoria: previsto.categoria ?? 'comida' }, articulos) : null;
+  const apuntar = apuntarElegido ?? (!!lineaPlan || !!coincide?.exacto);
+  const textoPrecioEfectivo = textoPrecio ?? (coincide?.exacto ? aCampo(precios[coincide.clave]) : '');
 
   return (
     <Pantalla>
@@ -157,6 +180,23 @@ export default function Anadir() {
               )}
             </View>
           )}
+          {(lineaPlan || coincide) && (
+            <View style={{ gap: 8, borderRadius: 16, padding: 12, backgroundColor: C.segmento }}>
+              <Interruptor
+                etiqueta={t('Lo he comprado para el plan de compra')}
+                valor={apuntar}
+                onChange={setApuntar}
+                ayuda={
+                  coincide?.exacto
+                    ? t('Está en tu lista de la compra: al guardarlo se apunta como comprado.')
+                    : t('Al guardarlo se apunta en el gasto del mes y sale de la lista.')
+                }
+              />
+              {apuntar && (
+                <Campo etiqueta={t('Precio de cada uno')} valor={textoPrecioEfectivo} onChange={setTextoPrecio} teclado="decimal-pad" sufijo="€" />
+              )}
+            </View>
+          )}
           <ProductoForm
             key={codigo ?? 'manual'}
             inicial={datos ? aProducto(datos) : codigo ? { codigo } : undefined}
@@ -165,6 +205,13 @@ export default function Anadir() {
             diasPorKcal={r.kcalDia || undefined}
             onGuardar={(p) => {
               guardar(p);
+              // Lo comprado para el plan se apunta en el gasto del mes (y descuenta lo fijado en la lista)
+              const clave = lineaPlan ?? lineaDe(p, articulos)?.clave;
+              if (apuntar && clave) {
+                const precio = numero(textoPrecioEfectivo);
+                const coste = Number.isFinite(precio) && precio > 0 ? Math.round(precio * p.cantidad * 100) / 100 : 0;
+                apuntarCompra({ clave, nombre: p.nombre, unidades: p.cantidad, coste, fecha: hoyISO() });
+              }
               volver();
             }}
           />

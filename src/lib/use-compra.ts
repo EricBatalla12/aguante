@@ -6,10 +6,6 @@ import { useMemo, useState } from 'react';
 import { DE_SERIE } from '@/constants/kit';
 import { calcular, calcularFaltante, formatoNumero, type Faltante } from './calculo';
 import {
-  KCAL_BOTE,
-  KCAL_PAQUETE,
-  LITROS_COCER_PAQUETE,
-  LITROS_GARRAFA,
   listaCompra,
   porReponer,
   type Articulo,
@@ -43,6 +39,7 @@ export function useDatosCompra(): DatosCompra {
   const objetivo = useAguante((s) => s.objetivoDias);
   const actividad = useAguante((s) => s.actividad);
   const kit = useAguante((s) => s.kit);
+  const elegidos = useAguante((s) => s.compra.elegidos);
   const sinCocina = !!useEscenario().sinCocina;
   const [hoy] = useState(() => new Date());
   const normal = useResultado('normal');
@@ -63,27 +60,28 @@ export function useDatosCompra(): DatosCompra {
         sinCocina,
         kit: kitFalta,
         reponer: porReponer(productos, hoy, meses),
-      });
+      }, elegidos ?? []);
     const dias: Dias = {
       agua: r.diasAgua,
       comida: r.diasComida,
-      porGarrafa: r.litrosDia > 0 ? LITROS_GARRAFA / r.litrosDia : 0,
-      porBote: r.kcalDia > 0 ? KCAL_BOTE / r.kcalDia : 0,
-      porPaquete: r.kcalDia > 0 ? KCAL_PAQUETE / r.kcalDia : 0,
-      aguaPorPaquete: r.litrosDia > 0 ? LITROS_COCER_PAQUETE / r.litrosDia : 0,
+      porLitro: r.litrosDia > 0 ? 1 / r.litrosDia : 0,
+      porKcal: r.kcalDia > 0 ? 1 / r.kcalDia : 0,
     };
     return { lista, dias, falta, diasHoy, hoy };
-  }, [personas, mascotas, productos, objetivo, actividad, kit, sinCocina, hoy, diasHoy]);
+  }, [personas, mascotas, productos, objetivo, actividad, kit, sinCocina, hoy, diasHoy, elegidos]);
 }
 
 /** Qué es cada artículo, con sus unidades. */
 export function describir(a: Articulo, unidades = a.unidades, kcalMascotas = 0): string {
   switch (a.categoria) {
     case 'agua':
+      if (a.clave.startsWith('prod:')) return t('{n} × {nombre}', { n: unidades, nombre: a.nombre ?? '' });
       return tn(unidades, '{n} garrafa de agua de 5 L', '{n} garrafas de agua de 5 L');
     case 'lista':
+      if (a.clave.startsWith('prod:')) return t('{n} × {nombre}', { n: unidades, nombre: a.nombre ?? '' });
       return tn(unidades, '{n} bote de garbanzos cocidos (400 g)', '{n} botes de garbanzos cocidos (400 g)');
     case 'cocinar':
+      if (a.clave.startsWith('prod:')) return t('{n} × {nombre}', { n: unidades, nombre: a.nombre ?? '' });
       return tn(unidades, '{n} paquete de arroz de 1 kg', '{n} paquetes de arroz de 1 kg');
     case 'mascotas':
       return kcalMascotas > 0

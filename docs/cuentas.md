@@ -56,7 +56,12 @@ y `src/app/cuenta.tsx` (pantalla). Servidor: `supabase/esquema.sql`.
 Hecho en la app el 15/11/2026 sin módulo nativo nuevo (llega con EAS Update):
 `entrarConGoogle` en `src/lib/sincro.ts` abre la página de Google en el
 navegador del móvil (`expo-web-browser`), Supabase vuelve a `aguante://auth`
-con la sesión y `src/lib/oauth.ts` la lee. `src/app/+native-intent.tsx` evita
+y `src/lib/oauth.ts` lee lo que trae. Desde el 20/11/2026 el cliente usa
+**PKCE** (`flowType: 'pkce'` en `src/lib/supabase.ts`): vuelve un código de un
+solo uso (`?code=`) que la app canjea con el secreto que guardó al empezar, así
+que otra app que se registrara con el esquema `aguante://` no podría usarlo.
+Comprobado que el enlace a Google lleva el reto (`code_challenge`, `s256`) y
+que el secreto se guarda en el almacén; **sin probar entrando de verdad**. `src/app/+native-intent.tsx` evita
 que la navegación intente abrir una pantalla «auth». El botón **solo sale si
 Google está activado en Supabase** (la app lo pregunta a
 `/auth/v1/settings`), y nunca en la web de vista previa.

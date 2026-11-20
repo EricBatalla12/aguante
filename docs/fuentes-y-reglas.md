@@ -414,6 +414,20 @@ Consultado el 16/11/2026.
     que toca no cabe en lo que queda del mes, entra lo siguiente que quepa.
   - **[propio]** Se repone lo que caduca dentro del plan (al menos en los 3
     próximos meses, como «Rotar pronto»), en el mes en que caduca.
+  - **Productos de tus tiendas** (desde el 20/11/2026, `src/lib/catalogo.ts`):
+    conservas (`en:canned-foods`), arroz (`en:rices`) y agua (`en:waters`)
+    de Open Food Facts vistos en esas cadenas en España. No dice si hay
+    existencias ni el precio. Las kcal y los gramos son los de cada ficha, que
+    a veces están mal: cada producto se puede quitar o cambiar.
+  - **[propio]** Qué entra: conservas de 80 kcal/100 g o más (deja fuera
+    encurtidos y verduras que apenas dan energía); arroz de 300 kcal/100 g o
+    más y 250 g o más (crudo: el cocido y los platos hechos no); agua sin gas
+    ni sabor, de 1,5 L o más. El agua de cocer el arroz elegido se calcula
+    con la misma proporción, según su peso.
+  - **[propio]** Qué se propone: cuatro conservas, un arroz y un agua. Con
+    precio, lo que más da por euro; sin precio, de los 40 más escaneados,
+    primero lo que más kcal tiene por 100 g y sin repetir familia (la primera
+    palabra del nombre); en el agua, la garrafa más grande.
 
 ## Avisos que la app tiene que mostrar
 
