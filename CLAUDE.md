@@ -178,10 +178,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   datos cargados a mano y la descarga desde Node). **Ya en el móvil de Eric**
   (18/11/2026, 16:40: Ajustes enseña la actualización `01a1ef48`), pero falta
   que pruebe el tutorial nuevo y la pantalla de avisos con su provincia.
-- Última actualización publicada: grupo `baa21b36` (en la app, `01a1f97a`;
-  sin el trueque, commit `fd1965f`), canal `preview`, runtime 1.0.0, el
-  20/11/2026. Sin confirmar que le haya llegado al móvil de Eric. Las
-  anteriores: `107efbb6` (en la app `01a1efb8`; Actualidad con AESAN, AEMPS,
+- Última actualización publicada: grupo `b6534754` (en la app, `01a1f990`;
+  elegir notificaciones y aviso de app no oficial, commit `5cc375f`), canal
+  `preview`, runtime 1.0.0, el 20/11/2026. Sin confirmar que le haya llegado
+  al móvil de Eric. Las anteriores: `6bde7b32` (en la app `01a1f98c`; plan
+  de compra), `baa21b36` (en la app `01a1f97a`; sin el trueque), `107efbb6` (en la app `01a1efb8`; Actualidad con AESAN, AEMPS,
   Copernicus y filtro por tipo), `078c8705` (en la app `01a1ef9f`; pestaña
   Actualidad), `c895fffd`
   (en la app `01a1ef48`; avisos oficiales y tutorial sin tirones),
@@ -226,8 +227,9 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
      el plan es de cada móvil (ver `docs/pendiente.md`).
    - Los precios los pone el usuario (no hay fuente fiable de precios medios:
      no inventarlos); recordar el último precio de cada cosa.
-   También el 20/11/2026, a petición de Eric: elegir en Ajustes de qué
-   notifica la app y el aviso de «app no oficial» en Actualidad (ver
+   También el 20/11/2026, a petición de Eric y publicado (grupo `b6534754`,
+   en la app `01a1f990`): elegir en Ajustes de qué notifica la app y el aviso
+   de «app no oficial» en Actualidad (ver
    `docs/pendiente.md`); y revisado si está lista para Play y si se puede
    cobrar sin ser autónomo (`docs/pendiente.md`, «Monetizar»).
 2. **Funciones nuevas** (todas aprobadas):
