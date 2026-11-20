@@ -17,7 +17,7 @@
 // Uso: node scripts/precios-tiendas.mjs [--solo=156]
 // Sin la variable PRECIOS_TOKEN no escribe nada: enseña lo que cargaría.
 
-import { KCAL_MIN_COCINAR, KCAL_MIN_LISTA, LITROS_MIN_AGUA } from '../src/lib/catalogo.ts';
+import { esAguaParaBeber, KCAL_MIN_COCINAR, KCAL_MIN_LISTA, LITROS_MIN_AGUA } from '../src/lib/catalogo.ts';
 
 const SUPABASE = 'https://dndvwxfnaqdivcttxwku.supabase.co';
 const CLAVE_PUBLICABLE = 'sb_publishable_2ExGbQV4Bzbv5YvRhjzq7w_EWEv35IL';
@@ -123,7 +123,7 @@ async function main() {
 
   // Lo mismo que filtra la app (src/lib/catalogo.ts)
   const validas = filas.filter((f) => {
-    if (f.tipo === 'agua') return f.litros >= LITROS_MIN_AGUA && !(/\bgas\b|sabor/i.test(f.nombre) && !/sin gas/i.test(f.nombre));
+    if (f.tipo === 'agua') return f.litros >= LITROS_MIN_AGUA && esAguaParaBeber(f.nombre);
     if (!(f.gramos > 0) || f.kcal100g === undefined) return false;
     if (f.tipo === 'cocinar') return f.kcal100g >= KCAL_MIN_COCINAR && f.gramos >= 250;
     return f.kcal100g >= KCAL_MIN_LISTA;

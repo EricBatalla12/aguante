@@ -42,6 +42,7 @@ export function deFilaPrecio(f: {
   actualizado?: string;
 }): ProductoTienda | null {
   if (f.tipo !== 'agua' && f.tipo !== 'lista' && f.tipo !== 'cocinar') return null;
+  if (f.tipo === 'agua' && !esAguaParaBeber(f.nombre)) return null;
   const num = (x: unknown) => (x === null || x === undefined || x === '' ? undefined : Number(x));
   const precio = num(f.precio);
   if (!(precio && precio > 0)) return null;
@@ -78,6 +79,12 @@ export const CATEGORIA_OFF: Record<TipoTienda, string> = {
 export const KCAL_MIN_LISTA = 80;
 export const KCAL_MIN_COCINAR = 300;
 export const LITROS_MIN_AGUA = 1.5;
+
+/** Por el nombre, ¿es agua para beber? Fuera la que tiene gas o sabor, y las gaseosas y tónicas. */
+export function esAguaParaBeber(nombre: string): boolean {
+  if (/sin gas/i.test(nombre)) return !/sabor/i.test(nombre);
+  return !/\bgas\b|gaseosa|sabor|t[oó]nica/i.test(nombre);
+}
 
 /** «El Corte Inglés» → «el-corte-ingles», como los `stores_tags` de Open Food Facts. */
 export function etiquetaTienda(nombre: string): string {
@@ -152,7 +159,7 @@ export function leerCatalogo(json: unknown, tienda: string, tipo: TipoTienda): P
     if (tipo === 'agua') {
       if (!litros || litros < LITROS_MIN_AGUA) continue;
       if (categorias.some((c) => /carbonated|flavou?red|sparkling/.test(c))) continue;
-      if (/\bgas\b|gaseosa|sabor/i.test(nombre) && !/sin gas/i.test(nombre)) continue;
+      if (!esAguaParaBeber(nombre)) continue;
       salida.push({ ...base, litros });
       continue;
     }

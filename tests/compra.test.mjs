@@ -21,7 +21,7 @@ import {
   proximosRecordatorios,
   repartir,
 } from '../src/lib/compra.ts';
-import { cadenasDeOsm, cantidadDe, deFilaPrecio, etiquetaTienda, juntarCatalogos, leerCatalogo } from '../src/lib/catalogo.ts';
+import { cadenasDeOsm, cantidadDe, deFilaPrecio, esAguaParaBeber, etiquetaTienda, juntarCatalogos, leerCatalogo } from '../src/lib/catalogo.ts';
 import { readFileSync } from 'node:fs';
 import { GENERICOS } from '../src/constants/genericos.ts';
 import { diaAviso, enlaceCalendario } from '../src/lib/calendario.ts';
@@ -293,6 +293,14 @@ test('también se lee la respuesta de search.openfoodfacts.org', () => {
   assert.ok(c.some((p) => p.marca && !p.marca.includes(',')));
 });
 
+test('agua para beber: sin gas, sin sabor y nada de gaseosas ni tónicas', () => {
+  for (const n of ['Agua mineral grande Bronchales', 'Agua mineral natural sin gas', 'Agua de manantial'])
+    assert.ok(esAguaParaBeber(n), n);
+  // La que se coló en la primera carga de Mercadona (20/11/2026)
+  for (const n of ['Gaseosa grande Hacendado', 'Agua con gas', 'Agua con sabor a limón', 'Tónica', 'Agua sin gas sabor fresa'])
+    assert.ok(!esAguaParaBeber(n), n);
+});
+
 test('un producto de dos tiendas sale una vez, con las dos', () => {
   const a = { codigo: '1', nombre: 'Atún', tipo: 'lista', tiendas: ['mercadona'], gramos: 100, kcal100g: 200 };
   const juntos = juntarCatalogos([[a], [{ ...a, tiendas: ['dia'] }]]);
@@ -373,6 +381,7 @@ test('una fila de precios de la tienda se lee como producto, con su precio', () 
   // Sin código de barras, el de la tienda; sin precio o con un tipo raro, nada
   assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'Agua', tipo: 'agua', litros: 8, precio: 1 }).codigo, 'mercadona-7');
   assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'X', tipo: 'otro', precio: 1 }), null);
+  assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '8', nombre: 'Gaseosa grande Hacendado', tipo: 'agua', litros: 1.5, precio: 0.55 }), null);
   assert.equal(deFilaPrecio({ tienda: 'mercadona', id: '7', nombre: 'X', tipo: 'lista', precio: 0 }), null);
 });
 
