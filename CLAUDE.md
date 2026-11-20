@@ -313,17 +313,15 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
 
 ## Pendiente fuera del código
 
-- **Para los precios de Mercadona** (20/11/2026), en este orden:
-  1. ~~Ejecutar `supabase/esquema.sql`~~: hecho el 20/11/2026 (comprobado:
-     la tabla existe y `cargar_precios` rechaza un token falso).
-  2. Token: secreto de GitHub creado el 20/11/2026; falta ejecutar en el SQL
-     Editor la línea `insert into privado.claves …` que imprimió. En fish, desde el repo, este comando lo guarda como
-     secreto `PRECIOS_TOKEN` de GitHub sin enseñarlo y escribe el SQL con su
-     huella, que hay que ejecutar en el SQL Editor:
-     `set token (openssl rand -hex 32); printf %s $token | gh secret set PRECIOS_TOKEN --repo EricBatalla12/aguante; and echo "insert into privado.claves (nombre, huella) values ('precios', '"(printf %s $token | sha256sum | cut -d' ' -f1)"') on conflict (nombre) do update set huella = excluded.huella;"; set -e token`
-  3. Lanzar la tarea a mano la primera vez (pestaña Actions, «Precios de las
-     tiendas», Run workflow) y mirar que acaba bien.
-- **Compilar e instalar el APK 1.1.0** y probar en el móvil el widget, los
+- **Precios de Mercadona: en marcha desde el 20/11/2026.** SQL ejecutado,
+  secreto `PRECIOS_TOKEN` creado y huella en `privado.claves`. Tarea
+  «Precios de las tiendas» (lunes 05:23 UTC): 84 productos publicados de 121
+  (52 conservas y legumbres, 8 arroces, 24 aguas); los que no valen se
+  guardan como no publicados para no volver a pedir su detalle. Cada semana
+  son 5 peticiones a Mercadona (comprobado en la segunda carga: 0 detalles) y
+  unas 10 a Open Food Facts (calorías que no tiene). Si falla, GitHub avisa
+  por correo.
+- **Instalar el APK 1.1.0** (ya compilado, enlace en «Compilar e instalar») y probar en el móvil el widget, los
   avisos de AEMET con la app cerrada, «Buscar las que tengo cerca» y lo de
   antes que solo está probado en web.
 
