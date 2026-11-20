@@ -185,10 +185,12 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   datos cargados a mano y la descarga desde Node). **Ya en el móvil de Eric**
   (18/11/2026, 16:40: Ajustes enseña la actualización `01a1ef48`), pero falta
   que pruebe el tutorial nuevo y la pantalla de avisos con su provincia.
-- Última actualización publicada: grupo `cc95aee2` (en la app, `01a1fb38`;
-  la lista la hace cada uno, sin tiendas, commit `488c698`), canal `preview`,
-  **runtime 1.1.0**, el 21/11/2026 (de madrugada): solo le llega al APK
-  versionCode 4, que Eric aún no ha instalado. La última del runtime 1.0.0
+- Última actualización publicada: grupo `006fbdeb` (en la app, `01a1fb5f`;
+  panel de admin, gasta esto esta semana, guías y plan familiar, commit
+  `4bbe7b4`), canal `preview`, **runtime 1.1.0**, el 21/11/2026: solo le
+  llega al APK versionCode 4, que Eric aún no ha instalado. Antes, del mismo
+  runtime, `cc95aee2` (en la app `01a1fb38`; la lista sin tiendas, commit
+  `488c698`). La última del runtime 1.0.0
   (el APK que tiene) es `fff77e3f` (en la app, `01a1f9b1`; productos de tus
   tiendas, escáner que apunta lo comprado y PKCE, commit `c1ea39c`), del
   20/11/2026: ese APK sigue con las tiendas. Las anteriores:
@@ -230,7 +232,8 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   cualquiera), guías sin conexión (apagón y potabilizar agua), plan familiar
   (compartido como ajuste, sin SQL) y «Tus productos» en el plan. Licencia
   PolyForm Strict (commit `9435d0b`). Detalle en `docs/pendiente.md`,
-  «Hecho el 21/11/2026 (2)». Sin probar en el móvil.
+  «Hecho el 21/11/2026 (2)». Sin probar en el móvil. En git (`4bbe7b4`),
+  web publicada y actualización `006fbdeb` (en la app `01a1fb5f`).
 
 ### Dónde está todo (20/11/2026, al final del día)
 
