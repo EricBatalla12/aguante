@@ -185,10 +185,13 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   datos cargados a mano y la descarga desde Node). **Ya en el móvil de Eric**
   (18/11/2026, 16:40: Ajustes enseña la actualización `01a1ef48`), pero falta
   que pruebe el tutorial nuevo y la pantalla de avisos con su provincia.
-- Última actualización publicada: grupo `fff77e3f` (en la app, `01a1f9b1`;
-  productos de tus tiendas en el plan, escáner que apunta lo comprado y
-  PKCE, commit `c1ea39c`), canal `preview`, runtime 1.0.0, el 20/11/2026.
-  Sin confirmar que le haya llegado al móvil de Eric. Las anteriores:
+- Última actualización publicada: grupo `cc95aee2` (en la app, `01a1fb38`;
+  la lista la hace cada uno, sin tiendas, commit `488c698`), canal `preview`,
+  **runtime 1.1.0**, el 21/11/2026 (de madrugada): solo le llega al APK
+  versionCode 4, que Eric aún no ha instalado. La última del runtime 1.0.0
+  (el APK que tiene) es `fff77e3f` (en la app, `01a1f9b1`; productos de tus
+  tiendas, escáner que apunta lo comprado y PKCE, commit `c1ea39c`), del
+  20/11/2026: ese APK sigue con las tiendas. Las anteriores:
   `b6534754` (en la app `01a1f990`; elegir notificaciones), `6bde7b32` (en la app `01a1f98c`; plan
   de compra), `baa21b36` (en la app `01a1f97a`; sin el trueque), `107efbb6` (en la app `01a1efb8`; Actualidad con AESAN, AEMPS,
   Copernicus y filtro por tipo), `078c8705` (en la app `01a1ef9f`; pestaña
@@ -217,7 +220,9 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   Mercadona y `expo-location`. Store en la versión 5. **Y la web, al día**
   (portada, guía del kit, índice de guías). Detalle, lo comprobado y lo que
   queda en `docs/pendiente.md`, «Hecho el 21/11/2026». Sin probar en el
-  móvil (el escáner de la lista, sobre todo).
+  móvil (el escáner de la lista, sobre todo). En git (`57be81c` la web,
+  `488c698` la app), web publicada y actualización `cc95aee2` (en la app
+  `01a1fb38`, runtime 1.1.0) publicada con el visto bueno de Eric.
 
 ### Dónde está todo (20/11/2026, al final del día)
 
