@@ -49,6 +49,52 @@ orden de trabajo está en CLAUDE.md, «Siguiente trabajo»):
 - **Antes de cobrar**: alta en Hacienda y, quizá, como autónomo: preguntarlo a
   un gestor. Actualizar la política de privacidad.
 
+### Cobrar sin ser autónomo (mirado el 20/11/2026; no es asesoría fiscal)
+
+- La cuenta «personal» de Google Play es una cosa de Google: deja publicar y
+  cobrar como persona física, pero no dice nada de lo que pide Hacienda o la
+  Seguridad Social en España.
+- **Seguridad Social**: el Tribunal Supremo (STS 941/2025, de 10 de julio)
+  dice que ganar menos del salario mínimo no libra del alta en el RETA si la
+  actividad es habitual (para los no jubilados). Una suscripción que cobra
+  cada mes, con una app mantenida, tiene pinta de habitual. Tarifa plana para
+  el primer alta: unos 80 € al mes (88,64 € con el MEI en 2026) durante 12
+  meses, y 12 más si los ingresos netos no pasan del SMI.
+- **Hacienda**: para facturar a Google hace falta el alta en el censo (modelo
+  036). Google Ireland es quien vende al usuario y el desarrollador le factura
+  a Google, sin IVA y con inversión del sujeto pasivo: hace falta el ROI (en
+  el mismo 036) y los modelos 303 y 349. Las fuentes que se encontraron son
+  blogs y asesorías, algunas antiguas: confirmarlo con un gestor.
+- **Google Play, si se cobra**: se cuenta como «comerciante» (Ley de
+  Servicios Digitales de la UE) y Google enseña en la ficha la dirección y el
+  teléfono (en las apps de pago, la dirección ya sale hoy). Mirar si vale una
+  dirección de empresa o de coworking en lugar de la de casa.
+- Recomendación: no cobrar hasta tenerlo hablado con un gestor. Mientras,
+  donaciones (fuera de Play) o la app gratis en Play, sin enlace de PayPal.
+
+### Para subir a Google Play (mirado el 20/11/2026)
+
+Lo que ya está: `targetSdk` 36 (Google lo pide a las apps nuevas desde el
+31/08/2026), solo pide cámara y notificaciones, política de privacidad y
+página de borrar la cuenta publicadas, borrar la cuenta dentro de la app, y
+el perfil `production` de EAS genera el AAB.
+
+Lo que falta:
+
+- Cuenta de desarrollador (25 $, una vez) con verificación de identidad.
+  Las cuentas personales nuevas tienen que pasar una prueba cerrada con al
+  menos 12 personas durante 14 días seguidos antes de pedir producción.
+- Formularios de «Contenido de la app»: seguridad de los datos (correo,
+  datos de la casa y datos de salud: embarazo, lactancia, peso), declaración
+  de apps de salud (la app planifica comida: es «nutrición»), público
+  objetivo, clasificación por edades y anuncios (ninguno).
+- Ficha: icono de 512 px, gráfico de 1024 × 500, capturas y textos. En la
+  descripción, decir que Aguante no es una app oficial y de dónde salen los
+  avisos (la app ya lo dice en Actualidad desde el 20/11/2026).
+- Dejar `ENLACE_DONAR` vacío en la versión de Play.
+- Canal de EAS: la compilación de Play va por `production`; las
+  actualizaciones se publican en ese canal, no en `preview`.
+
 ## Marketing
 
 - Más vídeos con HyperFrames (el kit de 72 h en 30 s, la energía sin luz…).
@@ -155,8 +201,12 @@ y kit, quitar un gasto, la migración de precios y que no se corte nada a
 320 px. **Sin probar en el móvil**: la notificación del día de compra y el
 menú de compartir (en la web no hay ninguno de los dos).
 
-Queda: que encender el recordatorio, si los avisos estaban apagados, enciende
-también los de caducidad (comparten el permiso y el interruptor de Ajustes).
+Arreglado ese mismo día: encender el recordatorio con las notificaciones
+apagadas ya no enciende las de caducidad. En Ajustes, «Notificaciones» tiene
+un interruptor general y, debajo, de qué avisar: caducidad de la despensa,
+caducidad del kit y día de compra (`notificar` en el store, de cada móvil).
+Los avisos oficiales de Actualidad no notifican: solo se ven con la app
+abierta (avisarlos con la app cerrada pide APK nuevo).
 
 ## Hecho el 18/11/2026 por la tarde: más fuentes en Actualidad
 

@@ -128,7 +128,7 @@ export default function Actualidad() {
     <Pantalla>
       <Titulo>{t('Actualidad')}</Titulo>
       <Texto color={C.texto2}>
-        {t('Avisos, alertas y noticias de fuentes oficiales para {provincia}. Aguante no sustituye a Protección Civil ni al 112: ante una emergencia, sigue sus indicaciones. Las alertas ES-Alert te llegan solas al móvil.', { provincia: p.nombre })}
+        {t('Avisos, alertas y noticias de fuentes oficiales para {provincia}, con el enlace a cada una. Aguante no es una app oficial ni depende de ningún organismo público, y no sustituye a Protección Civil ni al 112: ante una emergencia, sigue sus indicaciones. Las alertas ES-Alert te llegan solas al móvil.', { provincia: p.nombre })}
       </Texto>
 
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>

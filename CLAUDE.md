@@ -204,7 +204,8 @@ El 20/11/2026, con el visto bueno de Eric: el trueque quitado, en git
 (`da50467`) y publicado (grupo `baa21b36`, en la app `01a1f97a`); los tres
 vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
 
-1. **Plan de compra mejorado: HECHO el 20/11/2026, sin commit ni publicar**
+1. **Plan de compra mejorado: HECHO y publicado el 20/11/2026** (commit
+   `47b190b`, grupo `6bde7b32`, en la app `01a1f98c`)
    (detalle, lo comprobado y lo que queda en `docs/pendiente.md`, «Hecho el
    20/11/2026»). Pantalla `src/app/compra.tsx`, cálculo en `src/lib/compra.ts`,
    lo común con Preparación en `src/lib/use-compra.ts`; el store pasa a la
@@ -225,6 +226,10 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
      el plan es de cada móvil (ver `docs/pendiente.md`).
    - Los precios los pone el usuario (no hay fuente fiable de precios medios:
      no inventarlos); recordar el último precio de cada cosa.
+   También el 20/11/2026, a petición de Eric: elegir en Ajustes de qué
+   notifica la app y el aviso de «app no oficial» en Actualidad (ver
+   `docs/pendiente.md`); y revisado si está lista para Play y si se puede
+   cobrar sin ser autónomo (`docs/pendiente.md`, «Monetizar»).
 2. **Funciones nuevas** (todas aprobadas):
    - «Gasta esto esta semana»: lo que caduca pronto, para comerlo en el día a
      día y reponerlo (que la app se abra cada semana).

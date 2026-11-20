@@ -43,6 +43,10 @@ export default function Ajustes() {
   const setActividad = useAguante((s) => s.setActividad);
   const avisos = useAguante((s) => s.avisos);
   const setAvisos = useAguante((s) => s.setAvisos);
+  const notificar = useAguante((s) => s.notificar);
+  const setNotificar = useAguante((s) => s.setNotificar);
+  const diaCompra = useAguante((s) => s.compra.diaRecordatorio);
+  const setCompra = useAguante((s) => s.setCompra);
   const exportar = useAguante((s) => s.exportar);
   const importar = useAguante((s) => s.importar);
   const borrarTodo = useAguante((s) => s.borrarTodo);
@@ -129,14 +133,40 @@ export default function Ajustes() {
         </Texto>
       </Tarjeta>
 
-      <Seccion>{t('Avisos')}</Seccion>
+      <Seccion>{t('Notificaciones')}</Seccion>
       <Tarjeta>
         <Interruptor
-          etiqueta={t('Avisos de caducidad')}
+          etiqueta={t('Notificaciones')}
           valor={avisos}
           onChange={alAvisos}
-          ayuda={t('Una notificación 2 meses y 1 semana antes de que caduque cada producto, para gastarlo y reponerlo.')}
+          ayuda={t('Avisos en el móvil aunque la app esté cerrada. Elige de qué quieres que te avise.')}
         />
+        {avisos && (
+          <>
+            <Interruptor
+              etiqueta={t('Caducidad de la despensa')}
+              valor={notificar.despensa}
+              onChange={(v) => setNotificar({ despensa: v })}
+              ayuda={t('2 meses y 1 semana antes de que caduque cada producto, para gastarlo y reponerlo.')}
+            />
+            <Interruptor
+              etiqueta={t('Caducidad del kit')}
+              valor={notificar.kit}
+              onChange={(v) => setNotificar({ kit: v })}
+              ayuda={t('Medicinas, pilas y lo que hayas apuntado con fecha en el kit.')}
+            />
+            <Interruptor
+              etiqueta={t('Día de compra')}
+              valor={!!diaCompra}
+              onChange={(v) => setCompra({ diaRecordatorio: v ? Math.min(28, new Date().getDate()) : undefined })}
+              ayuda={
+                diaCompra
+                  ? t('El día {n} de cada mes, a las 10. El día se cambia en el plan de compra.', { n: diaCompra })
+                  : t('Un aviso al mes para la compra de la reserva, según el plan de compra.')
+              }
+            />
+          </>
+        )}
         {sinPermiso && (
           <Aviso
             tono="ambar"

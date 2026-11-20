@@ -78,10 +78,14 @@ function Navegacion() {
   const kitPropio = useAguante((s) => s.kitPropio);
   const avisos = useAguante((s) => s.avisos);
   const diaCompra = useAguante((s) => s.compra.diaRecordatorio);
+  const notificar = useAguante((s) => s.notificar);
 
+  // Cada tipo de aviso se puede apagar en Ajustes: lo apagado no se programa
   useEffect(() => {
-    (avisos ? reprogramarAvisos(productos, kitPropio, diaCompra) : cancelarAvisos()).catch(() => {});
-  }, [avisos, productos, kitPropio, diaCompra]);
+    const deDespensa = notificar.despensa ? productos : [];
+    const delKit = notificar.kit ? kitPropio : [];
+    (avisos ? reprogramarAvisos(deDespensa, delKit, diaCompra) : cancelarAvisos()).catch(() => {});
+  }, [avisos, productos, kitPropio, diaCompra, notificar]);
 
   // La primera vez, con la app vacía, sale el tutorial (se puede omitir)
   useEffect(() => {

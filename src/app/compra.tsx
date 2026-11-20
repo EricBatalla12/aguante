@@ -82,6 +82,7 @@ export default function PlanDeCompra() {
   const quitarCompra = useAguante((s) => s.quitarCompra);
   const avisos = useAguante((s) => s.avisos);
   const setAvisos = useAguante((s) => s.setAvisos);
+  const setNotificar = useAguante((s) => s.setNotificar);
   const [textoPresupuesto, setTextoPresupuesto] = useState(aCampo(compra.presupuesto));
   const [fecha, setFecha] = useState<PartesFecha>(partesDeFecha(compra.fecha));
   const [textosPrecio, setTextosPrecio] = useState<Record<string, string>>(() =>
@@ -168,8 +169,11 @@ export default function PlanDeCompra() {
     if (!v) return setCompra({ diaRecordatorio: undefined });
     if (!avisos) {
       const permitido = await pedirPermiso();
-      setAvisos(permitido);
       if (!permitido) return setSinPermiso(true);
+      // Si estaban apagadas, se enciende solo este aviso: las caducidades,
+      // si las quiere, se encienden en Ajustes
+      setNotificar({ despensa: false, kit: false });
+      setAvisos(true);
     }
     setCompra({ diaRecordatorio: Math.min(28, hoy.getDate()) });
   };

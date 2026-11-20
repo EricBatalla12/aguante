@@ -63,7 +63,8 @@ type Datos = {
   emergencia: Emergencia | null;
   tema: Tema;
   idioma: Idioma;
-  avisos: boolean;
+  avisos: boolean; // interruptor general de las notificaciones
+  notificar: Notificar; // de qué se notifica, si están encendidas
   energia: Energia;
   compra: Compra; // presupuesto y precios del plan de compra: de cada móvil, no se comparte
 };
@@ -87,6 +88,9 @@ export type Compra = {
   precioGarrafa?: number;
   precioBote?: number;
 };
+
+/** De qué avisa el móvil. El día de compra va en `compra.diaRecordatorio`. */
+export type Notificar = { despensa: boolean; kit: boolean };
 
 /** Algo que se ha comprado siguiendo el plan: para el gasto de cada mes. */
 export type CompraHecha = { id: string; clave: string; nombre: string; unidades: number; coste: number; fecha: string };
@@ -118,6 +122,7 @@ type Estado = Datos & {
   borrarKit: (id: string) => void;
   setTema: (t: Tema) => void;
   setAvisos: (v: boolean) => void;
+  setNotificar: (n: Partial<Notificar>) => void;
   setIdioma: (i: Idioma) => void;
   guardarFuente: (f: FuenteEnergia) => void;
   borrarFuente: (id: string) => void;
@@ -149,6 +154,7 @@ const INICIAL: Datos = {
   tema: 'sistema',
   idioma: 'sistema',
   avisos: false,
+  notificar: { despensa: true, kit: true },
   energia: { fuentes: [], aparatos: [], zona: 'centro', epoca: 'invierno' },
   compra: {},
 };
@@ -215,6 +221,7 @@ function soloDatos(s: Estado): Datos {
     tema: s.tema,
     idioma: s.idioma,
     avisos: s.avisos,
+    notificar: s.notificar,
     energia: s.energia,
     compra: s.compra,
   };
@@ -301,6 +308,7 @@ export const useAguante = create<Estado>()(
       borrarKit: (id) => set((s) => ({ kitPropio: s.kitPropio.filter((k) => k.id !== id), kit: sin(s.kit, id) })),
       setTema: (tema) => set({ tema }),
       setAvisos: (avisos) => set({ avisos }),
+      setNotificar: (n) => set((s) => ({ notificar: { ...s.notificar, ...n } })),
       setIdioma: (idioma) => set({ idioma }),
       guardarFuente: (f) => set((s) => ({ energia: { ...s.energia, fuentes: upsert(s.energia.fuentes, f) } })),
       borrarFuente: (id) =>
@@ -431,6 +439,7 @@ function normalizar(d: Datos): Datos {
       p.conservacion || !p.necesitaFrio ? p : { ...p, conservacion: 'nevera' as const, necesitaFrio: undefined },
     ),
     emergencia: normalizarEmergencia(d.emergencia ?? null),
+    notificar: { ...INICIAL.notificar, ...d.notificar },
     compra: normalizarCompra(d.compra ?? {}),
   };
 }
