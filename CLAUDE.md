@@ -45,10 +45,12 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - Hace falta APK nuevo **y subir `version` en app.json** si se añade o
   actualiza un módulo nativo, o se cambian permisos o plugins.
 - **Desde el 20/11/2026 `app.json` está en la versión 1.1.0** (widget,
-  segundo plano, ubicación y parches de Expo), **sin compilar todavía**. Lo
-  que se publique ahora va al runtime 1.1.0 y **no llega al APK 1.0.0** que
-  tiene Eric; no publicar nada para 1.0.0 desde este código (usa módulos
-  nativos que ese APK no tiene).
+  segundo plano, ubicación y parches de Expo). **APK versionCode 4**
+  compilado el 20/11/2026 (commit `e0408e3`, runtime 1.1.0, canal `preview`):
+  https://expo.dev/artifacts/eas/l49WoAq1oLhiBnvONO_1qAiG-wQscBlsFuStfu-LT_s.apk
+  Lo que se publique ahora va al runtime 1.1.0 y **no llega al APK 1.0.0**;
+  no publicar nada para 1.0.0 desde este código (usa módulos nativos que ese
+  APK no tiene). Sin confirmar que Eric lo haya instalado.
 - Publicar una actualización o lanzar una compilación es algo que se ve fuera
   del PC: confirmarlo con Eric antes.
 
@@ -240,7 +242,8 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
    online de Mercadona se miró y se descartó (`docs/pendiente.md`). Lo que
    falta para publicar en Play, por orden: `docs/pendiente.md`, «Para subir a
    Google Play».
-   Más tarde, el 20/11/2026, **sin commit, sin compilar y sin publicar**: precios
+   Más tarde, el 20/11/2026, en git (`e0408e3`) y **en el APK versionCode 4**
+   (sin instalar ni probar en el móvil): precios
    de Mercadona (copia semanal) y lo que pide APK nuevo (widget, avisos de
    AEMET con la app cerrada, tiendas cerca, registro de errores); detalle en
    `docs/pendiente.md`, «APK 1.1.0».
@@ -311,10 +314,10 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
 ## Pendiente fuera del código
 
 - **Para los precios de Mercadona** (20/11/2026), en este orden:
-  1. Ejecutar `supabase/esquema.sql` entero en el SQL Editor (añade
-     `precios_tienda`, `privado.claves`, `cargar_precios`, `errores` y
-     `apuntar_error`).
-  2. Crear el token: en fish, desde el repo, este comando lo guarda como
+  1. ~~Ejecutar `supabase/esquema.sql`~~: hecho el 20/11/2026 (comprobado:
+     la tabla existe y `cargar_precios` rechaza un token falso).
+  2. Token: secreto de GitHub creado el 20/11/2026; falta ejecutar en el SQL
+     Editor la línea `insert into privado.claves …` que imprimió. En fish, desde el repo, este comando lo guarda como
      secreto `PRECIOS_TOKEN` de GitHub sin enseñarlo y escribe el SQL con su
      huella, que hay que ejecutar en el SQL Editor:
      `set token (openssl rand -hex 32); printf %s $token | gh secret set PRECIOS_TOKEN --repo EricBatalla12/aguante; and echo "insert into privado.claves (nombre, huella) values ('precios', '"(printf %s $token | sha256sum | cut -d' ' -f1)"') on conflict (nombre) do update set huella = excluded.huella;"; set -e token`
