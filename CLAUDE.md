@@ -50,7 +50,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   https://expo.dev/artifacts/eas/l49WoAq1oLhiBnvONO_1qAiG-wQscBlsFuStfu-LT_s.apk
   Lo que se publique ahora va al runtime 1.1.0 y **no llega al APK 1.0.0**;
   no publicar nada para 1.0.0 desde este código (usa módulos nativos que ese
-  APK no tiene). Sin confirmar que Eric lo haya instalado.
+  APK no tiene). **Eric lo instaló el 21/11/2026** y el widget le funciona.
 - Publicar una actualización o lanzar una compilación es algo que se ve fuera
   del PC: confirmarlo con Eric antes.
 
@@ -188,7 +188,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - Última actualización publicada: grupo `006fbdeb` (en la app, `01a1fb5f`;
   panel de admin, gasta esto esta semana, guías y plan familiar, commit
   `4bbe7b4`), canal `preview`, **runtime 1.1.0**, el 21/11/2026: solo le
-  llega al APK versionCode 4, que Eric aún no ha instalado. Antes, del mismo
+  llega al APK versionCode 4 (instalado por Eric el 21/11/2026). Antes, del mismo
   runtime, `cc95aee2` (en la app `01a1fb38`; la lista sin tiendas, commit
   `488c698`). La última del runtime 1.0.0
   (el APK que tiene) es `fff77e3f` (en la app, `01a1f9b1`; productos de tus
@@ -237,9 +237,10 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 
 ### Dónde está todo (20/11/2026, al final del día)
 
-- Todo en git y subido a `main` (`git log -1`). La versión 1.1.0 está
-  compilada (APK versionCode 4) pero **Eric aún no la ha instalado ni
-  probado**: es lo primero que toca (lista en «Pendiente fuera del código»).
+- Todo en git y subido a `main` (`git log -1`). La versión 1.1.0 (APK
+  versionCode 4) **la instaló Eric el 21/11/2026: el widget funciona**
+  (comprobado por él). Lo demás de esa versión, sin probar aún (lista en
+  «Pendiente fuera del código»).
 - De lo aprobado abajo: hechos el 1 (plan de compra) y lo nativo del 2
   (widget y avisos con la app cerrada); descartados el 3 (cobrar), el 4
   (vídeo B) y «varias casas» (21/11/2026). Del 2 solo queda el PDF (pide
@@ -360,9 +361,11 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
 - **Precios de Mercadona: quitados del todo el 21/11/2026**: ni tarea ni
   script, la tabla ya no está en Supabase (comprobado: PostgREST dice que no
   existe) y el secreto `PRECIOS_TOKEN` tampoco (comprobado con `gh`).
-- **Instalar el APK 1.1.0** (ya compilado, enlace en «Compilar e instalar») y probar en el móvil el widget, los
-  avisos de AEMET con la app cerrada, la lista propia del plan de compra y lo
-  de antes que solo está probado en web. Ese APK lleva aún el permiso de
+- **APK 1.1.0 instalado** (21/11/2026) y **el widget funciona** (Eric). Falta
+  probar en el móvil, con el panel de admin: los avisos, la tarea en segundo
+  plano (avisos de AEMET con la app cerrada), el aviso de los lunes, la lista
+  propia del plan de compra (el escáner), el plan familiar («Llamar») y lo de
+  antes que solo está probado en web. Ese APK lleva aún el permiso de
   ubicación, que ya no se usa (se va en el próximo).
 
 - **Verificación en dos pasos** en las cuentas de Expo (`eric_161`), GitHub,

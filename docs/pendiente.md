@@ -327,8 +327,9 @@ Comprobado: 119 tests, `tsc`, lint, `expo-doctor`, export de Android (el
 widget queda como texto en el bundle) y `expo prebuild` (receptor del widget,
 permisos y versión en el manifiesto). Aquí no hay emulador usable (sin
 `/dev/kvm`) y el Java instalado (27) es más nuevo de lo que admite Gradle, así
-que se compiló en EAS: **APK versionCode 4, bien compilado el 20/11/2026, sin
-instalar ni probar en el móvil**.
+que se compiló en EAS: **APK versionCode 4, bien compilado el 20/11/2026**.
+Eric lo instaló el 21/11/2026 y **el widget funciona**; lo demás de esta
+versión, sin probar en el móvil aún.
 
 ## Hecho el 20/11/2026: tus tiendas en el plan de compra (quitado el 21/11/2026)
 
