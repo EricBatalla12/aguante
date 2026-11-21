@@ -46,7 +46,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   actualiza un módulo nativo, o se cambian permisos o plugins.
 - **Desde el 20/11/2026 `app.json` está en la versión 1.1.0** (widget,
   segundo plano, ubicación y parches de Expo). **APK versionCode 4**
-  compilado el 20/11/2026 (commit `e0408e3`, runtime 1.1.0, canal `preview`):
+  compilado el 20/11/2026 (commit `1b4e05c`, runtime 1.1.0, canal `preview`):
   https://expo.dev/artifacts/eas/l49WoAq1oLhiBnvONO_1qAiG-wQscBlsFuStfu-LT_s.apk
   Lo que se publique ahora va al runtime 1.1.0 y **no llega al APK 1.0.0**;
   no publicar nada para 1.0.0 desde este código (usa módulos nativos que ese
@@ -54,7 +54,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 - Publicar una actualización o lanzar una compilación es algo que se ve fuera
   del PC: confirmarlo con Eric antes.
 
-- Eric tiene instalado el **APK versionCode 3** (commit `91ca425`) y **ese sí
+- Eric tiene instalado el **APK versionCode 3** (commit `8df4c7e`) y **ese sí
   recibe las actualizaciones** (comprobado el 15/11/2026: le llegó la
   `5a049262`). Con el versionCode 2 no se aplicaban y nunca se supo por qué
   (el APK estaba bien configurado). Para verlo desde el móvil:
@@ -155,8 +155,13 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   (`git log -1` dice cuál es el último). **`marketing/` entera no va a git desde el
   21/11/2026** (a petición de Eric: en GitHub, solo los vídeos e imágenes
   indispensables): vídeos, capturas, guiones y `difusion.md` están **solo en
-  el PC de Eric, sin copia en ningún otro sitio**. Siguen en el historial de
-  git anterior a esa fecha. Para volver a renderizar un vídeo hay que bajar
+  el PC de Eric, sin copia en ningún otro sitio**. El 21/11/2026, con el sí
+  de Eric, se quitó también de todo el historial (`git filter-branch` y push
+  forzado): **todos los commits cambiaron de identificador** (los que cita
+  este fichero ya están al día; las actualizaciones de EAS anteriores guardan
+  el viejo). Copia del historial de antes:
+  `/home/eric/Proyectos/aguante-historial-antes-de-limpiar-2026-11-21.bundle`
+  (se puede borrar cuando se vea que todo va bien). Para volver a renderizar un vídeo hay que bajar
   otra vez la música (la búsqueda está en su `REVIEW.md`). **Al ser público, no escribir
   aquí ni en `docs/` nada privado.**
 - Lo del 16/11/2026 (detalle en `docs/pendiente.md`, «Hecho el 16/11/2026»):
@@ -168,7 +173,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `supabase/esquema.sql` (comprobado: el servidor ya tiene `cambiar_codigo` y
   `echar_de_casa`; sin sesión responden «permission denied», no «no existe»).
   Falta que Eric lo pruebe en el móvil.
-- **Del 18/11/2026, en git y publicado** (commit `5086022`, actualización
+- **Del 18/11/2026, en git y publicado** (commit `127c8e6`, actualización
   `36296207`, web desplegada; detalle en `docs/pendiente.md`,
   «Hecho el 18/11/2026»): agua = beber (EFSA o 1 mL/kcal) + higiene por modo,
   actividad sedentaria/normal (día a día y emergencia), tutorial guiado y
@@ -178,7 +183,7 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   tutorial (medido con `measureInWindow`) caiga justo encima de lo que señala.
   `expo-doctor` falla por parches nuevos de Expo (`expo-web-browser` 58.1 y
   otros); ya fallaba antes y no se ha tocado: actualizar uno nativo pide APK.
-- **Del 18/11/2026 por la tarde, en git y publicado** (commit `3e5226d`,
+- **Del 18/11/2026 por la tarde, en git y publicado** (commit `4558c52`,
   actualización `c895fffd`): arreglos del
   tutorial (desplazar hasta lo señalado, medir en cada paso, sin dobles toques)
   y **avisos oficiales** (AEMET, IGN y GDACS; `src/lib/avisos.ts`,
@@ -190,12 +195,12 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   que pruebe el tutorial nuevo y la pantalla de avisos con su provincia.
 - Última actualización publicada: grupo `006fbdeb` (en la app, `01a1fb5f`;
   panel de admin, gasta esto esta semana, guías y plan familiar, commit
-  `4bbe7b4`), canal `preview`, **runtime 1.1.0**, el 21/11/2026: solo le
+  `b6f3cbb`), canal `preview`, **runtime 1.1.0**, el 21/11/2026: solo le
   llega al APK versionCode 4 (instalado por Eric el 21/11/2026). Antes, del mismo
   runtime, `cc95aee2` (en la app `01a1fb38`; la lista sin tiendas, commit
-  `488c698`). La última del runtime 1.0.0
+  `5dd1ea4`). La última del runtime 1.0.0
   (el APK que tiene) es `fff77e3f` (en la app, `01a1f9b1`; productos de tus
-  tiendas, escáner que apunta lo comprado y PKCE, commit `c1ea39c`), del
+  tiendas, escáner que apunta lo comprado y PKCE, commit `257fe3f`), del
   20/11/2026: ese APK sigue con las tiendas. Las anteriores:
   `b6534754` (en la app `01a1f990`; elegir notificaciones), `6bde7b32` (en la app `01a1f98c`; plan
   de compra), `baa21b36` (en la app `01a1f97a`; sin el trueque), `107efbb6` (en la app `01a1efb8`; Actualidad con AESAN, AEMPS,
@@ -225,8 +230,8 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   Mercadona y `expo-location`. Store en la versión 5. **Y la web, al día**
   (portada, guía del kit, índice de guías). Detalle, lo comprobado y lo que
   queda en `docs/pendiente.md`, «Hecho el 21/11/2026». Sin probar en el
-  móvil (el escáner de la lista, sobre todo). En git (`57be81c` la web,
-  `488c698` la app), web publicada y actualización `cc95aee2` (en la app
+  móvil (el escáner de la lista, sobre todo). En git (`ab360f7` la web,
+  `5dd1ea4` la app), web publicada y actualización `cc95aee2` (en la app
   `01a1fb38`, runtime 1.1.0) publicada con el visto bueno de Eric.
 
 - **Después, el mismo 21/11/2026**: «Gasta esto esta semana» (Inicio y aviso
@@ -234,8 +239,8 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `src/constants/admin.ts`, `ericbatalla16@gmail.com`; en desarrollo lo ve
   cualquiera), guías sin conexión (apagón y potabilizar agua), plan familiar
   (compartido como ajuste, sin SQL) y «Tus productos» en el plan. Licencia
-  PolyForm Strict (commit `9435d0b`). Detalle en `docs/pendiente.md`,
-  «Hecho el 21/11/2026 (2)». Sin probar en el móvil. En git (`4bbe7b4`),
+  PolyForm Strict (commit `317e76e`). Detalle en `docs/pendiente.md`,
+  «Hecho el 21/11/2026 (2)». Sin probar en el móvil. En git (`b6f3cbb`),
   web publicada y actualización `006fbdeb` (en la app `01a1fb5f`).
 
 ### Dónde está todo (20/11/2026, al final del día)
@@ -253,11 +258,11 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
 ### Aprobado por Eric el 20/11/2026 («me parece todo correcto»), por este orden
 
 El 20/11/2026, con el visto bueno de Eric: el trueque quitado, en git
-(`da50467`) y publicado (grupo `baa21b36`, en la app `01a1f97a`); los tres
-vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
+(`7f5cb7d`) y publicado (grupo `baa21b36`, en la app `01a1f97a`); los tres
+vídeos de funciones, en git (`59bb8ad`). Todo subido a `main`.
 
 1. **Plan de compra mejorado: HECHO y publicado el 20/11/2026** (commit
-   `47b190b`, grupo `6bde7b32`, en la app `01a1f98c`)
+   `b1dd160`, grupo `6bde7b32`, en la app `01a1f98c`)
    (detalle, lo comprobado y lo que queda en `docs/pendiente.md`, «Hecho el
    20/11/2026»). Pantalla `src/app/compra.tsx`, cálculo en `src/lib/compra.ts`,
    lo común con Preparación en `src/lib/use-compra.ts`; el store pasa a la
@@ -286,7 +291,7 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
    preguntarle Eric a Mercadona (ver más abajo). Lo que
    falta para publicar en Play, por orden: `docs/pendiente.md`, «Para subir a
    Google Play».
-   Más tarde, el 20/11/2026, en git (`e0408e3`) y **en el APK versionCode 4**
+   Más tarde, el 20/11/2026, en git (`1b4e05c`) y **en el APK versionCode 4**
    (sin instalar ni probar en el móvil): precios
    de Mercadona (copia semanal) y lo que pide APK nuevo (widget, avisos de
    AEMET con la app cerrada, tiendas cerca, registro de errores); detalle en
@@ -348,10 +353,10 @@ vídeos de funciones, en git (`fd1965f`). Todo subido a `main`.
 - **Avisos oficiales**: hechos el 18/11/2026 y convertidos esa tarde en la
   pestaña **Actualidad** (`src/app/(tabs)/actualidad.tsx`, historial de 30
   días, noticias de AEMET; solo fuentes oficiales, nada de prensa, decidido
-  con Eric). En git (commit `9857f7b`) y **publicado** el 18/11/2026
+  con Eric). En git (commit `9b0a9f0`) y **publicado** el 18/11/2026
   (grupo `078c8705`; en la app, `01a1ef9f`, ojo: se parece al anterior
   `01a1ef48`). Esa misma tarde, a petición de Eric, más fuentes (AESAN,
-  AEMPS y Copernicus; la nuclear no) y filtro por tipo: commit `27e797d`,
+  AEMPS y Copernicus; la nuclear no) y filtro por tipo: commit `6a1dd79`,
   publicado (grupo `107efbb6`; en la app, `01a1efb8`). Falta que Eric lo
   pruebe en el móvil (detalle en `docs/pendiente.md`, «más fuentes en
   Actualidad» y «pestaña Actualidad»). Lo que falta, en el mismo fichero.
