@@ -42,8 +42,6 @@ example
 /ios
 /android
 
-# Vídeos de marketing: la caché de HyperFrames, los renders intermedios y la
-# música del catálogo de HeyGen (.media/), que se puede usar en los vídeos pero
-# no repartir suelta en un repositorio público. Los MP4 finales de marketing/ sí
-# van, con la música ya mezclada.
-marketing/*/.media/
+# Marketing (vídeos de HyperFrames, capturas, música y textos de difusión): desde
+# el 21/11/2026 no va a git, a petición de Eric. Se queda solo en su PC.
+marketing/

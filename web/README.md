@@ -44,7 +44,7 @@ privacidad y borrado de cuenta).
   del 16/11/2026; `sin-luz`, `energia` y `actualidad` (20/11/2026) salen de
   `marketing/video-numero/assets/app/`, recortadas con
   `magick <png> -crop 1080x2100+0+0 +repage -resize 540x -quality 80 <webp>`.
-  `emergencia`, `inicio` y `preparacion` ya no se usan.
+  Las que no se usaban se quitaron el 21/11/2026.
 - `img/compartir.png`: la imagen que sale al compartir el enlace (1200×630).
   `img/icono-*.png`: icono provisional, la A de Aguante (no hay logo propio).
 

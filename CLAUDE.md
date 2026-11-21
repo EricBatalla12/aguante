@@ -152,9 +152,12 @@ Ideas pendientes: [docs/pendiente.md](docs/pendiente.md).
   `aguante-web` y solo tenía la web). La rama local `feat/mvp` sigue a
   `origin/main` (`git push origin feat/mvp:main`); la local `master` se quedó
   en el commit inicial y no se usa. Todo está commiteado y subido
-  (`git log -1` dice cuál es el último). No van a git la caché de los vídeos ni la música de HeyGen
-  (`marketing/*/.media/`): para volver a renderizar un vídeo hay que volver a
-  bajarla (la búsqueda está en su `REVIEW.md`). **Al ser público, no escribir
+  (`git log -1` dice cuál es el último). **`marketing/` entera no va a git desde el
+  21/11/2026** (a petición de Eric: en GitHub, solo los vídeos e imágenes
+  indispensables): vídeos, capturas, guiones y `difusion.md` están **solo en
+  el PC de Eric, sin copia en ningún otro sitio**. Siguen en el historial de
+  git anterior a esa fecha. Para volver a renderizar un vídeo hay que bajar
+  otra vez la música (la búsqueda está en su `REVIEW.md`). **Al ser público, no escribir
   aquí ni en `docs/` nada privado.**
 - Lo del 16/11/2026 (detalle en `docs/pendiente.md`, «Hecho el 16/11/2026»):
   kit en cuatro listas con caducidades, plan de compra por meses, avisos en
